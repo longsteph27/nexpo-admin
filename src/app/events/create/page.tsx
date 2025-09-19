@@ -3,7 +3,6 @@
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Header from '@/components/layout/Header';
 import CreateEventStep1 from '@/components/events/CreateEventStep1';
 import CreateEventStep2 from '@/components/events/CreateEventStep2';
 import CreateEventStep3 from '@/components/events/CreateEventStep3';
@@ -147,9 +146,7 @@ export default function CreateEventPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
-        <main className="flex h-screen">
+      <main className="flex h-screen">
           {/* Left Panel - Background */}
           <div className="w-1/3 relative overflow-hidden">
             {currentStep === 1 && (
@@ -188,7 +185,6 @@ export default function CreateEventPage() {
             </div>
           </div>
         </main>
-      </div>
     </ProtectedRoute>
   );
 }

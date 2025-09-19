@@ -1,8 +1,13 @@
-/** @type {import('tailwindcss').Config} */
-// @ts-ignore
-import daisyui from 'daisyui';
+import type { Config } from 'tailwindcss';
 
-const config = {
+// Extend the Config type to include daisyui
+interface ExtendedConfig extends Config {
+  daisyui?: {
+    themes?: Array<Record<string, Record<string, string>>>;
+  };
+}
+
+const config: ExtendedConfig = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -14,6 +19,8 @@ const config = {
         'nexpo-blue': '#1e40af',
         'nexpo-gray': '#374151',
         'nexpo-light-gray': '#D9D9D9',
+        'nexpoGray': '#F7F7F7',
+        'nexpo-bg-gray': '#F7F7F7',
         'vnpt-blue': '#1e40af',
         'vnpt-light-blue': '#3b82f6',
         'vnpt-gray': '#374151',
@@ -24,7 +31,10 @@ const config = {
       },
     },
   },
-  plugins: [daisyui],
+  plugins: [
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    require('daisyui')
+  ],
   daisyui: {
     themes: [
       {

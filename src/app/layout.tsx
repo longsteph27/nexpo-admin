@@ -3,6 +3,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { PermissionProvider } from "@/contexts/PermissionContext";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -25,7 +26,9 @@ export default function RootLayout({
       <body className={`${poppins.variable} font-sans antialiased`}>
         <AuthProvider>
           <PermissionProvider>
-            {children}
+            <ConditionalLayout>
+              {children}
+            </ConditionalLayout>
           </PermissionProvider>
         </AuthProvider>
       </body>

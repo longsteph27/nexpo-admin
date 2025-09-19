@@ -3,14 +3,17 @@
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import Image from 'next/image';
 
 interface HeaderProps {
   title?: string;
   subtitle?: string;
+  onMenuClick?: () => void;
+  sidebarOpen?: boolean;
 }
 
-export default function Header({ title, subtitle }: HeaderProps) {
-  const { user, logout, isLoading } = useAuth();
+export default function Header({ title, onMenuClick, sidebarOpen }: HeaderProps) {
+  const { logout, isLoading } = useAuth();
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -23,12 +26,20 @@ export default function Header({ title, subtitle }: HeaderProps) {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className={`bg-white shadow-sm border-b border-nexpo-light-gray ${sidebarOpen ? 'lg:ml-56' : 'lg:ml-0'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Icon icon="mdi:view-grid" className="w-6 h-6 text-nexpo-blue mr-2" />
-            <h1 className="text-2xl font-bold text-nexpo-blue">NEXPO</h1>
+            {/* Mobile menu button */}
+            <button
+              onClick={onMenuClick}
+              className="lg:hidden p-2 rounded-md text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-colors duration-200 mr-3"
+            >
+              <Icon icon="mdi:menu" className="w-6 h-6" />
+            </button>
+            
+            <Image src="/menu.png" alt="Dashboard Icon" width={100} height={100} className="w-6 h-auto mr-2" />
+            <Image src="/logo_nexpo.png" alt="NEXPO" width={100} height={100} className="w-20 h-auto" />
             {title && (
               <>
                 <span className="mx-2 text-gray-400">•</span>

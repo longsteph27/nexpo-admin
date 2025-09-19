@@ -41,6 +41,14 @@ const LoginForm: React.FC = () => {
   });
 
   const emailValue = watch('email');
+  const passwordValue = watch('password');
+
+  // Check if form is valid for enabling/disabling login button
+  const isFormValid = emailValue && 
+    emailValue.includes('@') && 
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue) && 
+    passwordValue && 
+    passwordValue.length >= 6;
 
   // Validate email in real-time
   React.useEffect(() => {
@@ -105,7 +113,7 @@ const LoginForm: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
           onClick={handleGoogleLogin}
-          className="w-full bg-gray-100 hover:bg-gray-200 rounded-xl px-4 py-3 mb-6 flex items-center justify-center gap-3 transition-colors duration-200"
+            className="w-full bg-nexpo-bg-gray hover:bg-gray-200 rounded-xl px-4 py-3 mb-6 flex items-center justify-center gap-3 transition-colors duration-200"
         >
           <Image src="/google_icon.png" alt="Google" width={20} height={20} className="w-5 h-5" />
           <span className="text-nexpo-gray font-medium">Log in with google</span>
@@ -201,14 +209,15 @@ const LoginForm: React.FC = () => {
 
           {/* Login Button */}
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={isFormValid && !isLoading ? { scale: 1.02 } : {}}
+            whileTap={isFormValid && !isLoading ? { scale: 0.98 } : {}}
             type="submit"
-            disabled={isLoading}
-            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${isLoading
-                ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            disabled={isLoading || !isFormValid}
+            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+              isLoading || !isFormValid
+                ? 'bg-nexpo-bg-gray text-gray-500 cursor-not-allowed'
                 : 'bg-nexpo-blue text-white hover:bg-blue-700 active:bg-blue-800'
-              }`}
+            }`}
           >
             {isLoading ? (
               <div className="flex items-center justify-center gap-2">

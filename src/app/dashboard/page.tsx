@@ -1,24 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Header from '@/components/layout/Header';
 import { COLLECTIONS } from '@/types/collections';
 import { getCollectionInfo, getAllGroups } from '@/lib/collection-metadata';
 
 function DashboardContent() {
-  const { user, logout } = useAuth();
   const router = useRouter();
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
-
-  const handleLogout = async () => {
-    await logout();
-    router.push('/');
-  };
 
   const allGroups = getAllGroups();
   const groups = allGroups.filter(group => group !== 'blocks');
@@ -43,10 +35,7 @@ function DashboardContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header title="Collections Dashboard" />
-
+    <>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -229,7 +218,7 @@ function DashboardContent() {
           </motion.div>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 

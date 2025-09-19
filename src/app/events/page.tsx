@@ -11,7 +11,6 @@ import CreateEventForm from '@/components/events/CreateEventForm';
 import CreateEventFlow from '@/components/events/CreateEventFlow';
 import { collectionsAPI } from '@/lib/collections-api';
 import { CollectionItem } from '@/types/collections';
-import Header from '@/components/layout/Header';
 
 // Event interface is now imported from events-api
 
@@ -163,10 +162,7 @@ function EventsContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header title="Events" />
-
+    <>
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -350,7 +346,7 @@ function EventsContent() {
           }}
         />
       )}
-    </div>
+    </>
   );
 }
 

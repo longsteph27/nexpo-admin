@@ -6,7 +6,6 @@ import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/contexts/AuthContext';
-import Header from '@/components/layout/Header';
 
 interface UserProfile {
   id: string;
@@ -92,10 +91,7 @@ function ProfileContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <Header title="Profile" />
-
+    <>
       {/* Main Content */}
       <main className="max-w-4xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
@@ -371,7 +367,7 @@ function ProfileContent() {
           </div>
         </div>
       </main>
-    </div>
+    </>
   );
 }
 

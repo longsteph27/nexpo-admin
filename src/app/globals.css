@@ -14,6 +14,14 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
+  --color-nexpo-blue: #0075F4;
+  --color-nexpo-gray: #374151;
+  --color-nexpo-light-gray: #D9D9D9;
+  --color-nexpo-bg-gray: #F7F7F7;
+  --color-vnpt-blue: #1e40af;
+  --color-vnpt-light-blue: #3b82f6;
+  --color-vnpt-gray: #374151;
+  --color-vnpt-light-gray: #9ca3af;
 }
 
 * {
@@ -56,6 +64,16 @@ body {
 }
 
 *:focus-visible {
-  outline: 2px solid #1e40af;
-  outline-offset: 2px;
+  outline: none;
+}
+
+/* Remove outline from all input elements */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
 }
