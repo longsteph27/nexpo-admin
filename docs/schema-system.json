@@ -15595,6 +15595,64 @@
             }
         },
         {
+            "collection": "directus_users",
+            "field": "tenant_users",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "directus_users",
+                "field": "tenant_users",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "directus_users",
+            "field": "tenants",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "directus_users",
+                "field": "tenants",
+                "special": [
+                    "m2m"
+                ],
+                "interface": "list-m2m",
+                "options": {
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "directus_versions",
             "field": "id",
             "type": "uuid",

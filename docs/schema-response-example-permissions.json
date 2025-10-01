@@ -1,0 +1,4484 @@
+{
+    "data": {
+        "directus_activity": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_permissions": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_fields": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_folders": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_collections": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_users": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_roles": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_presets": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_files": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_sessions": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_revisions": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_settings": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_migrations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_relations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_webhooks": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_panels": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_notifications": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_shares": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_flows": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_operations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_dashboards": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_access": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_extensions": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_policies": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_comments": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "directus_versions": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_cta": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_faqs": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_button_group": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_columns_rows": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_columns": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_button": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_divider": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_logocloud": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_logocloud_logos": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_html": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_gallery": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_quote": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_richtext": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_step_items": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_team": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_gallery_files": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_form": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_steps": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_hero": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "forms": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_testimonials": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "conversations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_video": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "help_collections": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "help_feedback": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "inbox": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "contacts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_testimonial_slider_items": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "categories": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "globals": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "navigation": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "navigation_items": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "organizations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_email_templates": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_deals": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "organization_addresses": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_deal_stages": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_activities": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "organizations_contacts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "messages": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_deal_contacts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_activity_contacts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_project_templates": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_payments": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_project_updates": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_expenses": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_invoices": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_payment_terms": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_proposal_contacts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_items": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_proposal_approvals": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_invoice_items": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_proposal_blocks": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_project_contacts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_tax_rates": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_proposals": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "page_blocks": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "redirects": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "pages_projects": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "posts": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "pages": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_tasks": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_task_files": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_settings": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "post_gallery_items": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "seo": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "help_articles": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "tenant_users": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "os_projects": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "pages_blog": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "testimonials": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "team": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "tenants": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "events": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "languages": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "team_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "sites_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "event_users": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_faqs_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "pages_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "sites": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "posts_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_hero_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "testimonials_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "categories_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_columns_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_steps_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_testimonials_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_richtext_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_gallery_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_quote_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_logocloud_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_form_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_columns_rows_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_cta_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_team_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_step_items_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "forms_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_video_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_button_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "block_html_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "seo_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "navigation_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "navigation_items_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "tenant_users_events": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "sites_languages": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "form_answers": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "form_fields": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "form_fields_translations": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "form_submissions": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "junction_directus_users_tenants": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "junction_directus_users_tenants_1": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        },
+        "tenant_users_events_1": {
+            "create": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "read": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "update": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "delete": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            },
+            "share": {
+                "access": "full",
+                "fields": [
+                    "*"
+                ]
+            }
+        }
+    }
+}

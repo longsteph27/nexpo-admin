@@ -1,0 +1,3472 @@
+{
+    "collections": [
+        {
+            "collection": "form_fields",
+            "meta": {
+                "collection": "form_fields",
+                "icon": null,
+                "note": null,
+                "display_template": "{{name}}",
+                "hidden": false,
+                "singleton": false,
+                "translations": null,
+                "archive_field": "status",
+                "archive_app_filter": true,
+                "archive_value": "archived",
+                "unarchive_value": "draft",
+                "sort_field": "sort",
+                "accountability": "all",
+                "color": null,
+                "item_duplication_fields": null,
+                "sort": 1,
+                "group": "forms",
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        },
+        {
+            "collection": "form_submissions",
+            "meta": {
+                "collection": "form_submissions",
+                "icon": null,
+                "note": null,
+                "display_template": "{{form.translations.title}} • {{date_sumitted}}",
+                "hidden": false,
+                "singleton": false,
+                "translations": null,
+                "archive_field": "status",
+                "archive_app_filter": true,
+                "archive_value": "archived",
+                "unarchive_value": "draft",
+                "sort_field": null,
+                "accountability": "all",
+                "color": null,
+                "item_duplication_fields": null,
+                "sort": 2,
+                "group": "forms",
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        },
+        {
+            "collection": "form_answers",
+            "meta": {
+                "collection": "form_answers",
+                "icon": null,
+                "note": null,
+                "display_template": "{{field.name}} . {{value}}",
+                "hidden": false,
+                "singleton": false,
+                "translations": null,
+                "archive_field": null,
+                "archive_app_filter": true,
+                "archive_value": null,
+                "unarchive_value": null,
+                "sort_field": "sort",
+                "accountability": "all",
+                "color": null,
+                "item_duplication_fields": null,
+                "sort": 3,
+                "group": "forms",
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        },
+        {
+            "collection": "forms",
+            "meta": {
+                "collection": "forms",
+                "icon": "text_format",
+                "note": null,
+                "display_template": "{{translations.title}}",
+                "hidden": false,
+                "singleton": false,
+                "translations": null,
+                "archive_field": "status",
+                "archive_app_filter": true,
+                "archive_value": "archived",
+                "unarchive_value": "draft",
+                "sort_field": "sort",
+                "accountability": "all",
+                "color": "#18222F",
+                "item_duplication_fields": null,
+                "sort": 9,
+                "group": "sites",
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        },
+        {
+            "collection": "form_fields_translations",
+            "meta": {
+                "collection": "form_fields_translations",
+                "icon": "import_export",
+                "note": null,
+                "display_template": null,
+                "hidden": true,
+                "singleton": false,
+                "translations": null,
+                "archive_field": null,
+                "archive_app_filter": true,
+                "archive_value": null,
+                "unarchive_value": null,
+                "sort_field": null,
+                "accountability": "all",
+                "color": null,
+                "item_duplication_fields": null,
+                "sort": 31,
+                "group": null,
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        },
+        {
+            "collection": "forms_translations",
+            "meta": {
+                "collection": "forms_translations",
+                "icon": "import_export",
+                "note": null,
+                "display_template": null,
+                "hidden": true,
+                "singleton": false,
+                "translations": null,
+                "archive_field": null,
+                "archive_app_filter": true,
+                "archive_value": null,
+                "unarchive_value": null,
+                "sort_field": null,
+                "accountability": "all",
+                "color": null,
+                "item_duplication_fields": null,
+                "sort": 32,
+                "group": null,
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        }
+    ],
+    "fields": [
+        {
+            "collection": "forms",
+            "field": "date_created",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_created",
+                "table": "forms",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "date_created",
+                "special": [
+                    "cast-timestamp",
+                    "date-created"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 1,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "date_updated",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_updated",
+                "table": "forms",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "date_updated",
+                "special": [
+                    "cast-timestamp",
+                    "date-updated"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 2,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "user_created",
+            "type": "uuid",
+            "schema": {
+                "name": "user_created",
+                "table": "forms",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "user_created",
+                "special": [
+                    "user-created"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 3,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "user_updated",
+            "type": "uuid",
+            "schema": {
+                "name": "user_updated",
+                "table": "forms",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "user_updated",
+                "special": [
+                    "user-updated"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar.$thumbnail}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 4,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "id",
+            "type": "uuid",
+            "schema": {
+                "name": "id",
+                "table": "forms",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "id",
+                "special": [
+                    "uuid"
+                ],
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 5,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "status",
+            "type": "string",
+            "schema": {
+                "name": "status",
+                "table": "forms",
+                "data_type": "character varying",
+                "default_value": "draft",
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "status",
+                "special": null,
+                "interface": "select-dropdown",
+                "options": {
+                    "choices": [
+                        {
+                            "text": "Published",
+                            "value": "published"
+                        },
+                        {
+                            "text": "Draft",
+                            "value": "draft"
+                        },
+                        {
+                            "text": "Archived",
+                            "value": "archived"
+                        }
+                    ]
+                },
+                "display": "labels",
+                "display_options": {
+                    "choices": [
+                        {
+                            "text": "Published",
+                            "value": "published",
+                            "foreground": "#FFFFFF",
+                            "background": "var(--primary)"
+                        },
+                        {
+                            "text": "Draft",
+                            "value": "draft",
+                            "foreground": "#18222F",
+                            "background": "#D3DAE4"
+                        },
+                        {
+                            "text": "Archived",
+                            "value": "archived",
+                            "foreground": "#FFFFFF",
+                            "background": "var(--warning)"
+                        }
+                    ],
+                    "showAsDot": true
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "sort",
+            "type": "integer",
+            "schema": {
+                "name": "sort",
+                "table": "forms",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "sort",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 9,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "on_success",
+            "type": "string",
+            "schema": {
+                "name": "on_success",
+                "table": "forms",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "on_success",
+                "special": null,
+                "interface": "select-radio",
+                "options": {
+                    "choices": [
+                        {
+                            "text": "Redirect to URL",
+                            "value": "redirect"
+                        },
+                        {
+                            "text": "Show Message",
+                            "value": "message"
+                        }
+                    ]
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 10,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "redirect_url",
+            "type": "string",
+            "schema": {
+                "name": "redirect_url",
+                "table": "forms",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "redirect_url",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": "raw",
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 11,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": [
+                    {
+                        "name": "If Redirect",
+                        "options": {
+                            "font": "sans-serif",
+                            "trim": false,
+                            "masked": false,
+                            "clear": false,
+                            "slug": false
+                        },
+                        "hidden": false,
+                        "rule": {
+                            "_and": [
+                                {
+                                    "on_success": {
+                                        "_eq": "redirect"
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ],
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "tenant_id",
+            "type": "integer",
+            "schema": {
+                "name": "tenant_id",
+                "table": "forms",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "tenants",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "tenant_id",
+                "special": null,
+                "interface": "select-dropdown-m2o",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 12,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "forms",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "event_id",
+                "special": null,
+                "interface": "select-dropdown-m2o",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 13,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "site_id",
+            "type": "integer",
+            "schema": {
+                "name": "site_id",
+                "table": "forms",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "sites",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms",
+                "field": "site_id",
+                "special": null,
+                "interface": "select-dropdown-m2o",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 14,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "fields",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "forms",
+                "field": "fields",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": {
+                    "sort": null,
+                    "enableLink": true
+                },
+                "display": "related-values",
+                "display_options": {
+                    "template": "{{name}}- {{type}}"
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 15,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "submissions",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "forms",
+                "field": "submissions",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 16,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "translations",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "forms",
+                "field": "translations",
+                "special": [
+                    "translations"
+                ],
+                "interface": "translations",
+                "options": {
+                    "languageField": "code"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 19,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "id",
+            "type": "uuid",
+            "schema": {
+                "name": "id",
+                "table": "form_fields",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "id",
+                "special": [
+                    "uuid"
+                ],
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "form_id",
+            "type": "uuid",
+            "schema": {
+                "name": "form_id",
+                "table": "form_fields",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "forms",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "form_id",
+                "special": null,
+                "interface": "select-dropdown-m2o",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "status",
+            "type": "string",
+            "schema": {
+                "name": "status",
+                "table": "form_fields",
+                "data_type": "character varying",
+                "default_value": "publish",
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "status",
+                "special": null,
+                "interface": "select-dropdown",
+                "options": {
+                    "choices": [
+                        {
+                            "text": "Published",
+                            "value": "published",
+                            "color": "var(--theme--primary)"
+                        },
+                        {
+                            "text": "Draft",
+                            "value": "draft",
+                            "color": "var(--theme--foreground)"
+                        },
+                        {
+                            "text": "Archived",
+                            "value": "archived",
+                            "color": "var(--theme--warning)"
+                        }
+                    ]
+                },
+                "display": "labels",
+                "display_options": {
+                    "showAsDot": true,
+                    "choices": [
+                        {
+                            "text": "Published",
+                            "value": "published",
+                            "color": "var(--theme--primary)",
+                            "foreground": "var(--theme--primary)",
+                            "background": "var(--theme--primary-background)"
+                        },
+                        {
+                            "text": "Draft",
+                            "value": "draft",
+                            "color": "var(--theme--foreground)",
+                            "foreground": "var(--theme--foreground)",
+                            "background": "var(--theme--background-normal)"
+                        },
+                        {
+                            "text": "Archived",
+                            "value": "archived",
+                            "color": "var(--theme--warning)",
+                            "foreground": "var(--theme--warning)",
+                            "background": "var(--theme--warning-background)"
+                        }
+                    ]
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "sort",
+            "type": "integer",
+            "schema": {
+                "name": "sort",
+                "table": "form_fields",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "sort",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "user_created",
+            "type": "uuid",
+            "schema": {
+                "name": "user_created",
+                "table": "form_fields",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "user_created",
+                "special": [
+                    "user-created"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 5,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "date_created",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_created",
+                "table": "form_fields",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "date_created",
+                "special": [
+                    "date-created"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 6,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "user_updated",
+            "type": "uuid",
+            "schema": {
+                "name": "user_updated",
+                "table": "form_fields",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "user_updated",
+                "special": [
+                    "user-updated"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 7,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "date_updated",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_updated",
+                "table": "form_fields",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "date_updated",
+                "special": [
+                    "date-updated"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 8,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "name",
+            "type": "string",
+            "schema": {
+                "name": "name",
+                "table": "form_fields",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "name",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 9,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "type",
+            "type": "string",
+            "schema": {
+                "name": "type",
+                "table": "form_fields",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "type",
+                "special": null,
+                "interface": "select-dropdown",
+                "options": {
+                    "choices": [
+                        {
+                            "text": "Input",
+                            "value": "input",
+                            "icon": "input_circle"
+                        },
+                        {
+                            "text": "Textarea",
+                            "value": "textarea",
+                            "icon": "text_format"
+                        },
+                        {
+                            "text": "Email",
+                            "value": "email",
+                            "icon": "mark_email_unread"
+                        },
+                        {
+                            "text": "Number",
+                            "value": "number",
+                            "icon": "numbers"
+                        },
+                        {
+                            "text": "Select",
+                            "value": "select",
+                            "icon": "arrow_drop_down_circle"
+                        },
+                        {
+                            "text": "Multi Select",
+                            "value": "multiselect",
+                            "icon": "arrow_drop_down_circle"
+                        },
+                        {
+                            "text": "File",
+                            "value": "file",
+                            "icon": "upload_file"
+                        },
+                        {
+                            "text": "Image",
+                            "value": "image",
+                            "icon": "imagesmode"
+                        }
+                    ]
+                },
+                "display": "labels",
+                "display_options": {
+                    "choices": [
+                        {
+                            "text": "Input",
+                            "value": "input",
+                            "icon": "input_circle"
+                        },
+                        {
+                            "text": "Textarea",
+                            "value": "textarea",
+                            "icon": "text_format"
+                        },
+                        {
+                            "text": "Email",
+                            "value": "email",
+                            "icon": "mark_email_unread"
+                        },
+                        {
+                            "text": "Number",
+                            "value": "number",
+                            "icon": "numbers"
+                        },
+                        {
+                            "text": "Select",
+                            "value": "select",
+                            "icon": "arrow_drop_down_circle"
+                        },
+                        {
+                            "text": "Multi Select",
+                            "value": "multiselect",
+                            "icon": "arrow_drop_down_circle"
+                        },
+                        {
+                            "text": "File",
+                            "value": "file",
+                            "icon": "upload_file"
+                        },
+                        {
+                            "text": "Image",
+                            "value": "image",
+                            "icon": "imagesmode"
+                        }
+                    ]
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 10,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "width",
+            "type": "string",
+            "schema": {
+                "name": "width",
+                "table": "form_fields",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "width",
+                "special": null,
+                "interface": "select-radio",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 11,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "conditions",
+            "type": "json",
+            "schema": {
+                "name": "conditions",
+                "table": "form_fields",
+                "data_type": "json",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "conditions",
+                "special": [
+                    "cast-json"
+                ],
+                "interface": "list",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 12,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "validation",
+            "type": "string",
+            "schema": {
+                "name": "validation",
+                "table": "form_fields",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "validation",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 13,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "translations",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "form_fields",
+                "field": "translations",
+                "special": [
+                    "translations"
+                ],
+                "interface": "translations",
+                "options": {
+                    "languageField": "code"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 14,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "answers",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "form_fields",
+                "field": "answers",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 15,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "is_required",
+            "type": "boolean",
+            "schema": {
+                "name": "is_required",
+                "table": "form_fields",
+                "data_type": "boolean",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields",
+                "field": "is_required",
+                "special": [
+                    "cast-boolean"
+                ],
+                "interface": "boolean",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 16,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "id",
+            "type": "uuid",
+            "schema": {
+                "name": "id",
+                "table": "form_submissions",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "id",
+                "special": [
+                    "uuid"
+                ],
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "status",
+            "type": "string",
+            "schema": {
+                "name": "status",
+                "table": "form_submissions",
+                "data_type": "character varying",
+                "default_value": "draft",
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "status",
+                "special": null,
+                "interface": "select-dropdown",
+                "options": {
+                    "choices": [
+                        {
+                            "text": "Published",
+                            "value": "published",
+                            "color": "var(--theme--primary)"
+                        },
+                        {
+                            "text": "Draft",
+                            "value": "draft",
+                            "color": "var(--theme--foreground)"
+                        },
+                        {
+                            "text": "Archived",
+                            "value": "archived",
+                            "color": "var(--theme--warning)"
+                        }
+                    ]
+                },
+                "display": "labels",
+                "display_options": {
+                    "showAsDot": true,
+                    "choices": [
+                        {
+                            "text": "Published",
+                            "value": "published",
+                            "color": "var(--theme--primary)",
+                            "foreground": "var(--theme--primary)",
+                            "background": "var(--theme--primary-background)"
+                        },
+                        {
+                            "text": "Draft",
+                            "value": "draft",
+                            "color": "var(--theme--foreground)",
+                            "foreground": "var(--theme--foreground)",
+                            "background": "var(--theme--background-normal)"
+                        },
+                        {
+                            "text": "Archived",
+                            "value": "archived",
+                            "color": "var(--theme--warning)",
+                            "foreground": "var(--theme--warning)",
+                            "background": "var(--theme--warning-background)"
+                        }
+                    ]
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "user_created",
+            "type": "uuid",
+            "schema": {
+                "name": "user_created",
+                "table": "form_submissions",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "user_created",
+                "special": [
+                    "user-created"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "user_updated",
+            "type": "uuid",
+            "schema": {
+                "name": "user_updated",
+                "table": "form_submissions",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "user_updated",
+                "special": [
+                    "user-updated"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 4,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "date_updated",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_updated",
+                "table": "form_submissions",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "date_updated",
+                "special": [
+                    "date-updated"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 5,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "date_started",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_started",
+                "table": "form_submissions",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "date_started",
+                "special": null,
+                "interface": "datetime",
+                "options": {},
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "date_sumitted",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_sumitted",
+                "table": "form_submissions",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "date_sumitted",
+                "special": [
+                    "date-created"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 7,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "form",
+            "type": "uuid",
+            "schema": {
+                "name": "form",
+                "table": "form_submissions",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "forms",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_submissions",
+                "field": "form",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{translations.title}}"
+                },
+                "display": "related-values",
+                "display_options": {
+                    "template": "{{translations.title}}"
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 8,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "answers",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "form_submissions",
+                "field": "answers",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": {
+                    "sort": null,
+                    "enableLink": true
+                },
+                "display": "related-values",
+                "display_options": {
+                    "template": "{{field.name}} • {{value}}"
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 9,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "id",
+            "type": "integer",
+            "schema": {
+                "name": "id",
+                "table": "form_answers",
+                "data_type": "integer",
+                "default_value": "nextval('form_answers_id_seq'::regclass)",
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": true,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_answers",
+                "field": "id",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "sort",
+            "type": "integer",
+            "schema": {
+                "name": "sort",
+                "table": "form_answers",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_answers",
+                "field": "sort",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "field",
+            "type": "uuid",
+            "schema": {
+                "name": "field",
+                "table": "form_answers",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "form_fields",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_answers",
+                "field": "field",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": null,
+                "display": "related-values",
+                "display_options": {
+                    "template": "{{name}}"
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "value",
+            "type": "text",
+            "schema": {
+                "name": "value",
+                "table": "form_answers",
+                "data_type": "text",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_answers",
+                "field": "value",
+                "special": null,
+                "interface": "input-multiline",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "submission",
+            "type": "uuid",
+            "schema": {
+                "name": "submission",
+                "table": "form_answers",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "form_submissions",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_answers",
+                "field": "submission",
+                "special": null,
+                "interface": "select-dropdown-m2o",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 5,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "id",
+            "type": "integer",
+            "schema": {
+                "name": "id",
+                "table": "form_fields_translations",
+                "data_type": "integer",
+                "default_value": "nextval('form_fields_translations_id_seq'::regclass)",
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": true,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "id",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "form_fields_id",
+            "type": "uuid",
+            "schema": {
+                "name": "form_fields_id",
+                "table": "form_fields_translations",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "form_fields",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "form_fields_id",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "languages_code",
+            "type": "string",
+            "schema": {
+                "name": "languages_code",
+                "table": "form_fields_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "languages",
+                "foreign_key_column": "code",
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "languages_code",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "label",
+            "type": "string",
+            "schema": {
+                "name": "label",
+                "table": "form_fields_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "label",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "placeholder",
+            "type": "string",
+            "schema": {
+                "name": "placeholder",
+                "table": "form_fields_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "placeholder",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "help",
+            "type": "string",
+            "schema": {
+                "name": "help",
+                "table": "form_fields_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "help",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "options",
+            "type": "json",
+            "schema": {
+                "name": "options",
+                "table": "form_fields_translations",
+                "data_type": "json",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "form_fields_translations",
+                "field": "options",
+                "special": [
+                    "cast-json"
+                ],
+                "interface": "list",
+                "options": {
+                    "fields": [
+                        {
+                            "field": "label",
+                            "name": "label",
+                            "type": "string",
+                            "meta": {
+                                "field": "label",
+                                "width": "half",
+                                "type": "string",
+                                "interface": "input"
+                            }
+                        },
+                        {
+                            "field": "value",
+                            "name": "value",
+                            "type": "string",
+                            "meta": {
+                                "field": "value",
+                                "width": "half",
+                                "type": "string",
+                                "interface": "input"
+                            }
+                        }
+                    ]
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": [
+                    {
+                        "name": "show IF type == Select, MultiSelect",
+                        "hidden": false,
+                        "rule": null
+                    }
+                ],
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "id",
+            "type": "integer",
+            "schema": {
+                "name": "id",
+                "table": "forms_translations",
+                "data_type": "integer",
+                "default_value": "nextval('forms_translations_id_seq'::regclass)",
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": true,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms_translations",
+                "field": "id",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "forms_id",
+            "type": "uuid",
+            "schema": {
+                "name": "forms_id",
+                "table": "forms_translations",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "forms",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms_translations",
+                "field": "forms_id",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "languages_code",
+            "type": "string",
+            "schema": {
+                "name": "languages_code",
+                "table": "forms_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "languages",
+                "foreign_key_column": "code",
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms_translations",
+                "field": "languages_code",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "title",
+            "type": "string",
+            "schema": {
+                "name": "title",
+                "table": "forms_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms_translations",
+                "field": "title",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "submit_label",
+            "type": "string",
+            "schema": {
+                "name": "submit_label",
+                "table": "forms_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms_translations",
+                "field": "submit_label",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "success_message",
+            "type": "text",
+            "schema": {
+                "name": "success_message",
+                "table": "forms_translations",
+                "data_type": "text",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "forms_translations",
+                "field": "success_message",
+                "special": null,
+                "interface": "input-rich-text-html",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        }
+    ],
+    "relations": [
+        {
+            "collection": "forms",
+            "field": "site_id",
+            "related_collection": "sites",
+            "schema": {
+                "constraint_name": "forms_site_id_foreign",
+                "table": "forms",
+                "column": "site_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "sites",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "forms",
+                "many_field": "site_id",
+                "one_collection": "sites",
+                "one_field": "forms",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "forms_event_id_foreign",
+                "table": "forms",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "forms",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": "forms",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "tenant_id",
+            "related_collection": "tenants",
+            "schema": {
+                "constraint_name": "forms_tenant_id_foreign",
+                "table": "forms",
+                "column": "tenant_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "tenants",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "forms",
+                "many_field": "tenant_id",
+                "one_collection": "tenants",
+                "one_field": "forms",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "user_updated",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "forms_user_updated_foreign",
+                "table": "forms",
+                "column": "user_updated",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "forms",
+                "many_field": "user_updated",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "forms",
+            "field": "user_created",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "forms_user_created_foreign",
+                "table": "forms",
+                "column": "user_created",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "forms",
+                "many_field": "user_created",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "form_id",
+            "related_collection": "forms",
+            "schema": {
+                "constraint_name": "form_fields_form_id_foreign",
+                "table": "form_fields",
+                "column": "form_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "forms",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "form_fields",
+                "many_field": "form_id",
+                "one_collection": "forms",
+                "one_field": "fields",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": "sort",
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "user_updated",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "form_fields_user_updated_foreign",
+                "table": "form_fields",
+                "column": "user_updated",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "form_fields",
+                "many_field": "user_updated",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_fields",
+            "field": "user_created",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "form_fields_user_created_foreign",
+                "table": "form_fields",
+                "column": "user_created",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "form_fields",
+                "many_field": "user_created",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "form",
+            "related_collection": "forms",
+            "schema": {
+                "constraint_name": "form_submissions_form_foreign",
+                "table": "form_submissions",
+                "column": "form",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "forms",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "form_submissions",
+                "many_field": "form",
+                "one_collection": "forms",
+                "one_field": "submissions",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "user_created",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "form_submissions_user_created_foreign",
+                "table": "form_submissions",
+                "column": "user_created",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "form_submissions",
+                "many_field": "user_created",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_submissions",
+            "field": "user_updated",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "form_submissions_user_updated_foreign",
+                "table": "form_submissions",
+                "column": "user_updated",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "form_submissions",
+                "many_field": "user_updated",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "submission",
+            "related_collection": "form_submissions",
+            "schema": {
+                "constraint_name": "form_answers_submission_foreign",
+                "table": "form_answers",
+                "column": "submission",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "form_submissions",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "form_answers",
+                "many_field": "submission",
+                "one_collection": "form_submissions",
+                "one_field": "answers",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": "sort",
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_answers",
+            "field": "field",
+            "related_collection": "form_fields",
+            "schema": {
+                "constraint_name": "form_answers_field_foreign",
+                "table": "form_answers",
+                "column": "field",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "form_fields",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "form_answers",
+                "many_field": "field",
+                "one_collection": "form_fields",
+                "one_field": "answers",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "form_fields_id",
+            "related_collection": "form_fields",
+            "schema": {
+                "constraint_name": "form_fields_translations_form_fields_id_foreign",
+                "table": "form_fields_translations",
+                "column": "form_fields_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "form_fields",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "form_fields_translations",
+                "many_field": "form_fields_id",
+                "one_collection": "form_fields",
+                "one_field": "translations",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": "languages_code",
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "form_fields_translations",
+            "field": "languages_code",
+            "related_collection": "languages",
+            "schema": {
+                "constraint_name": "form_fields_translations_languages_code_foreign",
+                "table": "form_fields_translations",
+                "column": "languages_code",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "languages",
+                "foreign_key_column": "code",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "form_fields_translations",
+                "many_field": "languages_code",
+                "one_collection": "languages",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": "form_fields_id",
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "forms_id",
+            "related_collection": "forms",
+            "schema": {
+                "constraint_name": "forms_translations_forms_id_foreign",
+                "table": "forms_translations",
+                "column": "forms_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "forms",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "forms_translations",
+                "many_field": "forms_id",
+                "one_collection": "forms",
+                "one_field": "translations",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": "languages_code",
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "forms_translations",
+            "field": "languages_code",
+            "related_collection": "languages",
+            "schema": {
+                "constraint_name": "forms_translations_languages_code_foreign",
+                "table": "forms_translations",
+                "column": "languages_code",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "languages",
+                "foreign_key_column": "code",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "forms_translations",
+                "many_field": "languages_code",
+                "one_collection": "languages",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": "forms_id",
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        }
+    ]
+}

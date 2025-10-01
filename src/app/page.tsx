@@ -1,36 +1,29 @@
 'use client';
 
-import { useAuth } from '@/contexts/AuthContext';
-import LoginForm from '@/components/auth/LoginForm';
-import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/store/auth';
 
 export default function Home() {
-  const { isAuthenticated, isLoading } = useAuth();
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
-    console.log('Home page - useEffect triggered:', { isLoading, isAuthenticated });
-    if (!isLoading && isAuthenticated) {
-      console.log('Home page - Redirecting to dashboard');
-      router.push('/dashboard');
+    if (!isLoading) {
+      if (isAuthenticated) {
+        router.push('/dashboard');
+      } else {
+        router.push('/login');
+      }
     }
   }, [isAuthenticated, isLoading, router]);
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nexpo-blue mx-auto mb-4"></div>
-          <p className="text-nexpo-gray">Loading...</p>
-        </div>
+  return (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex items-center space-x-3">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+        <span className="text-lg font-medium text-gray-700">Loading...</span>
       </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <LoginForm />;
-  }
-
-  return null;
+    </div>
+  );
 }

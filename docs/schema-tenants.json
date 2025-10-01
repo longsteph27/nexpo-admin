@@ -1,20 +1,20 @@
 {
     "collections": [
         {
-            "collection": "events",
+            "collection": "tenants",
             "meta": {
-                "collection": "events",
-                "icon": "event",
-                "note": "Tenant-specific events",
-                "display_template": "{{name}} ({{start_date}})",
+                "collection": "tenants",
+                "icon": "business",
+                "note": "Represents workspaces for organizations or groups",
+                "display_template": "{{name}}",
                 "hidden": false,
                 "singleton": false,
                 "translations": [
                     {
                         "language": "en-US",
-                        "translation": "Events",
-                        "singular": "Event",
-                        "plural": "Events"
+                        "translation": "Tenants",
+                        "singular": "Tenant",
+                        "plural": "Tenants"
                     }
                 ],
                 "archive_field": "status",
@@ -23,9 +23,13 @@
                 "unarchive_value": "draft",
                 "sort_field": "sort",
                 "accountability": "all",
-                "color": "#FF5722",
-                "item_duplication_fields": null,
-                "sort": 2,
+                "color": "#6644FF",
+                "item_duplication_fields": [
+                    "name",
+                    "logo",
+                    "settings"
+                ],
+                "sort": 1,
                 "group": null,
                 "collapse": "open",
                 "preview_url": null,
@@ -36,14 +40,14 @@
     ],
     "fields": [
         {
-            "collection": "events",
+            "collection": "tenants",
             "field": "id",
             "type": "integer",
             "schema": {
                 "name": "id",
-                "table": "events",
+                "table": "tenants",
                 "data_type": "integer",
-                "default_value": "nextval('events_id_seq'::regclass)",
+                "default_value": "nextval('tenants_id_seq'::regclass)",
                 "generation_expression": null,
                 "max_length": null,
                 "numeric_precision": 32,
@@ -60,10 +64,10 @@
                 "comment": null
             },
             "meta": {
-                "collection": "events",
+                "collection": "tenants",
                 "field": "id",
                 "special": null,
-                "interface": "numeric",
+                "interface": "input",
                 "options": null,
                 "display": null,
                 "display_options": null,
@@ -81,34 +85,34 @@
             }
         },
         {
-            "collection": "events",
-            "field": "tenant_id",
-            "type": "integer",
+            "collection": "tenants",
+            "field": "email",
+            "type": "string",
             "schema": {
-                "name": "tenant_id",
-                "table": "events",
-                "data_type": "integer",
+                "name": "email",
+                "table": "tenants",
+                "data_type": "character varying",
                 "default_value": null,
                 "generation_expression": null,
-                "max_length": null,
-                "numeric_precision": 32,
-                "numeric_scale": 0,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
                 "is_generated": false,
                 "is_nullable": true,
                 "is_unique": false,
                 "is_indexed": false,
                 "is_primary_key": false,
                 "has_auto_increment": false,
-                "foreign_key_schema": "public",
-                "foreign_key_table": "tenants",
-                "foreign_key_column": "id",
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
                 "comment": null
             },
             "meta": {
-                "collection": "events",
-                "field": "tenant_id",
+                "collection": "tenants",
+                "field": "email",
                 "special": null,
-                "interface": "select-dropdown-m2o",
+                "interface": "input",
                 "options": null,
                 "display": null,
                 "display_options": null,
@@ -119,82 +123,19 @@
                 "translations": null,
                 "note": null,
                 "conditions": null,
-                "required": false,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
             }
         },
         {
-            "collection": "events",
-            "field": "event_users",
-            "type": "alias",
-            "schema": null,
-            "meta": {
-                "collection": "events",
-                "field": "event_users",
-                "special": [
-                    "o2m"
-                ],
-                "interface": "list-o2m",
-                "options": {
-                    "sort": null
-                },
-                "display": null,
-                "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 3,
-                "width": "full",
-                "translations": null,
-                "note": null,
-                "conditions": null,
-                "required": false,
-                "group": null,
-                "validation": null,
-                "validation_message": null
-            }
-        },
-        {
-            "collection": "events",
-            "field": "sites",
-            "type": "alias",
-            "schema": null,
-            "meta": {
-                "collection": "events",
-                "field": "sites",
-                "special": [
-                    "o2m"
-                ],
-                "interface": "list-o2m",
-                "options": {
-                    "sort": null,
-                    "template": "{{domain}}"
-                },
-                "display": "related-values",
-                "display_options": {
-                    "template": "{{domain}}"
-                },
-                "readonly": false,
-                "hidden": false,
-                "sort": 4,
-                "width": "full",
-                "translations": null,
-                "note": null,
-                "conditions": null,
-                "required": false,
-                "group": null,
-                "validation": null,
-                "validation_message": null
-            }
-        },
-        {
-            "collection": "events",
+            "collection": "tenants",
             "field": "name",
             "type": "string",
             "schema": {
                 "name": "name",
-                "table": "events",
+                "table": "tenants",
                 "data_type": "character varying",
                 "default_value": null,
                 "generation_expression": null,
@@ -213,26 +154,24 @@
                 "comment": null
             },
             "meta": {
-                "collection": "events",
+                "collection": "tenants",
                 "field": "name",
                 "special": null,
                 "interface": "input",
-                "options": {
-                    "trim": true
-                },
+                "options": null,
                 "display": "raw",
                 "display_options": null,
                 "readonly": false,
                 "hidden": false,
-                "sort": 5,
+                "sort": 3,
                 "width": "full",
                 "translations": [
                     {
                         "language": "en-US",
-                        "translation": "Name"
+                        "translation": "Tenant Name"
                     }
                 ],
-                "note": "Event name",
+                "note": "The name of the tenant organization",
                 "conditions": null,
                 "required": true,
                 "group": null,
@@ -241,13 +180,70 @@
             }
         },
         {
-            "collection": "events",
-            "field": "description",
-            "type": "text",
+            "collection": "tenants",
+            "field": "logo",
+            "type": "uuid",
             "schema": {
-                "name": "description",
-                "table": "events",
-                "data_type": "text",
+                "name": "logo",
+                "table": "tenants",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "tenants",
+                "field": "logo",
+                "special": [
+                    "file"
+                ],
+                "interface": "file-image",
+                "options": {
+                    "folder": null,
+                    "cropping": true
+                },
+                "display": "image",
+                "display_options": {
+                    "circle": true
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "half",
+                "translations": [
+                    {
+                        "language": "en-US",
+                        "translation": "Logo"
+                    }
+                ],
+                "note": "Upload the tenant's logo",
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "settings",
+            "type": "json",
+            "schema": {
+                "name": "settings",
+                "table": "tenants",
+                "data_type": "json",
                 "default_value": null,
                 "generation_expression": null,
                 "max_length": null,
@@ -265,19 +261,16 @@
                 "comment": null
             },
             "meta": {
-                "collection": "events",
-                "field": "description",
-                "special": null,
-                "interface": "input-rich-text-md",
+                "collection": "tenants",
+                "field": "settings",
+                "special": [
+                    "json"
+                ],
+                "interface": "input-code",
                 "options": {
-                    "toolbar": [
-                        "bold",
-                        "italic",
-                        "underline",
-                        "link"
-                    ]
+                    "language": "json"
                 },
-                "display": "raw",
+                "display": "json",
                 "display_options": null,
                 "readonly": false,
                 "hidden": false,
@@ -286,10 +279,10 @@
                 "translations": [
                     {
                         "language": "en-US",
-                        "translation": "Description"
+                        "translation": "Settings"
                     }
                 ],
-                "note": "Event description (optional)",
+                "note": "JSON configuration for tenant-specific settings",
                 "conditions": null,
                 "required": false,
                 "group": null,
@@ -298,177 +291,19 @@
             }
         },
         {
-            "collection": "events",
-            "field": "start_date",
-            "type": "timestamp",
-            "schema": {
-                "name": "start_date",
-                "table": "events",
-                "data_type": "timestamp with time zone",
-                "default_value": null,
-                "generation_expression": null,
-                "max_length": null,
-                "numeric_precision": null,
-                "numeric_scale": null,
-                "is_generated": false,
-                "is_nullable": false,
-                "is_unique": false,
-                "is_indexed": false,
-                "is_primary_key": false,
-                "has_auto_increment": false,
-                "foreign_key_schema": null,
-                "foreign_key_table": null,
-                "foreign_key_column": null,
-                "comment": null
-            },
-            "meta": {
-                "collection": "events",
-                "field": "start_date",
-                "special": [
-                    "date-created"
-                ],
-                "interface": "datetime",
-                "options": {
-                    "includeTime": true
-                },
-                "display": "datetime",
-                "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 7,
-                "width": "half",
-                "translations": [
-                    {
-                        "language": "en-US",
-                        "translation": "Start Date"
-                    }
-                ],
-                "note": "Start date and time",
-                "conditions": null,
-                "required": true,
-                "group": null,
-                "validation": null,
-                "validation_message": null
-            }
-        },
-        {
-            "collection": "events",
-            "field": "end_date",
-            "type": "timestamp",
-            "schema": {
-                "name": "end_date",
-                "table": "events",
-                "data_type": "timestamp with time zone",
-                "default_value": null,
-                "generation_expression": null,
-                "max_length": null,
-                "numeric_precision": null,
-                "numeric_scale": null,
-                "is_generated": false,
-                "is_nullable": true,
-                "is_unique": false,
-                "is_indexed": false,
-                "is_primary_key": false,
-                "has_auto_increment": false,
-                "foreign_key_schema": null,
-                "foreign_key_table": null,
-                "foreign_key_column": null,
-                "comment": null
-            },
-            "meta": {
-                "collection": "events",
-                "field": "end_date",
-                "special": null,
-                "interface": "datetime",
-                "options": {
-                    "includeTime": true
-                },
-                "display": "datetime",
-                "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 8,
-                "width": "half",
-                "translations": [
-                    {
-                        "language": "en-US",
-                        "translation": "End Date"
-                    }
-                ],
-                "note": "End date and time (optional)",
-                "conditions": null,
-                "required": false,
-                "group": null,
-                "validation": null,
-                "validation_message": null
-            }
-        },
-        {
-            "collection": "events",
-            "field": "location",
+            "collection": "tenants",
+            "field": "status",
             "type": "string",
             "schema": {
-                "name": "location",
-                "table": "events",
+                "name": "status",
+                "table": "tenants",
                 "data_type": "character varying",
-                "default_value": null,
+                "default_value": "draft",
                 "generation_expression": null,
                 "max_length": 255,
                 "numeric_precision": null,
                 "numeric_scale": null,
                 "is_generated": false,
-                "is_nullable": true,
-                "is_unique": false,
-                "is_indexed": false,
-                "is_primary_key": false,
-                "has_auto_increment": false,
-                "foreign_key_schema": null,
-                "foreign_key_table": null,
-                "foreign_key_column": null,
-                "comment": null
-            },
-            "meta": {
-                "collection": "events",
-                "field": "location",
-                "special": null,
-                "interface": "input",
-                "options": {
-                    "trim": true
-                },
-                "display": "raw",
-                "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 9,
-                "width": "full",
-                "translations": [
-                    {
-                        "language": "en-US",
-                        "translation": "Location"
-                    }
-                ],
-                "note": "Event location (optional)",
-                "conditions": null,
-                "required": false,
-                "group": null,
-                "validation": null,
-                "validation_message": null
-            }
-        },
-        {
-            "collection": "events",
-            "field": "status",
-            "type": "string",
-            "schema": {
-                "name": "status",
-                "table": "events",
-                "data_type": "character varying",
-                "default_value": "draft",
-                "generation_expression": null,
-                "max_length": 50,
-                "numeric_precision": null,
-                "numeric_scale": null,
-                "is_generated": false,
                 "is_nullable": false,
                 "is_unique": false,
                 "is_indexed": false,
@@ -480,57 +315,55 @@
                 "comment": null
             },
             "meta": {
-                "collection": "events",
+                "collection": "tenants",
                 "field": "status",
                 "special": null,
                 "interface": "select-dropdown",
                 "options": {
                     "choices": [
                         {
-                            "text": "Draft",
-                            "value": "draft"
+                            "text": "Active",
+                            "value": "active",
+                            "color": "#2ECDA7"
                         },
                         {
-                            "text": "Published",
-                            "value": "published"
-                        },
-                        {
-                            "text": "Archived",
-                            "value": "archived"
+                            "text": "Inactive",
+                            "value": "inactive",
+                            "color": "var(--theme--foreground)"
                         }
                     ]
                 },
                 "display": "labels",
                 "display_options": {
+                    "showAsDot": true,
                     "choices": [
                         {
-                            "text": "Draft",
-                            "value": "draft",
-                            "color": "grey"
+                            "text": "Active",
+                            "value": "active",
+                            "color": "#2ECDA7",
+                            "foreground": "#2ECDA7",
+                            "background": "var(--theme--primary-background)"
                         },
                         {
-                            "text": "Published",
-                            "value": "published",
-                            "color": "green"
-                        },
-                        {
-                            "text": "Archived",
-                            "value": "archived",
-                            "color": "red"
+                            "text": "Inactive",
+                            "value": "inactive",
+                            "color": "var(--theme--foreground)",
+                            "foreground": "var(--theme--foreground)",
+                            "background": "var(--theme--background-normal)"
                         }
                     ]
                 },
                 "readonly": false,
                 "hidden": false,
-                "sort": 10,
-                "width": "half",
+                "sort": 7,
+                "width": "full",
                 "translations": [
                     {
                         "language": "en-US",
                         "translation": "Status"
                     }
                 ],
-                "note": "Event status",
+                "note": null,
                 "conditions": null,
                 "required": true,
                 "group": null,
@@ -539,12 +372,12 @@
             }
         },
         {
-            "collection": "events",
+            "collection": "tenants",
             "field": "sort",
             "type": "integer",
             "schema": {
                 "name": "sort",
-                "table": "events",
+                "table": "tenants",
                 "data_type": "integer",
                 "default_value": null,
                 "generation_expression": null,
@@ -563,53 +396,16 @@
                 "comment": null
             },
             "meta": {
-                "collection": "events",
+                "collection": "tenants",
                 "field": "sort",
                 "special": null,
                 "interface": "input",
-                "options": {
-                    "type": "number"
-                },
-                "display": "raw",
-                "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 11,
-                "width": "half",
-                "translations": [
-                    {
-                        "language": "en-US",
-                        "translation": "Sort Order"
-                    }
-                ],
-                "note": "Sort order (optional)",
-                "conditions": null,
-                "required": false,
-                "group": null,
-                "validation": null,
-                "validation_message": null
-            }
-        },
-        {
-            "collection": "events",
-            "field": "forms",
-            "type": "alias",
-            "schema": null,
-            "meta": {
-                "collection": "events",
-                "field": "forms",
-                "special": [
-                    "o2m"
-                ],
-                "interface": "list-o2m",
-                "options": {
-                    "sort": null
-                },
+                "options": null,
                 "display": null,
                 "display_options": null,
                 "readonly": false,
-                "hidden": false,
-                "sort": 12,
+                "hidden": true,
+                "sort": 8,
                 "width": "full",
                 "translations": null,
                 "note": null,
@@ -621,12 +417,12 @@
             }
         },
         {
-            "collection": "events",
+            "collection": "tenants",
             "field": "user_created",
             "type": "uuid",
             "schema": {
                 "name": "user_created",
-                "table": "events",
+                "table": "tenants",
                 "data_type": "uuid",
                 "default_value": null,
                 "generation_expression": null,
@@ -645,24 +441,21 @@
                 "comment": null
             },
             "meta": {
-                "collection": "events",
+                "collection": "tenants",
                 "field": "user_created",
                 "special": [
-                    "m2o",
                     "user-created"
                 ],
                 "interface": "select-dropdown-m2o",
                 "options": {
-                    "template": "{{avatar}}{{last_name}}",
-                    "enableSelect": false,
-                    "enableCreate": false
+                    "template": "{{avatar}} {{first_name}} {{last_name}}"
                 },
                 "display": "user",
                 "display_options": null,
                 "readonly": true,
                 "hidden": true,
-                "sort": 13,
-                "width": "full",
+                "sort": 9,
+                "width": "half",
                 "translations": null,
                 "note": null,
                 "conditions": null,
@@ -673,12 +466,61 @@
             }
         },
         {
-            "collection": "events",
-            "field": "logo",
+            "collection": "tenants",
+            "field": "date_created",
+            "type": "timestamp",
+            "schema": {
+                "name": "date_created",
+                "table": "tenants",
+                "data_type": "timestamp with time zone",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "tenants",
+                "field": "date_created",
+                "special": [
+                    "date-created"
+                ],
+                "interface": "datetime",
+                "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 10,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "user_updated",
             "type": "uuid",
             "schema": {
-                "name": "logo",
-                "table": "events",
+                "name": "user_updated",
+                "table": "tenants",
                 "data_type": "uuid",
                 "default_value": null,
                 "generation_expression": null,
@@ -692,24 +534,26 @@
                 "is_primary_key": false,
                 "has_auto_increment": false,
                 "foreign_key_schema": "public",
-                "foreign_key_table": "directus_files",
+                "foreign_key_table": "directus_users",
                 "foreign_key_column": "id",
                 "comment": null
             },
             "meta": {
-                "collection": "events",
-                "field": "logo",
+                "collection": "tenants",
+                "field": "user_updated",
                 "special": [
-                    "file"
+                    "user-updated"
                 ],
-                "interface": "file-image",
-                "options": null,
-                "display": null,
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{avatar}} {{first_name}} {{last_name}}"
+                },
+                "display": "user",
                 "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 14,
-                "width": "full",
+                "readonly": true,
+                "hidden": true,
+                "sort": 11,
+                "width": "half",
                 "translations": null,
                 "note": null,
                 "conditions": null,
@@ -720,13 +564,13 @@
             }
         },
         {
-            "collection": "events",
-            "field": "banner",
-            "type": "uuid",
+            "collection": "tenants",
+            "field": "date_updated",
+            "type": "timestamp",
             "schema": {
-                "name": "banner",
-                "table": "events",
-                "data_type": "uuid",
+                "name": "date_updated",
+                "table": "tenants",
+                "data_type": "timestamp with time zone",
                 "default_value": null,
                 "generation_expression": null,
                 "max_length": null,
@@ -738,24 +582,56 @@
                 "is_indexed": false,
                 "is_primary_key": false,
                 "has_auto_increment": false,
-                "foreign_key_schema": "public",
-                "foreign_key_table": "directus_files",
-                "foreign_key_column": "id",
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
                 "comment": null
             },
             "meta": {
-                "collection": "events",
-                "field": "banner",
+                "collection": "tenants",
+                "field": "date_updated",
                 "special": [
-                    "file"
+                    "date-updated"
                 ],
-                "interface": "file-image",
+                "interface": "datetime",
                 "options": null,
+                "display": "datetime",
+                "display_options": {
+                    "relative": true
+                },
+                "readonly": true,
+                "hidden": true,
+                "sort": 12,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "files",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "tenants",
+                "field": "files",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": {
+                    "sort": null
+                },
                 "display": null,
                 "display_options": null,
                 "readonly": false,
-                "hidden": false,
-                "sort": 15,
+                "hidden": true,
+                "sort": 16,
                 "width": "full",
                 "translations": null,
                 "note": null,
@@ -767,13 +643,178 @@
             }
         },
         {
-            "collection": "events",
+            "collection": "tenants",
+            "field": "folders",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "tenants",
+                "field": "folders",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": {
+                    "sort": null
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 17,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
             "field": "tenant_users",
             "type": "alias",
             "schema": null,
             "meta": {
-                "collection": "events",
+                "collection": "tenants",
                 "field": "tenant_users",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": {
+                    "sort": null
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 18,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "events",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "tenants",
+                "field": "events",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 19,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "forms",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "tenants",
+                "field": "forms",
+                "special": [
+                    "o2m"
+                ],
+                "interface": "list-o2m",
+                "options": {
+                    "sort": null
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 20,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "id_",
+            "type": "uuid",
+            "schema": {
+                "name": "id_",
+                "table": "tenants",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "tenants",
+                "field": "id_",
+                "special": [
+                    "uuid"
+                ],
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 21,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "tenants",
+            "field": "users",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "tenants",
+                "field": "users",
                 "special": [
                     "m2m"
                 ],
@@ -781,9 +822,9 @@
                 "options": null,
                 "display": null,
                 "display_options": null,
-                "readonly": false,
-                "hidden": false,
-                "sort": 16,
+                "readonly": true,
+                "hidden": true,
+                "sort": 22,
                 "width": "full",
                 "translations": null,
                 "note": null,
@@ -797,64 +838,12 @@
     ],
     "relations": [
         {
-            "collection": "events",
-            "field": "tenant_id",
-            "related_collection": "tenants",
-            "schema": {
-                "constraint_name": "events_tenant_id_foreign",
-                "table": "events",
-                "column": "tenant_id",
-                "foreign_key_schema": "public",
-                "foreign_key_table": "tenants",
-                "foreign_key_column": "id",
-                "on_update": "NO ACTION",
-                "on_delete": "SET NULL"
-            },
-            "meta": {
-                "many_collection": "events",
-                "many_field": "tenant_id",
-                "one_collection": "tenants",
-                "one_field": "events",
-                "one_collection_field": null,
-                "one_allowed_collections": null,
-                "junction_field": null,
-                "sort_field": null,
-                "one_deselect_action": "nullify"
-            }
-        },
-        {
-            "collection": "events",
-            "field": "banner",
-            "related_collection": "directus_files",
-            "schema": {
-                "constraint_name": "events_banner_foreign",
-                "table": "events",
-                "column": "banner",
-                "foreign_key_schema": "public",
-                "foreign_key_table": "directus_files",
-                "foreign_key_column": "id",
-                "on_update": "NO ACTION",
-                "on_delete": "SET NULL"
-            },
-            "meta": {
-                "many_collection": "events",
-                "many_field": "banner",
-                "one_collection": "directus_files",
-                "one_field": null,
-                "one_collection_field": null,
-                "one_allowed_collections": null,
-                "junction_field": null,
-                "sort_field": null,
-                "one_deselect_action": "nullify"
-            }
-        },
-        {
-            "collection": "events",
+            "collection": "tenants",
             "field": "logo",
             "related_collection": "directus_files",
             "schema": {
-                "constraint_name": "events_logo_foreign",
-                "table": "events",
+                "constraint_name": "tenants_logo_foreign",
+                "table": "tenants",
                 "column": "logo",
                 "foreign_key_schema": "public",
                 "foreign_key_table": "directus_files",
@@ -863,7 +852,7 @@
                 "on_delete": "SET NULL"
             },
             "meta": {
-                "many_collection": "events",
+                "many_collection": "tenants",
                 "many_field": "logo",
                 "one_collection": "directus_files",
                 "one_field": null,
@@ -875,21 +864,47 @@
             }
         },
         {
-            "collection": "events",
+            "collection": "tenants",
+            "field": "user_updated",
+            "related_collection": "directus_users",
+            "schema": {
+                "constraint_name": "tenants_user_updated_foreign",
+                "table": "tenants",
+                "column": "user_updated",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_users",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "NO ACTION"
+            },
+            "meta": {
+                "many_collection": "tenants",
+                "many_field": "user_updated",
+                "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "tenants",
             "field": "user_created",
             "related_collection": "directus_users",
             "schema": {
-                "constraint_name": "events_user_created_foreign",
-                "table": "events",
+                "constraint_name": "tenants_user_created_foreign",
+                "table": "tenants",
                 "column": "user_created",
                 "foreign_key_schema": "public",
                 "foreign_key_table": "directus_users",
                 "foreign_key_column": "id",
                 "on_update": "NO ACTION",
-                "on_delete": "SET NULL"
+                "on_delete": "NO ACTION"
             },
             "meta": {
-                "many_collection": "events",
+                "many_collection": "tenants",
                 "many_field": "user_created",
                 "one_collection": "directus_users",
                 "one_field": null,

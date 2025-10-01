@@ -1,316 +1,188 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { ProtectedButton } from '@/components/ProtectedComponent';
+import React, { useEffect, useState } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import { directusHelpers, type Event } from '@/lib/directus';
+import { getDirectusAssetUrl } from '@/util/static';
+import Image from 'next/image';
 import { Icon } from '@iconify/react';
+import Button from '@/components/ui/Button';
 
-interface Event {
-  id: string | number;
-  name: string;
-  description?: string;
-  start_date: string;
-  end_date: string;
-  location?: string;
-  status: 'draft' | 'published' | 'live' | 'cancelled' | 'past';
-  sort?: number;
-  tenant_id?: string | number;
-  user_created?: string | number;
-  event_users?: unknown[];
-  sites?: Array<{
-    id: string | number;
-    domain: string;
-    slug: string;
-  }>;
-  forms?: unknown[];
-}
-
-export default function EventDetailPage() {
-  const params = useParams();
+export default function EventDetailsPage() {
   const router = useRouter();
+  const params = useParams();
+  const eventId = String(params?.id || '');
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const eventId = params.id as string;
 
   useEffect(() => {
-    const fetchEvent = async () => {
+    const load = async () => {
+      if (!eventId) return;
+      setLoading(true);
       try {
-        setLoading(true);
-        const response = await fetch(`/api/events/${eventId}`, {
-          credentials: 'include',
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch event');
-        }
-
-        const data = await response.json();
-        setEvent(data.data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        const data = await directusHelpers.getEvent(eventId);
+        if (data.success) setEvent(data.data as Event);
       } finally {
         setLoading(false);
       }
     };
-
-    if (eventId) {
-      fetchEvent();
-    }
+    load();
   }, [eventId]);
-
-  const handleBack = () => {
-    router.push('/events');
-  };
-
-  const handleEdit = () => {
-    router.push(`/events/${eventId}/edit`);
-  };
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this event?')) {
-      return;
-    }
-
-    try {
-      const response = await fetch(`/api/events/${eventId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete event');
-      }
-
-      router.push('/events');
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete event');
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'live': return 'bg-blue-100 text-blue-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
-      case 'past': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getEventWebsite = (event: Event) => {
-    if (event.sites && event.sites.length > 0) {
-      const domain = event.sites[0].domain;
-      return `https://${domain}`;
-    }
-    return null;
-  };
 
   if (loading) {
     return (
-      <ProtectedRoute>
-        <main className="container mx-auto p-6">
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-nexpo-blue"></div>
-          </div>
-        </main>
-      </ProtectedRoute>
+      <DashboardLayout>
+        <div className="flex items-center justify-center py-20 text-gray-600">Loading event...</div>
+      </DashboardLayout>
     );
   }
 
-  if (error || !event) {
+  if (!event) {
     return (
-      <ProtectedRoute>
-        <main className="container mx-auto p-6">
-          <div className="text-center">
-            <Icon icon="mdi:alert-circle" className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Event Not Found</h1>
-            <p className="text-gray-600 mb-4">{error || 'The requested event could not be found.'}</p>
-            <button
-              onClick={handleBack}
-              className="bg-nexpo-blue text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Back to Events
-            </button>
-          </div>
-        </main>
-      </ProtectedRoute>
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <Icon icon="lucide:alert-circle" className="w-10 h-10 text-gray-400 mb-4" />
+          <div className="text-gray-700">Event not found</div>
+          <Button className="mt-4" onClick={() => router.push('/events')}>Back to Events</Button>
+        </div>
+      </DashboardLayout>
     );
   }
+
+  const gradient = ['from-indigo-200 to-purple-200','from-pink-200 to-rose-200','from-emerald-200 to-teal-200','from-sky-200 to-cyan-200','from-amber-200 to-orange-200'][Math.abs((event.id || 0) % 5)];
 
   return (
-    <ProtectedRoute>
-      <main className="container mx-auto p-6">
-          {/* Header */}
-          <div className="mb-6">
-            <button
-              onClick={handleBack}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 mb-4"
-            >
-              <Icon icon="mdi:arrow-left" className="w-5 h-5" />
-              <span>Back to Events</span>
-            </button>
-            
-            <div className="flex justify-between items-start">
+    <DashboardLayout>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Ticket Management</h1>
+            <p className="text-gray-600 mt-1">Manage event tickets, pricing, and sales for your event</p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" icon="lucide:arrow-left" onClick={() => router.push('/events')}>Back</Button>
+            <Button variant="primary" icon="lucide:share-2">Publish Event</Button>
+          </div>
+        </div>
+
+        {/* Basic Information Card */}
+        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Basic Information</h2>
+              <p className="text-xs text-gray-500">* Indicates a required field</p>
+            </div>
+            <Button size="sm" variant="outline" icon="lucide:pencil">Edit</Button>
+          </div>
+          <div className="p-6 space-y-6">
+            <div>
+              <label className="text-sm text-gray-600">Theme</label>
+              <div className="mt-1 text-gray-900">{event.name}</div>
+            </div>
+            <div>
+              <label className="text-sm text-gray-600">Description</label>
+              <p className="mt-1 text-gray-900 whitespace-pre-line">{event.description || '—'}</p>
+            </div>
+            <div>
+              <label className="text-sm text-gray-600">Category</label>
+              <div className="mt-1 text-gray-900">{(event as unknown as { category?: string }).category || 'Design'}</div>
+            </div>
+          </div>
+        </section>
+
+        {/* Event Recognition */}
+        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Event Recognition</h2>
+              <p className="text-xs text-gray-500">Required fields are marked with an asterisk *</p>
+            </div>
+            <Button size="sm" variant="outline" icon="lucide:pencil">Edit</Button>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+              <div className="flex items-start gap-4">
+                <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200 bg-gray-50 flex items-center justify-center">
+                  {event.logo ? (
+                    <Image src={getDirectusAssetUrl(String(event.logo))} alt="Logo" width={80} height={80} className="w-full h-full object-cover" />
+                  ) : (
+                    <Icon icon="lucide:image" className="w-6 h-6 text-gray-400" />
+                  )}
+                </div>
+                <div className="text-xs text-gray-600">
+                  <div><span className="font-semibold">File Size:</span> Up to 5mb</div>
+                  <div className="mt-1"><span className="font-semibold">Optimal Dimension:</span> 600px x 600px</div>
+                  <div className="mt-1"><span className="font-semibold">Supported file type:</span> PNG, JPG, WEBP, SVG.</div>
+                </div>
+              </div>
+              <div className="md:col-span-2">
+                <div className="text-sm text-gray-700 mb-2">Event banner</div>
+                <div className="border border-gray-200 rounded-lg bg-gray-50 h-48 overflow-hidden relative">
+                  {event.banner ? (
+                    <Image src={getDirectusAssetUrl(String(event.banner))} alt="Banner" fill className="object-cover" />
+                  ) : (
+                    <div className={`w-full h-full bg-gradient-to-br ${gradient}`} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Event Location */}
+        <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900">Event location</h2>
+              <p className="text-xs text-gray-500">* Indicates a required field</p>
+            </div>
+          </div>
+          <div className="p-6 space-y-6">
+            {/* Event type */}
+            <div>
+              <div className="text-sm text-gray-700 mb-2">Event Type*</div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { title: 'Offline Event', desc: 'Conduct an event in a physical venue for face-to-face networking' },
+                  { title: 'Online Event', desc: 'Host a digital event that engages participants who join remotely' },
+                  { title: 'Hybrid Event', desc: 'Expand your in-person event to reach a wider audience' },
+                ].map((c, i) => (
+                  <div key={c.title} className={`rounded-xl border p-4 bg-white ${i === 0 ? 'ring-2 ring-blue-600 shadow' : ''}`}>
+                    <div className="font-semibold text-gray-900 mb-1">{c.title}</div>
+                    <div className="text-xs text-gray-600 leading-relaxed">{c.desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">{event.name}</h1>
-                <div className="flex items-center space-x-4">
-                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(event.status)}`}>
-                    {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    Created: {formatDate(event.start_date)}
-                  </span>
+                <div className="text-sm text-gray-700 mb-1">Start day</div>
+                <div className="flex items-center gap-3 text-gray-900">
+                  <span>{event.start_date || '—'}</span>
                 </div>
               </div>
-              
-              <div className="flex space-x-3">
-                <ProtectedButton
-                  collection="events"
-                  action="update"
-                  onClick={handleEdit}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-                >
-                  <Icon icon="mdi:pencil" className="w-4 h-4" />
-                  <span>Edit</span>
-                </ProtectedButton>
-                
-                <ProtectedButton
-                  collection="events"
-                  action="delete"
-                  onClick={handleDelete}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
-                >
-                  <Icon icon="mdi:delete" className="w-4 h-4" />
-                  <span>Delete</span>
-                </ProtectedButton>
+              <div>
+                <div className="text-sm text-gray-700 mb-1">End date</div>
+                <div className="flex items-center gap-3 text-gray-900">
+                  <span>{event.end_date || '—'}</span>
+                </div>
               </div>
+            </div>
+
+            {/* Location */}
+            <div>
+              <div className="text-sm text-gray-700 mb-1">Location</div>
+              <div className="text-gray-900">{event.location || '—'}</div>
             </div>
           </div>
-
-          {/* Event Details */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Main Content */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Description */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Description</h2>
-                <p className="text-gray-700">
-                  {event.description || 'No description provided.'}
-                </p>
-              </div>
-
-              {/* Event Details */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h2 className="text-xl font-semibold text-gray-900 mb-4">Event Details</h2>
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <Icon icon="mdi:calendar" className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-500">Start Date</p>
-                      <p className="font-medium">{formatDate(event.start_date)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <Icon icon="mdi:calendar-end" className="w-5 h-5 text-gray-400" />
-                    <div>
-                      <p className="text-sm text-gray-500">End Date</p>
-                      <p className="font-medium">{formatDate(event.end_date)}</p>
-                    </div>
-                  </div>
-                  
-                  {event.location && (
-                    <div className="flex items-center space-x-3">
-                      <Icon icon="mdi:map-marker" className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-500">Location</p>
-                        <p className="font-medium">{event.location}</p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {getEventWebsite(event) && (
-                    <div className="flex items-center space-x-3">
-                      <Icon icon="mdi:web" className="w-5 h-5 text-gray-400" />
-                      <div>
-                        <p className="text-sm text-gray-500">Website</p>
-                        <a 
-                          href={getEventWebsite(event)!} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="font-medium text-blue-600 hover:text-blue-800"
-                        >
-                          {getEventWebsite(event)}
-                        </a>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Event Info */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Event Information</h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-500">Event ID</p>
-                    <p className="font-mono text-sm">{event.id}</p>
-                  </div>
-                  
-                  {event.tenant_id && (
-                    <div>
-                      <p className="text-sm text-gray-500">Tenant ID</p>
-                      <p className="font-mono text-sm">{event.tenant_id}</p>
-                    </div>
-                  )}
-                  
-                  {event.user_created && (
-                    <div>
-                      <p className="text-sm text-gray-500">Created By</p>
-                      <p className="font-mono text-sm">{event.user_created}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Related Data */}
-              <div className="bg-white rounded-lg shadow-sm p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Related Data</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Sites</span>
-                    <span className="text-sm font-medium">{event.sites?.length || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Forms</span>
-                    <span className="text-sm font-medium">{event.forms?.length || 0}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-gray-500">Users</span>
-                    <span className="text-sm font-medium">{event.event_users?.length || 0}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </main>
-    </ProtectedRoute>
+        </section>
+      </div>
+    </DashboardLayout>
   );
 }
+
+

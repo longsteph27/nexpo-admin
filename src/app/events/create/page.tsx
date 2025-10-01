@@ -1,190 +1,312 @@
 'use client';
 
+import React, { useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import CreateEventStep1 from '@/components/events/CreateEventStep1';
-import CreateEventStep2 from '@/components/events/CreateEventStep2';
-import CreateEventStep3 from '@/components/events/CreateEventStep3';
+import { Icon } from '@iconify/react';
+import DashboardLayout from '@/components/layout/DashboardLayout';
+import Button from '@/components/ui/Button';
+import Input from '@/components/ui/Input';
+import { useAuthStore } from '@/store/auth';
+import { directusHelpers } from '@/lib/directus';
 
 export default function CreateEventPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    // Step 1 data
-    category: '',
-    name: '',
-    // Step 2 data
-    eventType: '',
-    startDate: '',
-    startTime: '',
-    endDate: '',
-    endTime: '',
-    location: '',
-    // Step 3 data
-    logo: null as File | null,
-    banner: null as File | null
-  });
-  const [isCreating, setIsCreating] = useState(false);
+  const step = Number(searchParams.get('step') || '1');
+  const { selectedTenant } = useAuthStore();
 
-  useEffect(() => {
-    const step = searchParams.get('step');
-    if (step) {
-      const stepNumber = parseInt(step, 10);
-      if (stepNumber >= 1 && stepNumber <= 3) {
-        setCurrentStep(stepNumber);
-      }
-    }
-  }, [searchParams]);
+  // Form state across steps
+  const [category, setCategory] = useState('Design');
+  const [name, setName] = useState('Vietnam Design Connnect 2025');
+  const [description, setDescription] = useState('');
+  const [eventType, setEventType] = useState<'offline' | 'online' | 'hybrid' | null>('offline');
+  const [startDate, setStartDate] = useState('2025-12-18');
+  const [startTime, setStartTime] = useState('13:00');
+  const [endDate, setEndDate] = useState('2025-12-18');
+  const [endTime, setEndTime] = useState('13:00');
+  const [location, setLocation] = useState('SECC – Saigon Exhibition & Convention Center, District 7, HCMC');
+  const [logoFileId, setLogoFileId] = useState<string | null>(null);
+  const [bannerFileId, setBannerFileId] = useState<string | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleNext = () => {
-    if (currentStep < 3) {
-      const nextStep = currentStep + 1;
-      setCurrentStep(nextStep);
-      router.push(`/events/create?step=${nextStep}`);
-    }
+  // Upload inputs
+  const logoInputRef = useRef<HTMLInputElement | null>(null);
+  const bannerInputRef = useRef<HTMLInputElement | null>(null);
+
+  const goToStep = (nextStep: number) => {
+    const clamped = Math.min(3, Math.max(1, nextStep));
+    const url = `/events/create?step=${clamped}`;
+    router.replace(url);
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 1) {
-      const prevStep = currentStep - 1;
-      setCurrentStep(prevStep);
-      router.push(`/events/create?step=${prevStep}`);
-    } else {
-      router.push('/events');
-    }
-  };
-
-  const handleFinish = async () => {
-    try {
-      setIsCreating(true);
-      
-      // Prepare event data for API
-      const eventData = {
-        name: formData.name,
-        description: `Event category: ${formData.category}`,
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        location: formData.location,
-        status: 'draft', // Default status
-        // Add other fields as needed
-      };
-      
-      // Create event via API
-      const response = await fetch('/api/events', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(eventData),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create event');
-      }
-      
-      const result = await response.json();
-      console.log('Event created successfully:', result);
-      
-      // Redirect to events list
-      router.push('/events');
-    } catch (error) {
-      console.error('Error creating event:', error);
-      alert(`Failed to create event: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  const updateFormData = (updates: Partial<typeof formData>) => {
-    setFormData(prev => ({ ...prev, ...updates }));
-  };
-
-  const renderStep = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <CreateEventStep1 
-            onNext={handleNext} 
-            onPrevious={handlePrevious}
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 2:
-        return (
-          <CreateEventStep2 
-            onNext={handleNext} 
-            onPrevious={handlePrevious}
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-      case 3:
-        return (
-          <CreateEventStep3 
-            onFinish={handleFinish} 
-            onPrevious={handlePrevious}
-            formData={formData}
-            updateFormData={updateFormData}
-            isCreating={isCreating}
-          />
-        );
-      default:
-        return (
-          <CreateEventStep1 
-            onNext={handleNext} 
-            onPrevious={handlePrevious}
-            formData={formData}
-            updateFormData={updateFormData}
-          />
-        );
-    }
-  };
+  const stepTitle = useMemo(() => {
+    if (step === 1) return { title: 'Basic Information', hint: '* indicates a required field' };
+    if (step === 2) return { title: 'Event Location', hint: '* indicates a required field' };
+    return { title: 'Event recognization', hint: '* indicates a required field' };
+  }, [step]);
 
   return (
-    <ProtectedRoute>
-      <main className="flex h-screen">
-          {/* Left Panel - Background */}
-          <div className="w-1/3 relative overflow-hidden">
-            {currentStep === 1 && (
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600">
-                <div className="absolute inset-0 bg-blue-400 opacity-20"></div>
-                <div className="absolute top-10 left-10 w-32 h-32 bg-blue-300 rounded-full opacity-30"></div>
-                <div className="absolute top-32 right-10 w-24 h-24 bg-blue-200 rounded-full opacity-40"></div>
-                <div className="absolute bottom-20 left-20 w-40 h-40 bg-blue-300 rounded-full opacity-25"></div>
-                <div className="absolute bottom-32 right-20 w-28 h-28 bg-blue-200 rounded-full opacity-35"></div>
+    <DashboardLayout>
+      <div className="grid grid-cols-12 gap-0 min-h-[calc(100vh-4rem)]">
+        {/* Left visual panel */}
+        <div className="hidden md:block col-span-4">
+          <div className={`w-full h-full bg-cover bg-center`} style={{ backgroundImage: step === 1 ? "url('/events_step1.png')" : step === 2 ? "url('/events_step2.png')" : "url('/events_step3.png')" }} />
+        </div>
+
+        {/* Right content */}
+        <div className="col-span-12 md:col-span-8 bg-white p-8 relative">
+          <div className="max-w-3xl mx-auto">
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-gray-900">{stepTitle.title}</h2>
+              <p className="text-xs text-gray-500 mt-2">{stepTitle.hint}</p>
+            </div>
+
+            {step === 1 && (
+              <div className="space-y-8">
+                {/* Category */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Category<span className="text-red-500">*</span></label>
+                  <div className="relative">
+                    <select
+                      className="w-full border-b border-gray-300 focus:border-gray-900 outline-none py-2 pr-8"
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                    >
+                      <option value="Design">Design</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Business">Business</option>
+                    </select>
+                    <Icon icon="lucide:chevron-down" className="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-gray-500" />
+                  </div>
+                </div>
+
+                {/* Name */}
+                <Input
+                  label="Event Name*"
+                  placeholder="Vietnam Design Connnect 2025"
+                  value={name}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                />
+
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <Icon icon="lucide:info" className="w-4 h-4" />
+                  1/3 - Your fancy event name
+                </div>
+
+                {/* bottom-right action */}
+                <div className="hidden" />
               </div>
             )}
-            {currentStep === 2 && (
-              <div className="absolute inset-0 bg-gradient-to-br from-green-400 via-green-500 to-green-600">
-                <div className="absolute inset-0 bg-green-400 opacity-20"></div>
-                <div className="absolute top-10 left-10 w-32 h-32 bg-green-300 rounded-full opacity-30"></div>
-                <div className="absolute top-32 right-10 w-24 h-24 bg-green-200 rounded-full opacity-40"></div>
-                <div className="absolute bottom-20 left-20 w-40 h-40 bg-green-300 rounded-full opacity-25"></div>
-                <div className="absolute bottom-32 right-20 w-28 h-28 bg-green-200 rounded-full opacity-35"></div>
+
+            {step === 2 && (
+              <div className="space-y-8">
+                {/* Event type cards */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Type<span className="text-red-500">*</span></label>
+                  <div className="grid grid-cols-3 gap-4">
+                    {[
+                      { id: 'offline', title: 'Offline Event', desc: 'Conduct an event in a physical venue for face-to-face networking' },
+                      { id: 'online', title: 'Online Event', desc: 'Host a digital event that engages participants who join remotely' },
+                      { id: 'hybrid', title: 'Hybrid Event', desc: "Expand your in-person event to reach a wider audience" },
+                    ].map((c) => (
+                      <button
+                        type="button"
+                        key={c.id}
+                        onClick={() => setEventType(c.id as 'offline' | 'online' | 'hybrid')}
+                        className={`text-left rounded-xl border p-4 hover:shadow transition bg-white ${eventType === c.id ? 'ring-2 ring-blue-600 shadow' : ''}`}
+                      >
+                        <div className="font-semibold text-gray-900 mb-1">{c.title}</div>
+                        <div className="text-xs text-gray-600 leading-relaxed">{c.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Start day</label>
+                    <div className="flex gap-3">
+                      <input type="date" className="flex-1 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+                      <input type="time" className="w-32 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">End date</label>
+                    <div className="flex gap-3">
+                      <input type="date" className="flex-1 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+                      <input type="time" className="w-32 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Location */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <input className="w-full border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={location} onChange={(e) => setLocation(e.target.value)} />
+                </div>
+
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <Icon icon="lucide:info" className="w-4 h-4" />
+                  2/3 – Where to know about your Event
+                </div>
+
+                <div className="hidden" />
               </div>
             )}
-            {currentStep === 3 && (
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-400 via-orange-500 to-orange-600">
-                <div className="absolute inset-0 bg-orange-400 opacity-20"></div>
-                <div className="absolute top-10 left-10 w-32 h-32 bg-orange-300 rounded-full opacity-30"></div>
-                <div className="absolute top-32 right-10 w-24 h-24 bg-orange-200 rounded-full opacity-40"></div>
-                <div className="absolute bottom-20 left-20 w-40 h-40 bg-orange-300 rounded-full opacity-25"></div>
-                <div className="absolute bottom-32 right-20 w-28 h-28 bg-orange-200 rounded-full opacity-35"></div>
+
+            {step === 3 && (
+              <div className="space-y-10">
+                {/* Logo */}
+                <div>
+                  <div className="font-medium text-gray-900 mb-2">Event logo</div>
+                  <div className="grid grid-cols-3 gap-6">
+                    <div className="col-span-1">
+                      <button
+                        type="button"
+                        className="w-28 h-28 bg-white border border-gray-200 rounded-md flex flex-col items-center justify-center shadow-sm hover:bg-gray-50"
+                        onClick={() => logoInputRef.current?.click()}
+                      >
+                        {logoPreview ? (
+                          <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover rounded-md" />
+                        ) : (
+                          <>
+                            <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-500 mb-2">
+                              <Icon icon="lucide:plus" className="w-4 h-4" />
+                            </div>
+                            <span className="text-sm text-gray-700">{logoUploading ? 'Uploading...' : 'Upload'}</span>
+                          </>
+                        )}
+                      </button>
+                      <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        setLogoPreview(URL.createObjectURL(file));
+                        setLogoUploading(true);
+                        const result = await directusHelpers.uploadFile(file);
+                        if (result.success) setLogoFileId(result.data?.id || null);
+                        setLogoUploading(false);
+                      }} />
+                    </div>
+                    <div className="col-span-2 text-sm text-gray-700">
+                      <div><span className="font-semibold">File Size:</span> Up to 5mb</div>
+                      <div className="mt-2"><span className="font-semibold">Optimal Dimension:</span> 600px x 600px</div>
+                      <div className="mt-2"><span className="font-semibold">Supported file type:</span> PNG, JPG, WEBP, SVG.</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Banner */}
+                <div>
+                  <div className="font-medium text-gray-900 mb-2">Event banner</div>
+                  <div className="border border-gray-200 rounded-md bg-white p-4">
+                    <button
+                      type="button"
+                      className="h-56 w-full bg-gray-50 border border-gray-200 rounded flex flex-col items-center justify-center"
+                      onClick={() => bannerInputRef.current?.click()}
+                    >
+                      {bannerPreview ? (
+                        <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover rounded" />
+                      ) : (
+                        <>
+                          <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-500 mb-2">
+                            <Icon icon="lucide:plus" className="w-4 h-4" />
+                          </div>
+                          <span className="text-gray-600">{bannerUploading ? 'Uploading...' : 'Upload'}</span>
+                        </>
+                      )}
+                    </button>
+                    <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setBannerPreview(URL.createObjectURL(file));
+                      setBannerUploading(true);
+                      const result = await directusHelpers.uploadFile(file);
+                      if (result.success) setBannerFileId(result.data?.id || null);
+                      setBannerUploading(false);
+                    }} />
+                  </div>
+                </div>
+
+                <div className="text-xs text-gray-500 flex items-center gap-2">
+                  <Icon icon="lucide:info" className="w-4 h-4" />
+                  3/3 – How to recognize your Event
+                </div>
+
+                <div className="hidden" />
               </div>
             )}
           </div>
 
-          {/* Right Panel - Form */}
-          <div className="w-2/3 bg-white flex items-center justify-center p-8">
-            <div className="w-full max-w-2xl">
-              {renderStep()}
-            </div>
+          {/* Floating bottom-right actions */}
+          <div className="fixed md:absolute right-6 bottom-6 flex items-center gap-3">
+            {step > 1 && (
+              <Button variant="secondary" onClick={() => goToStep(step - 1)}>
+                <Icon icon="lucide:chevron-left" className="w-5 h-5 mr-2" />
+                Back
+              </Button>
+            )}
+            {step < 3 ? (
+              <Button variant="primary" onClick={() => goToStep(step + 1)}>
+                Next
+                <Icon icon="lucide:chevron-right" className="w-5 h-5 ml-2" />
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                loading={submitting}
+                onClick={async () => {
+                  if (!selectedTenant) return;
+                  setSubmitting(true);
+                  try {
+                    // build ISO datetime strings
+                    const start = `${startDate}T${startTime}:00`;
+                    const end = `${endDate}T${endTime}:00`;
+                    const payload: {
+                      tenant_id: number;
+                      name: string;
+                      description?: string;
+                      start_date: string;
+                      end_date: string;
+                      location?: string;
+                      status: 'draft' | 'published' | 'archived';
+                      logo?: string;
+                      banner?: string;
+                      type?: 'offline' | 'online' | 'hybrid' | null;
+                      category?: string;
+                    } = {
+                      tenant_id: selectedTenant.id,
+                      name,
+                      description,
+                      start_date: start,
+                      end_date: end,
+                      location,
+                      status: 'draft',
+                      logo: logoFileId || undefined,
+                      banner: bannerFileId || undefined,
+                      type: eventType || undefined,
+                      category,
+                    };
+                    const result = await directusHelpers.createEvent(payload);
+                    if (result.success) {
+                      router.push('/events');
+                    }
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+              >
+                Finish
+                <Icon icon="lucide:check" className="w-5 h-5 ml-2" />
+              </Button>
+            )}
           </div>
-        </main>
-    </ProtectedRoute>
+        </div>
+      </div>
+    </DashboardLayout>
   );
 }

@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { PermissionProvider } from "@/contexts/PermissionContext";
-import ConditionalLayout from "@/components/layout/ConditionalLayout";
+import { AppProvider } from "@/components/providers/AppProvider";
 
-const poppins = Poppins({
+const geistSans = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-  variable: "--font-poppins",
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "NEXPO - Directus Clone",
-  description: "A modern Directus clone built with Next.js 15",
+  title: "NEXPO Admin Panel",
+  description: "Event management admin panel for NEXPO platform",
 };
 
 export default function RootLayout({
@@ -22,15 +24,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${poppins.variable} font-sans antialiased`}>
-        <AuthProvider>
-          <PermissionProvider>
-            <ConditionalLayout>
-              {children}
-            </ConditionalLayout>
-          </PermissionProvider>
-        </AuthProvider>
+    <html lang="en" data-theme="nexpo">
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      >
+        <AppProvider>
+          {children}
+        </AppProvider>
       </body>
     </html>
   );
