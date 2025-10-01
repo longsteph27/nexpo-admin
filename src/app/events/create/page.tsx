@@ -2,6 +2,7 @@
 
 import React, { useMemo, useRef, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { Icon } from '@iconify/react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/ui/Button';
@@ -18,7 +19,7 @@ export default function CreateEventPage() {
   // Form state across steps
   const [category, setCategory] = useState('Design');
   const [name, setName] = useState('Vietnam Design Connnect 2025');
-  const [description, setDescription] = useState('');
+  const [description] = useState('');
   const [eventType, setEventType] = useState<'offline' | 'online' | 'hybrid' | null>('offline');
   const [startDate, setStartDate] = useState('2025-12-18');
   const [startTime, setStartTime] = useState('13:00');
@@ -172,7 +173,7 @@ export default function CreateEventPage() {
                         onClick={() => logoInputRef.current?.click()}
                       >
                         {logoPreview ? (
-                          <img src={logoPreview} alt="Logo preview" className="w-full h-full object-cover rounded-md" />
+                          <Image src={logoPreview} alt="Logo preview" width={112} height={112} className="w-full h-full object-cover rounded-md" />
                         ) : (
                           <>
                             <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-500 mb-2">
@@ -210,7 +211,7 @@ export default function CreateEventPage() {
                       onClick={() => bannerInputRef.current?.click()}
                     >
                       {bannerPreview ? (
-                        <img src={bannerPreview} alt="Banner preview" className="w-full h-full object-cover rounded" />
+                        <Image src={bannerPreview} alt="Banner preview" width={400} height={200} className="w-full h-full object-cover rounded" />
                       ) : (
                         <>
                           <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-500 mb-2">

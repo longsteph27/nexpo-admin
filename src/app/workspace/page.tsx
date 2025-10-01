@@ -16,7 +16,7 @@ export default function WorkspacePage() {
         </div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">Workspace Coming Soon</h3>
         <p className="text-gray-600 text-center max-w-md">
-          This feature is under development. You'll be able to manage your team members, 
+          This feature is under development. You&apos;ll be able to manage your team members, 
           roles, and workspace settings here.
         </p>
       </div>

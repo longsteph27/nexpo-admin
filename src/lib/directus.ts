@@ -85,6 +85,34 @@ const directus = createDirectus<Schema>('https://app.nexpo.vn')
   .with(rest())
   .with(authentication('json', { autoRefresh: true }));
 
+// Helper function to initialize Directus with stored tokens
+export const initializeDirectusWithTokens = async (accessToken: string | null, refreshToken: string | null) => {
+  if (accessToken && refreshToken) {
+    try {
+      // Set the tokens in the Directus client
+      await directus.setToken(accessToken);
+      // Note: Directus SDK handles refresh token internally when autoRefresh is enabled
+      // We need to ensure the refresh token is available for the SDK
+      return true;
+    } catch (error) {
+      console.error('Failed to initialize Directus with tokens:', error);
+      return false;
+    }
+  }
+  return false;
+};
+
+// Helper function to get current tokens from Directus
+export const getDirectusTokens = async () => {
+  try {
+    const accessToken = await directus.getToken();
+    return { accessToken, refreshToken: null }; // Directus SDK doesn't expose refresh token directly
+  } catch (error) {
+    console.error('Failed to get Directus tokens:', error);
+    return { accessToken: null, refreshToken: null };
+  }
+};
+
 export { directus };
 export type { Event, User, Tenant, Permission, Schema };
 

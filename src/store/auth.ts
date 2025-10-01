@@ -1,6 +1,14 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { directusHelpers, directus, type User, type Tenant, type Permission } from '@/lib/directus';
+import { directusHelpers, directus, initializeDirectusWithTokens, type User, type Tenant, type Permission } from '@/lib/directus';
+
+// Types for Directus authentication responses
+interface DirectusAuthResponse {
+  access_token?: string;
+  refresh_token?: string;
+  expires?: number;
+  expires_in?: number;
+}
 
 interface AuthState {
   user: User | null;
@@ -10,12 +18,18 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  isRefreshing: boolean;
+  accessToken: string | null;
+  refreshToken: string | null;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
   clearError: () => void;
   checkAuth: () => Promise<void>;
   setSelectedTenant: (tenant: Tenant | null) => void;
   loadPermissions: () => Promise<void>;
+  setTokens: (accessToken: string | null, refreshToken: string | null) => void;
+  getTokens: () => { accessToken: string | null; refreshToken: string | null };
+  initializeFromStoredTokens: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,6 +42,9 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      isRefreshing: false,
+      accessToken: null,
+      refreshToken: null,
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -36,9 +53,16 @@ export const useAuthStore = create<AuthState>()(
           const result = await directusHelpers.login(email, password);
           
           if (result.success) {
-            // Ensure tokens exist in JSON mode and fetch current user
+            // Extract tokens from Directus response
+            const loginData = result.data as DirectusAuthResponse;
+            const accessToken = loginData.access_token || null;
+            const refreshToken = loginData.refresh_token || null;
+            
+            // Save tokens to store
+            set({ accessToken, refreshToken });
             
             // Get current user info with tenants after successful login
+            // No need to refresh token as login already provides fresh tokens
             const userResult = await directusHelpers.getCurrentUser();
             
             if (userResult.success) {
@@ -58,6 +82,7 @@ export const useAuthStore = create<AuthState>()(
                 isAuthenticated: true,
                 isLoading: false,
                 error: null,
+                isRefreshing: false,
               });
               return true;
             } else {
@@ -100,6 +125,9 @@ export const useAuthStore = create<AuthState>()(
             isAuthenticated: false,
             isLoading: false,
             error: null,
+            isRefreshing: false,
+            accessToken: null,
+            refreshToken: null,
           });
         }
       },
@@ -123,12 +151,107 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      setTokens: (accessToken: string | null, refreshToken: string | null) => {
+        set({ accessToken, refreshToken });
+      },
+
+      getTokens: () => {
+        const { accessToken, refreshToken } = get();
+        return { accessToken, refreshToken };
+      },
+
+      initializeFromStoredTokens: async () => {
+        const { accessToken, refreshToken, isRefreshing } = get();
+        
+        // Don't initialize if already refreshing or no tokens
+        if (isRefreshing || !accessToken || !refreshToken) {
+          return;
+        }
+
+        try {
+          // Initialize Directus with stored tokens
+          const initialized = await initializeDirectusWithTokens(accessToken, refreshToken);
+          
+          if (initialized) {
+            // Try to get current user to validate tokens
+            const userResult = await directusHelpers.getCurrentUser();
+            
+            if (userResult.success && userResult.data) {
+              const user = userResult.data;
+              const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+              const { selectedTenant } = get();
+              
+              // Keep selected tenant if still valid, otherwise select first
+              const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
+                                 (tenants.length > 0 ? tenants[0] : null);
+              
+              set({
+                user: user as User,
+                tenants,
+                selectedTenant: validTenant,
+                isAuthenticated: true,
+                isLoading: false,
+                isRefreshing: false,
+              });
+            } else {
+              // Tokens are invalid, clear auth state
+              set({
+                user: null,
+                tenants: [],
+                selectedTenant: null,
+                permissions: {},
+                isAuthenticated: false,
+                isLoading: false,
+                isRefreshing: false,
+                accessToken: null,
+                refreshToken: null,
+              });
+            }
+          }
+        } catch (error) {
+          console.error('Failed to initialize from stored tokens:', error);
+          // Clear invalid tokens
+          set({
+            user: null,
+            tenants: [],
+            selectedTenant: null,
+            permissions: {},
+            isAuthenticated: false,
+            isLoading: false,
+            isRefreshing: false,
+            accessToken: null,
+            refreshToken: null,
+          });
+        }
+      },
+
       checkAuth: async () => {
-        set({ isLoading: true });
+        const { isRefreshing, accessToken, refreshToken } = get();
+        
+        // Prevent multiple simultaneous refresh calls
+        if (isRefreshing) {
+          return;
+        }
+
+        // If we have stored tokens, try to initialize with them first
+        if (accessToken && refreshToken) {
+          await get().initializeFromStoredTokens();
+          return;
+        }
+        
+        set({ isLoading: true, isRefreshing: true });
         
         try {
           // Try to refresh token using Directus SDK (JSON mode)
-          await directus.refresh();
+          const refreshResult = await directus.refresh();
+          
+          // Extract refreshed tokens
+          const refreshData = refreshResult as DirectusAuthResponse;
+          const newAccessToken = refreshData.access_token || null;
+          const newRefreshToken = refreshData.refresh_token || null;
+          
+          // Save refreshed tokens to store
+          set({ accessToken: newAccessToken, refreshToken: newRefreshToken });
           
           // If refresh succeeds, get current user
           const userResult = await directusHelpers.getCurrentUser();
@@ -148,6 +271,7 @@ export const useAuthStore = create<AuthState>()(
               selectedTenant: validTenant,
               isAuthenticated: true,
               isLoading: false,
+              isRefreshing: false,
             });
           } else {
             // No valid user, clear auth state
@@ -158,6 +282,9 @@ export const useAuthStore = create<AuthState>()(
               permissions: {},
               isAuthenticated: false,
               isLoading: false,
+              isRefreshing: false,
+              accessToken: null,
+              refreshToken: null,
             });
           }
         } catch {
@@ -169,6 +296,9 @@ export const useAuthStore = create<AuthState>()(
             permissions: {},
             isAuthenticated: false,
             isLoading: false,
+            isRefreshing: false,
+            accessToken: null,
+            refreshToken: null,
           });
         }
       },
@@ -181,6 +311,8 @@ export const useAuthStore = create<AuthState>()(
         selectedTenant: state.selectedTenant,
         permissions: state.permissions,
         isAuthenticated: state.isAuthenticated,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
       }),
     }
   )

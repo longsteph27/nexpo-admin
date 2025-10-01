@@ -16,9 +16,10 @@ type FormField = {
   sort?: number;
   is_required?: boolean;
   validation?: string;
+  conditions?: Record<string, unknown>;
   translations?: {
-    'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label?: string }[] };
-    'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label?: string }[] };
+    'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] };
+    'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] };
   };
 };
 
@@ -39,7 +40,7 @@ export default function FormBuilderPage() {
   const eventId = String(params?.id || '');
   const formId = String(params?.formId || '');
 
-  const [formMeta, setFormMeta] = useState<unknown>(null);
+  const [, setFormMeta] = useState<{ status?: string; on_success?: string; redirect_url?: string; translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> } | null>(null);
   const [fields, setFields] = useState<FormField[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
@@ -52,9 +53,9 @@ export default function FormBuilderPage() {
   const parseFieldTranslations = (field: unknown) => {
     const f = field as { id: string; name?: string; type?: string; width?: string; sort?: number; is_required?: boolean; validation?: string; translations?: Array<{ languages_code: string; label?: string; placeholder?: string; help?: string; options?: string | null }> };
     const fieldTranslations = f.translations || [];
-    console.log(`Field ${field.name} translations:`, fieldTranslations);
-    const enFieldTranslation = fieldTranslations.find((t: any) => t.languages_code === 'en-US');
-    const viFieldTranslation = fieldTranslations.find((t: any) => t.languages_code === 'vi-VN');
+    console.log(`Field ${f.name} translations:`, fieldTranslations);
+    const enFieldTranslation = fieldTranslations.find((t: { languages_code: string }) => t.languages_code === 'en-US');
+    const viFieldTranslation = fieldTranslations.find((t: { languages_code: string }) => t.languages_code === 'vi-VN');
     
     // Parse options if they exist
     const parseOptions = (optionsStr: string | null) => {
@@ -79,13 +80,13 @@ export default function FormBuilderPage() {
           label: enFieldTranslation?.label || '', 
           placeholder: enFieldTranslation?.placeholder || '', 
           help: enFieldTranslation?.help || '', 
-          options: parseOptions(enFieldTranslation?.options)
+          options: parseOptions(enFieldTranslation?.options || null)
         },
         'vi-VN': { 
           label: viFieldTranslation?.label || '', 
           placeholder: viFieldTranslation?.placeholder || '', 
           help: viFieldTranslation?.help || '', 
-          options: parseOptions(viFieldTranslation?.options)
+          options: parseOptions(viFieldTranslation?.options || null)
         },
       }
     };
@@ -102,7 +103,7 @@ export default function FormBuilderPage() {
         setFormMeta(form.data);
         
         // Properly handle form translations by languages_code
-        const translations = (form.data?.translations || []) as Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }>;
+        const translations = ((form.data as { translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> })?.translations || []);
         const enTranslation = translations.find((t) => t.languages_code === 'en-US');
         const viTranslation = translations.find((t) => t.languages_code === 'vi-VN');
         
@@ -118,7 +119,7 @@ export default function FormBuilderPage() {
             success_message: viTranslation?.success_message || '' 
           },
         });
-        setFormSettings({ status: (form.data as any).status, on_success: (form.data as any).on_success, redirect_url: (form.data as any).redirect_url });
+        setFormSettings({ status: (form.data as { status?: string; on_success?: string; redirect_url?: string }).status, on_success: (form.data as { status?: string; on_success?: string; redirect_url?: string }).on_success, redirect_url: (form.data as { status?: string; on_success?: string; redirect_url?: string }).redirect_url });
       }
       if (formFields.success) setFields((formFields.data as unknown[]).map(parseFieldTranslations));
     };
@@ -167,7 +168,7 @@ export default function FormBuilderPage() {
         fields: fields.map((field, index) => ({
           id: field.id,
           name: field.name || `field_${index + 1}`,
-          type: field.type || 'input',
+          type: (field.type as 'input' | 'textarea' | 'email' | 'number' | 'select' | 'multiselect' | 'file' | 'image') || 'input',
           width: (field.width as 'full' | 'half') || 'full',
           sort: field.sort || index,
           is_required: field.is_required || false,
@@ -191,7 +192,7 @@ export default function FormBuilderPage() {
         })),
       };
 
-      const result = await directusHelpers.saveForm(formId, eventId, formData as any);
+      const result = await directusHelpers.saveForm(formId, eventId, formData);
       
       if (result.success) {
         alert('Form saved successfully!');
@@ -204,13 +205,13 @@ export default function FormBuilderPage() {
         if (form.success && form.data) {
           setFormMeta(form.data);
           setFormSettings({
-            status: (form.data as any).status,
-            on_success: (form.data as any).on_success,
-            redirect_url: (form.data as any).redirect_url,
+            status: (form.data as { status?: string; on_success?: string; redirect_url?: string }).status,
+            on_success: (form.data as { status?: string; on_success?: string; redirect_url?: string }).on_success,
+            redirect_url: (form.data as { status?: string; on_success?: string; redirect_url?: string }).redirect_url,
           });
           
           // Update form translations
-          const translations = (form.data as any).translations || [];
+          const translations = (form.data as { translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> }).translations || [];
           const enTranslation = translations.find((t: { languages_code: string }) => t.languages_code === 'en-US');
           const viTranslation = translations.find((t: { languages_code: string }) => t.languages_code === 'vi-VN');
           
@@ -229,7 +230,7 @@ export default function FormBuilderPage() {
         }
         
         if (formFields.success && formFields.data) {
-          setFields((formFields.data as any[]).map(parseFieldTranslations));
+          setFields((formFields.data as unknown[]).map(parseFieldTranslations));
         }
       } else {
         alert(`Failed to save form: ${result.error}`);
@@ -357,7 +358,7 @@ export default function FormBuilderPage() {
                     setSelectedId(id);
                   }}
                   draggable
-                  onDragStart={(e: React.DragEvent<HTMLButtonElement>) => handleCatalogDragStart(e, t.id, t.label)}
+                  onDragStart={(e) => handleCatalogDragStart(e as unknown as React.DragEvent<HTMLButtonElement>, t.id, t.label)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -386,7 +387,7 @@ export default function FormBuilderPage() {
                   onClick={() => setSelectedId(f.id)}
                   className={`flex items-center justify-between px-3 py-2 rounded-lg border border-gray-200 bg-white shadow-sm hover:shadow cursor-pointer transition-all ${selectedId === f.id ? 'ring-2 ring-blue-600' : ''} ${dragOverId === f.id ? 'bg-blue-50' : ''}`}
                   draggable
-                  onDragStart={(e: React.DragEvent<HTMLDivElement>) => handleFieldDragStart(e, f.id)}
+                  onDragStart={(e) => handleFieldDragStart(e as unknown as React.DragEvent<HTMLDivElement>, f.id)}
                   onDragOver={(e) => { e.preventDefault(); setDragOverId(f.id); }}
                   onDragLeave={() => setDragOverId(null)}
                   onDrop={(e) => handleItemDrop(e, f.id)}
@@ -432,7 +433,7 @@ export default function FormBuilderPage() {
                   <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={selected.translations?.[activeLang]?.label || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => {
                       if (f.id !== selected.id) return f;
-                      const translations = { ...(f.translations || {}) } as any;
+                      const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                       translations[activeLang] = { ...(translations[activeLang] || {}), label: e.target.value };
                       return { ...f, translations };
                     }))} />
@@ -449,7 +450,7 @@ export default function FormBuilderPage() {
                   <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={selected.translations?.[activeLang]?.placeholder || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => {
                       if (f.id !== selected.id) return f;
-                      const translations = { ...(f.translations || {}) } as any;
+                      const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                       translations[activeLang] = { ...(translations[activeLang] || {}), placeholder: e.target.value };
                       return { ...f, translations };
                     }))} />
@@ -459,7 +460,7 @@ export default function FormBuilderPage() {
                   <textarea className="textarea textarea-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" rows={2} value={selected.translations?.[activeLang]?.help || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => {
                       if (f.id !== selected.id) return f;
-                      const translations = { ...(f.translations || {}) } as any;
+                      const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                       translations[activeLang] = { ...(translations[activeLang] || {}), help: e.target.value };
                       return { ...f, translations };
                     }))} />
@@ -501,7 +502,7 @@ export default function FormBuilderPage() {
                             value={opt.label || ''}
                             onChange={(e) => setFields((prev) => prev.map((f) => {
                               if (f.id !== selected.id) return f;
-                              const translations = { ...(f.translations || {}) } as any;
+                              const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                               const arr = [...(translations[activeLang]?.options || [])];
                               arr[idx] = { ...arr[idx], label: e.target.value };
                               translations[activeLang] = { ...(translations[activeLang] || {}), options: arr };
@@ -514,7 +515,7 @@ export default function FormBuilderPage() {
                             value={opt.value || ''}
                             onChange={(e) => setFields((prev) => prev.map((f) => {
                               if (f.id !== selected.id) return f;
-                              const translations = { ...(f.translations || {}) } as any;
+                              const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                               const arr = [...(translations[activeLang]?.options || [])];
                               arr[idx] = { ...arr[idx], value: e.target.value };
                               translations[activeLang] = { ...(translations[activeLang] || {}), options: arr };
@@ -525,7 +526,7 @@ export default function FormBuilderPage() {
                             className="col-span-1 p-2 rounded hover:bg-red-50 text-red-600"
                             onClick={() => setFields((prev) => prev.map((f) => {
                               if (f.id !== selected.id) return f;
-                              const translations = { ...(f.translations || {}) } as any;
+                              const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                               const arr = [...(translations[activeLang]?.options || [])];
                               arr.splice(idx, 1);
                               translations[activeLang] = { ...(translations[activeLang] || {}), options: arr };
@@ -541,7 +542,7 @@ export default function FormBuilderPage() {
                           className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-base-300 hover:bg-base-200 cursor-pointer"
                           onClick={() => setFields((prev) => prev.map((f) => {
                             if (f.id !== selected.id) return f;
-                            const translations = { ...(f.translations || {}) } as any;
+                            const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };
                             const arr = [...(translations[activeLang]?.options || [])];
                             arr.push({ label: '', value: '' });
                             translations[activeLang] = { ...(translations[activeLang] || {}), options: arr };

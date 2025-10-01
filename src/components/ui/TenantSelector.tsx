@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '@/store/auth';
 import type { Tenant } from '@/lib/directus';
@@ -27,9 +28,11 @@ export default function TenantSelector() {
       >
         <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
           {selectedTenant?.logo ? (
-            <img 
+            <Image 
               src={`https://app.nexpo.vn/assets/${selectedTenant.logo}`} 
               alt={selectedTenant.name}
+              width={32}
+              height={32}
               className="w-full h-full object-cover rounded-lg"
             />
           ) : (
@@ -86,9 +89,11 @@ export default function TenantSelector() {
                   >
                     <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center">
                       {tenant.logo ? (
-                        <img 
+                        <Image 
                           src={`https://app.nexpo.vn/assets/${tenant.logo}`} 
                           alt={tenant.name}
+                          width={32}
+                          height={32}
                           className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (

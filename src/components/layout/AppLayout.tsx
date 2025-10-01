@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
@@ -23,7 +23,7 @@ export default function AppLayout({
 }: AppLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+  const { isAuthenticated, isLoading, checkAuth, initializeFromStoredTokens } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Desktop sidebar
 
@@ -43,9 +43,20 @@ export default function AppLayout({
     setSidebarCollapsed((prev) => !prev);
   };
 
+  const stableInitializeAuth = useCallback(() => {
+    // First try to initialize from stored tokens, then fallback to checkAuth
+    initializeFromStoredTokens().then(() => {
+      // If initialization didn't work, try checkAuth
+      if (!isAuthenticated) {
+        checkAuth();
+      }
+    });
+  }, [initializeFromStoredTokens, checkAuth, isAuthenticated]);
+
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Only initialize auth once on mount
+    stableInitializeAuth();
+  }, [stableInitializeAuth]);
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

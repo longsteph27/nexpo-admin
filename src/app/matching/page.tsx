@@ -16,7 +16,7 @@ export default function MatchingPage() {
         </div>
         <h3 className="text-xl font-semibold text-gray-900 mb-2">Matching Coming Soon</h3>
         <p className="text-gray-600 text-center max-w-md">
-          This feature is under development. You'll be able to manage AI-powered 
+          This feature is under development. You&apos;ll be able to manage AI-powered 
           attendee matching and networking features here.
         </p>
       </div>

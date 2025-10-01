@@ -21,6 +21,9 @@ const Button: React.FC<ButtonProps> = ({
   fullWidth = false,
   className = '',
   disabled,
+  onDrag,
+  onDragEnd,
+  onDragStart,
   ...props
 }) => {
   const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
@@ -49,12 +52,13 @@ const Button: React.FC<ButtonProps> = ({
 
   const isDisabled = disabled || loading;
 
-  return (
-    <motion.button
-      whileHover={!isDisabled ? { scale: 1.02 } : {}}
-      whileTap={!isDisabled ? { scale: 0.98 } : {}}
+  const buttonElement = (
+    <button
       className={classes}
       disabled={isDisabled}
+      onDrag={onDrag}
+      onDragEnd={onDragEnd}
+      onDragStart={onDragStart}
       {...props}
     >
       {loading && (
@@ -82,7 +86,16 @@ const Button: React.FC<ButtonProps> = ({
           width={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
         />
       )}
-    </motion.button>
+    </button>
+  );
+
+  return (
+    <motion.div
+      whileHover={!isDisabled ? { scale: 1.02 } : {}}
+      whileTap={!isDisabled ? { scale: 0.98 } : {}}
+    >
+      {buttonElement}
+    </motion.div>
   );
 };
 

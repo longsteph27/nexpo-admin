@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { usePathname } from 'next/navigation';
+import React from 'react';
 import { Icon } from '@iconify/react';
-import { useAuthStore } from '@/store/auth';
 import Image from 'next/image';
 
 interface HeaderProps {
@@ -13,9 +11,7 @@ interface HeaderProps {
   actions?: React.ReactNode;
 }
 
-export default function Header({ onMobileMenuClick, title, subtitle, actions }: HeaderProps) {
-  const pathname = usePathname();
-  const { user } = useAuthStore();
+export default function Header({ onMobileMenuClick, actions }: HeaderProps) {
 
   // Determine page title and subtitle based on pathname if not provided
 
