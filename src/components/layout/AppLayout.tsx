@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import React from 'react';
+import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import { useAuthStore } from '@/store/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import Header from './Header';
-import Sidebar from './Sidebar';
+import EventLayout from './EventLayout';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -21,54 +21,12 @@ export default function AppLayout({
   subtitle, 
   actions 
 }: AppLayoutProps) {
-  const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, isLoading, checkAuth, initializeFromStoredTokens } = useAuthStore();
-  const [sidebarOpen, setSidebarOpen] = useState(false); // Mobile sidebar
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Desktop sidebar
-
-  // Close mobile sidebar on resize
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        setSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const handleToggleSidebar = () => {
-    setSidebarCollapsed((prev) => !prev);
-  };
-
-  const stableInitializeAuth = useCallback(() => {
-    // First try to initialize from stored tokens, then fallback to checkAuth
-    initializeFromStoredTokens().then(() => {
-      // If initialization didn't work, try checkAuth
-      if (!isAuthenticated) {
-        checkAuth();
-      }
-    });
-  }, [initializeFromStoredTokens, checkAuth, isAuthenticated]);
-
-  useEffect(() => {
-    // Only initialize auth once on mount
-    stableInitializeAuth();
-  }, [stableInitializeAuth]);
-
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-    if (!isLoading && isAuthenticated) {
-      // After a successful auth check, ensure we land on events
-      if (window.location.pathname === '/' || window.location.pathname === '/dashboard') {
-        router.replace('/events');
-      }
-    }
-  }, [isAuthenticated, isLoading, router]);
+  const { isAuthenticated, isLoading } = useAuth();
+  
+  // Check if we're in event detail pages
+  const isEventDetailPage = pathname?.match(/^\/events\/\d+/);
+  const eventId = isEventDetailPage ? pathname?.split('/')[2] : null;
 
   if (isLoading) {
     return (
@@ -86,36 +44,33 @@ export default function AppLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Sidebar */}
-      <Sidebar 
-        isOpen={sidebarOpen} 
-        onClose={() => setSidebarOpen(false)} 
-        onToggle={handleToggleSidebar}
-        isCollapsed={sidebarCollapsed}
+    <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
+      {/* Header */}
+      <Header 
+        onMobileMenuClick={() => {}}
+        title={title}
+        subtitle={subtitle}
+        actions={actions}
+        eventId={eventId}
       />
 
-      {/* Main Content */}
-      <div className={`flex flex-col min-h-screen transition-all duration-300 ${sidebarCollapsed ? 'lg:pl-0' : 'lg:pl-80'}`}>
-        {/* Header */}
-        <Header 
-          onMobileMenuClick={() => setSidebarOpen(true)}
-          title={title}
-          subtitle={subtitle}
-          actions={actions}
-        />
-
-        {/* Page Content */}
-        <main className={`flex-1 ${pathname?.startsWith('/events/create') ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
+      {/* Page Content */}
+      <main className={`flex-1 overflow-hidden ${pathname?.startsWith('/events/create') ? 'p-0' : isEventDetailPage ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
+        {isEventDetailPage && eventId ? (
+          <EventLayout eventId={eventId}>
+            {children}
+          </EventLayout>
+        ) : (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
+            className="h-full overflow-y-auto"
           >
             {children}
           </motion.div>
-        </main>
-      </div>
+        )}
+      </main>
     </div>
   );
 }

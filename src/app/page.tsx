@@ -10,13 +10,9 @@ export default function Home() {
 
   useEffect(() => {
     if (!isLoading) {
-      if (isAuthenticated) {
-        router.push('/dashboard');
-      } else {
-        router.push('/login');
-      }
+      router.replace('/events');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isLoading, router]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">

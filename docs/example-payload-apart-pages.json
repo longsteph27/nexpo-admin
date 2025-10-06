@@ -1,0 +1,98 @@
+{
+    "translations": {
+        "create": [
+            {
+                "title": "Test",
+                "languages_code": {
+                    "code": "en-US"
+                },
+                "permalink": "/"
+            }
+        ],
+        "update": [],
+        "delete": []
+    },
+    "blocks": {
+        "create": [
+            {
+                "collection": "block_columns",
+                "item": {
+                    "translations": {
+                        "create": [
+                            {
+                                "title": "Test",
+                                "languages_code": {
+                                    "code": "ar-SA"
+                                },
+                                "headline": "<p>Test</p>"
+                            }
+                        ],
+                        "update": [],
+                        "delete": []
+                    },
+                    "rows": {
+                        "create": [
+                            {
+                                "translations": {
+                                    "create": [
+                                        {
+                                            "title": "test",
+                                            "languages_code": {
+                                                "code": "en-US"
+                                            },
+                                            "headline": "test",
+                                            "content": "<p>Test</p>"
+                                        }
+                                    ],
+                                    "update": [],
+                                    "delete": []
+                                },
+                                "image": "b6ceb68b-9193-4fb2-9a7c-85c74e3e6934",
+                                "image_position": "left",
+                                "button_group": {
+                                    "alignment": "center",
+                                    "buttons": {
+                                        "create": [
+                                            {
+                                                "tenant_id": 11,
+                                                "event_id": 14,
+                                                "translations": {
+                                                    "create": [
+                                                        {
+                                                            "label": "Button1",
+                                                            "languages_code": {
+                                                                "code": "en-US"
+                                                            }
+                                                        }
+                                                    ],
+                                                    "update": [],
+                                                    "delete": []
+                                                },
+                                                "type": "external",
+                                                "external_url": "https://www.youtube.com/watch?v=FruVMdLNcjA"
+                                            }
+                                        ],
+                                        "update": [],
+                                        "delete": []
+                                    },
+                                    "tenant_id": 11,
+                                    "event_id": 14
+                                },
+                                "tenant_id": 11,
+                                "event_id": 14
+                            }
+                        ],
+                        "update": [],
+                        "delete": []
+                    },
+                    "tenant_id": 11,
+                    "event_id": 14
+                }
+            }
+        ],
+        "update": [],
+        "delete": []
+    },
+    "tenant_id": 11,
+    "event_id": 14
+}

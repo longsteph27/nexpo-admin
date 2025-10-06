@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
@@ -8,8 +8,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/ui/Button';
 import { getPageInfo, getDirectusAssetUrl } from '@/util/static';
 import Image from 'next/image';
-import { useAuthStore } from '@/store/auth';
-import { directusHelpers, type Event } from '@/lib/directus';
+import { useEvents } from '@/hooks/useEvents';
 
 const filterTabs = [
   { id: 'all', label: 'All Events', count: 0 },
@@ -22,13 +21,12 @@ export default function EventsPage() {
   const router = useRouter();
   const pathname = usePathname();
   const pageInfo = getPageInfo('', '', pathname);
-  const { selectedTenant } = useAuthStore();
-
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(false);
   const [activeFilter, setActiveFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const eventsPerPage = 10;
+
+  // Use React Query hook to fetch events
+  const { data: events = [], isLoading: loading } = useEvents();
 
   const filterCounts = useMemo(() => ({
     all: events.length,
@@ -41,29 +39,6 @@ export default function EventsPage() {
   const totalPages = Math.ceil(filteredEvents.length / eventsPerPage) || 1;
   const startIndex = (currentPage - 1) * eventsPerPage;
   const paginatedEvents = filteredEvents.slice(startIndex, startIndex + eventsPerPage);
-
-  const loadEvents = useCallback(async () => {
-    if (!selectedTenant) return;
-    setLoading(true);
-    try {
-      const result = await directusHelpers.getEvents(
-        selectedTenant.id,
-        undefined,
-        ['id','name','start_date','end_date','location','status','logo'] as (keyof Event)[]
-      );
-      if (result.success) {
-        setEvents((result.data ?? []) as Event[]);
-      }
-    } catch (error) {
-      console.error('Failed to load events:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedTenant]);
-
-  useEffect(() => {
-    if (selectedTenant) loadEvents();
-  }, [selectedTenant, loadEvents]);
 
   const handleCreateEvent = () => {
     router.push('/events/create?step=1');

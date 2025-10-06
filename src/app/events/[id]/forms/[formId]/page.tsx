@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { directusHelpers } from '@/lib/directus';
+import { useForm, useSaveForm } from '@/hooks/useForms';
 import Button from '@/components/ui/Button';
 import { Icon } from '@iconify/react';
 
@@ -47,7 +46,11 @@ export default function FormBuilderPage() {
   const [activeLang, setActiveLang] = useState<'en-US' | 'vi-VN'>('en-US');
   const [formLang, setFormLang] = useState<{ 'en-US': { title?: string; submit_label?: string; success_message?: string }; 'vi-VN': { title?: string; submit_label?: string; success_message?: string } }>({ 'en-US': {}, 'vi-VN': {} });
   const [formSettings, setFormSettings] = useState<{ status?: string; on_success?: string; redirect_url?: string }>({});
-  const [isSaving, setIsSaving] = useState(false);
+
+  // Use React Query hook to fetch form data
+  const { data: formData } = useForm(formId);
+  const saveFormMutation = useSaveForm();
+  const isSaving = saveFormMutation.isPending;
 
   // Helper function to parse field translations
   const parseFieldTranslations = (field: unknown) => {
@@ -92,39 +95,39 @@ export default function FormBuilderPage() {
     };
   };
 
-  // Load
-  useEffect(() => {
-    const load = async () => {
-      const [form, formFields] = await Promise.all([
-        directusHelpers.getForm(formId),
-        directusHelpers.getFormFields(formId),
-      ]);
-      if (form.success && form.data) {
-        setFormMeta(form.data);
-        
-        // Properly handle form translations by languages_code
-        const translations = ((form.data as { translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> })?.translations || []);
-        const enTranslation = translations.find((t) => t.languages_code === 'en-US');
-        const viTranslation = translations.find((t) => t.languages_code === 'vi-VN');
-        
-        setFormLang({
-          'en-US': { 
-            title: enTranslation?.title || '', 
-            submit_label: enTranslation?.submit_label || '', 
-            success_message: enTranslation?.success_message || '' 
-          },
-          'vi-VN': { 
-            title: viTranslation?.title || '', 
-            submit_label: viTranslation?.submit_label || '', 
-            success_message: viTranslation?.success_message || '' 
-          },
-        });
-        setFormSettings({ status: (form.data as { status?: string; on_success?: string; redirect_url?: string }).status, on_success: (form.data as { status?: string; on_success?: string; redirect_url?: string }).on_success, redirect_url: (form.data as { status?: string; on_success?: string; redirect_url?: string }).redirect_url });
-      }
-      if (formFields.success) setFields((formFields.data as unknown[]).map(parseFieldTranslations));
-    };
-    if (formId) load();
-  }, [formId]);
+  // Process form data when it loads
+  React.useEffect(() => {
+    if (formData) {
+      setFormMeta(formData);
+      
+      // Properly handle form translations by languages_code
+      const translations = ((formData as { translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> })?.translations || []);
+      const enTranslation = translations.find((t) => t.languages_code === 'en-US');
+      const viTranslation = translations.find((t) => t.languages_code === 'vi-VN');
+      
+      setFormLang({
+        'en-US': { 
+          title: enTranslation?.title || '', 
+          submit_label: enTranslation?.submit_label || '', 
+          success_message: enTranslation?.success_message || '' 
+        },
+        'vi-VN': { 
+          title: viTranslation?.title || '', 
+          submit_label: viTranslation?.submit_label || '', 
+          success_message: viTranslation?.success_message || '' 
+        },
+      });
+      setFormSettings({ 
+        status: (formData as { status?: string; on_success?: string; redirect_url?: string }).status, 
+        on_success: (formData as { status?: string; on_success?: string; redirect_url?: string }).on_success, 
+        redirect_url: (formData as { status?: string; on_success?: string; redirect_url?: string }).redirect_url 
+      });
+
+      // Process form fields
+      const formFields = (formData as { fields?: unknown[] })?.fields || [];
+      setFields(formFields.map(parseFieldTranslations));
+    }
+  }, [formData]);
 
   // DnD handlers (basic reordering using clicks for now)
   const moveField = (index: number, direction: -1 | 1) => {
@@ -141,106 +144,66 @@ export default function FormBuilderPage() {
   const selected = useMemo(() => fields.find((f) => f.id === selectedId) || null, [fields, selectedId]);
 
   // Save form
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!formId || !eventId) return;
     
-    setIsSaving(true);
-    try {
-      // Format form data according to schema
-      const formData = {
-        status: (formSettings.status as 'draft' | 'published' | 'archived') || 'draft',
-        on_success: (formSettings.on_success as 'redirect' | 'message') || 'message',
-        redirect_url: formSettings.redirect_url || undefined,
+    // Format form data according to schema
+    const formData = {
+      status: (formSettings.status as 'draft' | 'published' | 'archived') || 'draft',
+      on_success: (formSettings.on_success as 'redirect' | 'message') || 'message',
+      redirect_url: formSettings.redirect_url || undefined,
+      
+      translations: {
+        'en-US': {
+          title: formLang['en-US'].title || '',
+          submit_label: formLang['en-US'].submit_label || 'Submit',
+          success_message: formLang['en-US'].success_message || 'Thank you for your submission!',
+        },
+        'vi-VN': {
+          title: formLang['vi-VN'].title || '',
+          submit_label: formLang['vi-VN'].submit_label || 'Gửi',
+          success_message: formLang['vi-VN'].success_message || 'Cảm ơn bạn đã gửi!',
+        },
+      },
+      
+      fields: fields.map((field, index) => ({
+        id: field.id,
+        name: field.name || `field_${index + 1}`,
+        type: (field.type as 'input' | 'textarea' | 'email' | 'number' | 'select' | 'multiselect' | 'file' | 'image') || 'input',
+        width: (field.width as 'full' | 'half') || 'full',
+        sort: field.sort || index,
+        is_required: field.is_required || false,
+        validation: field.validation || undefined,
+        conditions: field.conditions || undefined,
         
         translations: {
           'en-US': {
-            title: formLang['en-US'].title || '',
-            submit_label: formLang['en-US'].submit_label || 'Submit',
-            success_message: formLang['en-US'].success_message || 'Thank you for your submission!',
+            label: field.translations?.['en-US']?.label || '',
+            placeholder: field.translations?.['en-US']?.placeholder || undefined,
+            help: field.translations?.['en-US']?.help || undefined,
+            options: field.translations?.['en-US']?.options || undefined,
           },
           'vi-VN': {
-            title: formLang['vi-VN'].title || '',
-            submit_label: formLang['vi-VN'].submit_label || 'Gửi',
-            success_message: formLang['vi-VN'].success_message || 'Cảm ơn bạn đã gửi!',
+            label: field.translations?.['vi-VN']?.label || '',
+            placeholder: field.translations?.['vi-VN']?.placeholder || undefined,
+            help: field.translations?.['vi-VN']?.help || undefined,
+            options: field.translations?.['vi-VN']?.options || undefined,
           },
         },
-        
-        fields: fields.map((field, index) => ({
-          id: field.id,
-          name: field.name || `field_${index + 1}`,
-          type: (field.type as 'input' | 'textarea' | 'email' | 'number' | 'select' | 'multiselect' | 'file' | 'image') || 'input',
-          width: (field.width as 'full' | 'half') || 'full',
-          sort: field.sort || index,
-          is_required: field.is_required || false,
-          validation: field.validation || undefined,
-          conditions: field.conditions || undefined,
-          
-          translations: {
-            'en-US': {
-              label: field.translations?.['en-US']?.label || '',
-              placeholder: field.translations?.['en-US']?.placeholder || undefined,
-              help: field.translations?.['en-US']?.help || undefined,
-              options: field.translations?.['en-US']?.options || undefined,
-            },
-            'vi-VN': {
-              label: field.translations?.['vi-VN']?.label || '',
-              placeholder: field.translations?.['vi-VN']?.placeholder || undefined,
-              help: field.translations?.['vi-VN']?.help || undefined,
-              options: field.translations?.['vi-VN']?.options || undefined,
-            },
-          },
-        })),
-      };
+      })),
+    };
 
-      const result = await directusHelpers.saveForm(formId, eventId, formData);
-      
-      if (result.success) {
-        alert('Form saved successfully!');
-        // Reload the form data to get updated IDs for new fields
-        const [form, formFields] = await Promise.all([
-          directusHelpers.getForm(formId),
-          directusHelpers.getFormFields(formId),
-        ]);
-        
-        if (form.success && form.data) {
-          setFormMeta(form.data);
-          setFormSettings({
-            status: (form.data as { status?: string; on_success?: string; redirect_url?: string }).status,
-            on_success: (form.data as { status?: string; on_success?: string; redirect_url?: string }).on_success,
-            redirect_url: (form.data as { status?: string; on_success?: string; redirect_url?: string }).redirect_url,
-          });
-          
-          // Update form translations
-          const translations = (form.data as { translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> }).translations || [];
-          const enTranslation = translations.find((t: { languages_code: string }) => t.languages_code === 'en-US');
-          const viTranslation = translations.find((t: { languages_code: string }) => t.languages_code === 'vi-VN');
-          
-          setFormLang({
-            'en-US': {
-              title: enTranslation?.title || '',
-              submit_label: enTranslation?.submit_label || '',
-              success_message: enTranslation?.success_message || '',
-            },
-            'vi-VN': {
-              title: viTranslation?.title || '',
-              submit_label: viTranslation?.submit_label || '',
-              success_message: viTranslation?.success_message || '',
-            },
-          });
-        }
-        
-        if (formFields.success && formFields.data) {
-          setFields((formFields.data as unknown[]).map(parseFieldTranslations));
-        }
-      } else {
-        alert(`Failed to save form: ${result.error}`);
+    saveFormMutation.mutate(
+      { formId, eventId, formData },
+      {
+        onSuccess: () => {
+          alert('Form saved successfully!');
+        },
+        onError: (error) => {
+          alert('Failed to save form: ' + error.message);
+        },
       }
-    } catch (error) {
-      console.error('Save error:', error);
-      alert('An error occurred while saving the form');
-    } finally {
-      setIsSaving(false);
-    }
+    );
   };
 
   // DnD helpers
@@ -319,10 +282,9 @@ export default function FormBuilderPage() {
   };
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-start justify-between">
+    <div className="space-y-6 p-8">
+      {/* Header */}
+      <div className="flex items-start justify-between">
           <div>
             <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm">Form Builder</div>
             <h1 className="mt-2 text-2xl font-bold text-gray-900 tracking-tight">Design your form</h1>
@@ -559,10 +521,10 @@ export default function FormBuilderPage() {
             )}
           </div>
         </div>
-      </div>
-      {/* Form Info below builder */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-        <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
+
+        {/* Form Info below builder */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="text-sm font-semibold text-gray-900">Form Information</div>
             <div className="flex items-center gap-2">
@@ -613,7 +575,7 @@ export default function FormBuilderPage() {
           </div>
         </section>
       </div>
-    </DashboardLayout>
+    </div>
   );
 }
 

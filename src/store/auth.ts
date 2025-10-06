@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { directusHelpers, directus, initializeDirectusWithTokens, type User, type Tenant, type Permission } from '@/lib/directus';
+import { directusHelpers, directus, initializeDirectusWithTokens, refreshWithToken, type User, type Tenant, type Permission } from '@/lib/directus';
+import { tokenManager } from '@/lib/tokenManager';
 
 // Types for Directus authentication responses
 interface DirectusAuthResponse {
@@ -9,6 +10,10 @@ interface DirectusAuthResponse {
   expires?: number;
   expires_in?: number;
 }
+
+// Environment configuration
+const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'session') || 'json';
+const IS_SESSION_MODE = AUTH_MODE === 'session';
 
 interface AuthState {
   user: User | null;
@@ -25,11 +30,13 @@ interface AuthState {
   logout: () => Promise<void>;
   clearError: () => void;
   checkAuth: () => Promise<void>;
+  checkAuthOnReload: () => Promise<void>;
   setSelectedTenant: (tenant: Tenant | null) => void;
   loadPermissions: () => Promise<void>;
   setTokens: (accessToken: string | null, refreshToken: string | null) => void;
   getTokens: () => { accessToken: string | null; refreshToken: string | null };
   initializeFromStoredTokens: () => Promise<void>;
+  clearAuthData: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -53,13 +60,20 @@ export const useAuthStore = create<AuthState>()(
           const result = await directusHelpers.login(email, password);
           
           if (result.success) {
-            // Extract tokens from Directus response
-            const loginData = result.data as DirectusAuthResponse;
-            const accessToken = loginData.access_token || null;
-            const refreshToken = loginData.refresh_token || null;
-            
-            // Save tokens to store
-            set({ accessToken, refreshToken });
+            // Handle different authentication modes
+            if (IS_SESSION_MODE) {
+              // In session mode, Directus handles tokens via cookies
+              // No need to store tokens in our state
+              set({ accessToken: null, refreshToken: null });
+            } else {
+              // In JSON mode, extract and store tokens
+              const loginData = result.data as DirectusAuthResponse;
+              const accessToken = loginData.access_token || null;
+              const refreshToken = loginData.refresh_token || null;
+              
+              // Save tokens to store and update token manager
+              get().setTokens(accessToken, refreshToken);
+            }
             
             // Get current user info with tenants after successful login
             // No need to refresh token as login already provides fresh tokens
@@ -129,11 +143,30 @@ export const useAuthStore = create<AuthState>()(
             accessToken: null,
             refreshToken: null,
           });
+          // Clear token manager
+          tokenManager.setAccessToken(null);
         }
       },
 
       clearError: () => {
         set({ error: null });
+      },
+
+      // Helper function to clear all auth data
+      clearAuthData: () => {
+        set({
+          user: null,
+          tenants: [],
+          selectedTenant: null,
+          permissions: {},
+          isAuthenticated: false,
+          isLoading: false,
+          isRefreshing: false,
+          accessToken: null,
+          refreshToken: null,
+        });
+        // Clear token manager
+        tokenManager.setAccessToken(null);
       },
 
       setSelectedTenant: (tenant: Tenant | null) => {
@@ -153,6 +186,8 @@ export const useAuthStore = create<AuthState>()(
 
       setTokens: (accessToken: string | null, refreshToken: string | null) => {
         set({ accessToken, refreshToken });
+        // Also update the token manager
+        tokenManager.setAccessToken(accessToken);
       },
 
       getTokens: () => {
@@ -163,17 +198,15 @@ export const useAuthStore = create<AuthState>()(
       initializeFromStoredTokens: async () => {
         const { accessToken, refreshToken, isRefreshing } = get();
         
-        // Don't initialize if already refreshing or no tokens
-        if (isRefreshing || !accessToken || !refreshToken) {
+        // Don't initialize if already refreshing
+        if (isRefreshing) {
           return;
         }
 
         try {
-          // Initialize Directus with stored tokens
-          const initialized = await initializeDirectusWithTokens(accessToken, refreshToken);
-          
-          if (initialized) {
-            // Try to get current user to validate tokens
+          if (IS_SESSION_MODE) {
+            // In session mode, Directus handles authentication via cookies
+            // Just try to get current user to validate session
             const userResult = await directusHelpers.getCurrentUser();
             
             if (userResult.success && userResult.data) {
@@ -194,7 +227,7 @@ export const useAuthStore = create<AuthState>()(
                 isRefreshing: false,
               });
             } else {
-              // Tokens are invalid, clear auth state
+              // Session is invalid, clear auth state
               set({
                 user: null,
                 tenants: [],
@@ -207,21 +240,56 @@ export const useAuthStore = create<AuthState>()(
                 refreshToken: null,
               });
             }
+          } else {
+            // In JSON mode, use stored tokens
+            if (!accessToken || !refreshToken) {
+              return;
+            }
+
+            // Initialize Directus with stored tokens
+            const initialized = await initializeDirectusWithTokens(accessToken, refreshToken);
+            
+            if (initialized) {
+              // Try to get current user to validate tokens
+              const userResult = await directusHelpers.getCurrentUser();
+              
+              if (userResult.success && userResult.data) {
+                const user = userResult.data;
+                const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+                const { selectedTenant } = get();
+                
+                // Keep selected tenant if still valid, otherwise select first
+                const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
+                                   (tenants.length > 0 ? tenants[0] : null);
+                
+                set({
+                  user: user as User,
+                  tenants,
+                  selectedTenant: validTenant,
+                  isAuthenticated: true,
+                  isLoading: false,
+                  isRefreshing: false,
+                });
+              } else {
+                // Tokens are invalid, clear auth state
+                set({
+                  user: null,
+                  tenants: [],
+                  selectedTenant: null,
+                  permissions: {},
+                  isAuthenticated: false,
+                  isLoading: false,
+                  isRefreshing: false,
+                  accessToken: null,
+                  refreshToken: null,
+                });
+              }
+            }
           }
         } catch (error) {
           console.error('Failed to initialize from stored tokens:', error);
-          // Clear invalid tokens
-          set({
-            user: null,
-            tenants: [],
-            selectedTenant: null,
-            permissions: {},
-            isAuthenticated: false,
-            isLoading: false,
-            isRefreshing: false,
-            accessToken: null,
-            refreshToken: null,
-          });
+              // Clear invalid tokens
+              get().clearAuthData();
         }
       },
 
@@ -233,25 +301,238 @@ export const useAuthStore = create<AuthState>()(
           return;
         }
 
-        // If we have stored tokens, try to initialize with them first
-        if (accessToken && refreshToken) {
-          await get().initializeFromStoredTokens();
+        // Check if this is a page reload
+        const navigationEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[];
+        const isReload = (performance.navigation as { type?: number })?.type === 1 || 
+                         (navigationEntries[0] as { type?: string })?.type === 'reload';
+
+        if (IS_SESSION_MODE) {
+          // In session mode, just try to get current user
+          // Directus SDK handles session refresh automatically
+          set({ isLoading: true, isRefreshing: true });
+          
+          try {
+            const userResult = await directusHelpers.getCurrentUser();
+            
+            if (userResult.success && userResult.data) {
+              const user = userResult.data;
+              const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+              const { selectedTenant } = get();
+              
+              // Keep selected tenant if still valid, otherwise select first
+              const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
+                                 (tenants.length > 0 ? tenants[0] : null);
+              
+              set({
+                user: user as User,
+                tenants,
+                selectedTenant: validTenant,
+                isAuthenticated: true,
+                isLoading: false,
+                isRefreshing: false,
+              });
+            } else {
+              // No valid user, clear auth state
+              set({
+                user: null,
+                tenants: [],
+                selectedTenant: null,
+                permissions: {},
+                isAuthenticated: false,
+                isLoading: false,
+                isRefreshing: false,
+                accessToken: null,
+                refreshToken: null,
+              });
+            }
+          } catch {
+            // Session check failed, clear auth state
+            set({
+              user: null,
+              tenants: [],
+              selectedTenant: null,
+              permissions: {},
+              isAuthenticated: false,
+              isLoading: false,
+              isRefreshing: false,
+              accessToken: null,
+              refreshToken: null,
+            });
+          }
+        } else {
+          // JSON mode - check if we have tokens
+          if (!refreshToken) {
+            // No refresh token, clear auth state and let AuthContext redirect to login
+            get().clearAuthData();
+            return;
+          }
+
+          // On reload, always call refresh API first
+          if (isReload) {
+            set({ isLoading: true, isRefreshing: true });
+            
+            try {
+              console.log('🔄 Page reload detected, refreshing token...');
+              
+              // Use refresh token to get new access token
+              const refreshResult = await refreshWithToken(refreshToken);
+              
+              // Extract refreshed tokens
+              const refreshData = refreshResult as DirectusAuthResponse;
+              const newAccessToken = refreshData.access_token || null;
+              const newRefreshToken = refreshData.refresh_token || null;
+              
+              // Save refreshed tokens to store and update token manager
+              get().setTokens(newAccessToken, newRefreshToken);
+              console.log('🔑 Tokens updated in store and token manager');
+              
+              // Set the new access token in Directus client
+              if (newAccessToken) {
+                await directus.setToken(newAccessToken);
+                console.log('✅ Directus client token updated');
+                
+                // Verify token is set correctly
+                const currentToken = await directus.getToken();
+                console.log('🔍 Current Directus token:', currentToken ? currentToken.substring(0, 20) + '...' : 'null');
+              }
+              
+              // If refresh succeeds, get current user
+              const userResult = await directusHelpers.getCurrentUser();
+              
+              if (userResult.success && userResult.data) {
+                const user = userResult.data;
+                const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+                const { selectedTenant } = get();
+                
+                // Keep selected tenant if still valid, otherwise select first
+                const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
+                                   (tenants.length > 0 ? tenants[0] : null);
+                
+                console.log('✅ Authentication successful after reload');
+                set({
+                  user: user as User,
+                  tenants,
+                  selectedTenant: validTenant,
+                  isAuthenticated: true,
+                  isLoading: false,
+                  isRefreshing: false,
+                });
+              } else {
+                console.log('❌ No valid user after refresh, clearing auth state');
+                get().clearAuthData();
+              }
+            } catch (error) {
+              console.log('❌ Refresh failed, clearing auth state:', error);
+              get().clearAuthData();
+            }
+            return;
+          }
+
+          // For non-reload cases, try stored tokens first
+          if (accessToken && refreshToken) {
+            await get().initializeFromStoredTokens();
+            return;
+          }
+          
+          set({ isLoading: true, isRefreshing: true });
+          
+          try {
+            // Use refresh token to get new access token
+            const refreshResult = await refreshWithToken(refreshToken);
+            
+            // Extract refreshed tokens
+            const refreshData = refreshResult as DirectusAuthResponse;
+            console.log('refreshData', refreshData);
+            const newAccessToken = refreshData.access_token || null;
+            const newRefreshToken = refreshData.refresh_token || null;
+            
+            // Save refreshed tokens to store and update token manager
+            get().setTokens(newAccessToken, newRefreshToken);
+            console.log('🔑 Tokens updated in store and token manager');
+            
+            // Set the new access token in Directus client
+            if (newAccessToken) {
+              await directus.setToken(newAccessToken);
+              console.log('✅ Directus client token updated');
+              
+              // Verify token is set correctly
+              const currentToken = await directus.getToken();
+              console.log('🔍 Current Directus token:', currentToken ? currentToken.substring(0, 20) + '...' : 'null');
+            }
+            
+            // If refresh succeeds, get current user
+            const userResult = await directusHelpers.getCurrentUser();
+            
+            if (userResult.success && userResult.data) {
+              const user = userResult.data;
+              const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+              const { selectedTenant } = get();
+              
+              // Keep selected tenant if still valid, otherwise select first
+              const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
+                                 (tenants.length > 0 ? tenants[0] : null);
+              
+              set({
+                user: user as User,
+                tenants,
+                selectedTenant: validTenant,
+                isAuthenticated: true,
+                isLoading: false,
+                isRefreshing: false,
+              });
+            } else {
+              // No valid user, clear auth state
+              get().clearAuthData();
+            }
+          } catch {
+            // Token refresh failed, clear auth state
+            get().clearAuthData();
+          }
+        }
+      },
+
+      // Method to handle reload/refresh with refresh token priority
+      checkAuthOnReload: async () => {
+        const { isRefreshing, refreshToken } = get();
+        
+        // Prevent multiple simultaneous refresh calls
+        if (isRefreshing) {
           return;
         }
-        
+
+        // Check if we have refresh token
+        if (!refreshToken) {
+          console.log('❌ No refresh token found, clearing auth state');
+          get().clearAuthData();
+          return;
+        }
+
         set({ isLoading: true, isRefreshing: true });
         
         try {
-          // Try to refresh token using Directus SDK (JSON mode)
-          const refreshResult = await directus.refresh();
+          console.log('🔄 Using refresh token to get new access token...');
+          
+          // Use refresh token to get new access token
+          const refreshResult = await refreshWithToken(refreshToken);
           
           // Extract refreshed tokens
           const refreshData = refreshResult as DirectusAuthResponse;
           const newAccessToken = refreshData.access_token || null;
           const newRefreshToken = refreshData.refresh_token || null;
           
-          // Save refreshed tokens to store
-          set({ accessToken: newAccessToken, refreshToken: newRefreshToken });
+          // Save refreshed tokens to store and update token manager
+          get().setTokens(newAccessToken, newRefreshToken);
+          console.log('🔑 Tokens updated in store and token manager');
+          
+          // Set the new access token in Directus client
+          if (newAccessToken) {
+            await directus.setToken(newAccessToken);
+            console.log('✅ Directus client token updated');
+            
+            // Verify token is set correctly
+            const currentToken = await directus.getToken();
+            console.log('🔍 Current Directus token:', currentToken ? currentToken.substring(0, 20) + '...' : 'null');
+          }
           
           // If refresh succeeds, get current user
           const userResult = await directusHelpers.getCurrentUser();
@@ -265,6 +546,7 @@ export const useAuthStore = create<AuthState>()(
             const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
                                (tenants.length > 0 ? tenants[0] : null);
             
+            console.log('✅ Authentication successful after reload');
             set({
               user: user as User,
               tenants,
@@ -274,32 +556,12 @@ export const useAuthStore = create<AuthState>()(
               isRefreshing: false,
             });
           } else {
-            // No valid user, clear auth state
-            set({
-              user: null,
-              tenants: [],
-              selectedTenant: null,
-              permissions: {},
-              isAuthenticated: false,
-              isLoading: false,
-              isRefreshing: false,
-              accessToken: null,
-              refreshToken: null,
-            });
+            console.log('❌ No valid user after refresh, clearing auth state');
+            get().clearAuthData();
           }
-        } catch {
-          // Token refresh failed, clear auth state
-          set({
-            user: null,
-            tenants: [],
-            selectedTenant: null,
-            permissions: {},
-            isAuthenticated: false,
-            isLoading: false,
-            isRefreshing: false,
-            accessToken: null,
-            refreshToken: null,
-          });
+        } catch (error) {
+          console.log('❌ Refresh failed, clearing auth state:', error);
+          get().clearAuthData();
         }
       },
     }),

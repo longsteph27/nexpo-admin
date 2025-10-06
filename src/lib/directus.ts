@@ -80,10 +80,25 @@ interface Schema {
   form_submissions: Record<string, unknown>[];
 }
 
-// Create Directus client
-const directus = createDirectus<Schema>('https://app.nexpo.vn')
+// Environment configuration
+const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://app.nexpo.vn';
+const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'session') || 'json';
+const AUTO_REFRESH = process.env.NEXT_PUBLIC_DIRECTUS_AUTO_REFRESH === 'true';
+
+// Log configuration in development
+if (process.env.NODE_ENV === 'development') {
+  console.log('🔧 Directus Configuration:', {
+    url: DIRECTUS_URL,
+    authMode: AUTH_MODE,
+    autoRefresh: AUTO_REFRESH,
+    environment: process.env.NODE_ENV
+  });
+}
+
+// Create Directus client with environment-based configuration
+const directus = createDirectus<Schema>(DIRECTUS_URL)
   .with(rest())
-  .with(authentication('json', { autoRefresh: true }));
+  .with(authentication(AUTH_MODE, { autoRefresh: AUTO_REFRESH }));
 
 // Helper function to initialize Directus with stored tokens
 export const initializeDirectusWithTokens = async (accessToken: string | null, refreshToken: string | null) => {
@@ -102,6 +117,22 @@ export const initializeDirectusWithTokens = async (accessToken: string | null, r
   return false;
 };
 
+// Helper function to set refresh token for refresh calls
+export const setRefreshToken = async (refreshToken: string | null) => {
+  if (refreshToken) {
+    try {
+      // For JSON mode, we need to manually set the refresh token
+      // The Directus SDK doesn't expose a direct method to set refresh token
+      // We'll need to handle this in the refresh call itself
+      return true;
+    } catch (error) {
+      console.error('Failed to set refresh token:', error);
+      return false;
+    }
+  }
+  return false;
+};
+
 // Helper function to get current tokens from Directus
 export const getDirectusTokens = async () => {
   try {
@@ -110,6 +141,32 @@ export const getDirectusTokens = async () => {
   } catch (error) {
     console.error('Failed to get Directus tokens:', error);
     return { accessToken: null, refreshToken: null };
+  }
+};
+
+// Custom refresh function that includes refresh token in payload
+export const refreshWithToken = async (refreshToken: string) => {
+  try {
+    // Make a direct API call to refresh endpoint with refresh token
+    const response = await fetch(`${DIRECTUS_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        refresh_token: refreshToken
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Refresh failed: ${response.status}`);
+    }
+
+    const {data} = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Failed to refresh with token:', error);
+    throw error;
   }
 };
 
@@ -126,6 +183,16 @@ export const directusHelpers = {
     } catch (error) {
       console.error('Login error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Login failed' };
+    }
+  },
+
+  async refresh(refreshToken: string) {
+    try {
+      const result = await refreshWithToken(refreshToken);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('Refresh error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Refresh failed' };
     }
   },
 
@@ -539,7 +606,10 @@ export const directusHelpers = {
     try {
       const event = await directus.request(
         readItems('events', {
-          fields: ['*'],
+          fields: ([
+            '*',
+            { sites: ['id'] }
+          ] as unknown) as never,
           filter: { id: { _eq: Number(id) } },
         })
       );
@@ -581,18 +651,42 @@ export const directusHelpers = {
   },
 
   // File uploads
-  async uploadFile(file: File) {
+  async uploadFile(file: File, folderId?: string, eventId?: string) {
     try {
       const formData = new FormData();
       formData.append('file', file);
-      // Public upload (no auth headers, no credentials)
+      
+      // Add folder if provided
+      if (folderId) {
+        formData.append('folder', folderId);
+      }
+      
+      // Add event_id metadata if provided
+      if (eventId) {
+        formData.append('event_id', eventId);
+      }
+      
+      // Get auth token from tokenManager
+      const { getAccessToken } = await import('./tokenManager');
+      const token = getAccessToken();
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Authenticated upload with Bearer token
       const response = await fetch('https://app.nexpo.vn/files', {
         method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('File upload failed');
+        const errorText = await response.text();
+        console.error('Upload failed:', response.status, errorText);
+        throw new Error(`File upload failed: ${response.status} ${response.statusText}`);
       }
 
       const result = await response.json();
@@ -600,6 +694,371 @@ export const directusHelpers = {
     } catch (error) {
       console.error('File upload error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to upload file' };
+    }
+  },
+
+  // Sites
+  async getSiteByEvent(eventId: number) {
+    try {
+      const sites = await directus.request(readItems('sites' as never, {
+        filter: { event_id: { _eq: Number(eventId) } },
+        limit: 1,
+        fields: (['id','event_id','slug','domain','status'] as unknown) as never,
+      }));
+      return { success: true, data: sites?.[0] || null };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get site by event' };
+    }
+  },
+
+  // Get list of sites for an event (with all data for list display)
+  async getSitesList(eventId: number, tenantId?: number) {
+    try {
+      const filter: Record<string, unknown> = {
+        event_id: { _eq: Number(eventId) }
+      };
+
+      // Add tenant filter if provided
+      if (tenantId) {
+        filter.tenant_id = { _eq: Number(tenantId) };
+      }
+
+      const sites = await directus.request(readItems('sites' as never, {
+        filter: filter as never,
+        fields: ([
+          'id',
+          'event_id',
+          'slug',
+          'domain',
+          'status',
+          'date_created',
+          'date_updated',
+          'logo',
+          'favicon',
+          'tenant_id',
+          { 
+            translations: ['id', 'languages_code', 'title', 'description'] 
+          },
+          { 
+            pages: ['id', 'status'] 
+          },
+          { 
+            navigation: ['id', 'type', 'status'] 
+          },
+          {
+            categories: ['id']
+          }
+        ] as unknown) as never,
+        sort: (['-date_updated'] as unknown) as never,
+      }));
+      return { success: true, data: sites };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get sites list' };
+    }
+  },
+
+  async getSite(siteId: number) {
+    try {
+      const sites = await directus.request(readItems('sites' as never, {
+        filter: { id: { _eq: Number(siteId) } },
+        limit: 1,
+        fields: ([
+          'id',
+          'event_id',
+          'slug',
+          'domain',
+          'status',
+          'sort',
+          'user_created',
+          'date_created',
+          'user_updated',
+          'date_updated',
+          'logo',
+          'favicon',
+          'tenant_id',
+          { 
+            posts: [
+              'id', 
+              'title', 
+              'slug',
+              'status',
+              'type',
+              'date_published',
+              'summary',
+              { category: ['id', { translations: ['title'] }] },
+              { author: ['id', 'name'] }
+            ] 
+          },
+          { 
+            testimonials: [
+              'id', 
+              'title', 
+              'subtitle',
+              'status',
+              'company',
+              'content'
+            ] 
+          },
+          { 
+            team: [
+              'id', 
+              'name', 
+              'status',
+              'image',
+              { translations: ['languages_code', 'title', 'bio'] }
+            ] 
+          },
+          { 
+            redirects: [
+              'id', 
+              'url_old', 
+              'url_new',
+              'response_code'
+            ] 
+          },
+          { 
+            navigation: [
+              'id', 
+              'status', 
+              'type',
+              { translations: ['id', 'languages_code', 'title'] },
+              { 
+                items: [
+                  'id',
+                  'type',
+                  'sort',
+                  { translations: ['languages_code', 'title'] }
+                ]
+              }
+            ] 
+          },
+          { 
+            translations: ['id', 'languages_code', 'title', 'description'] 
+          },
+          { 
+            pages: [
+              'id', 
+              'sort', 
+              'status',
+              'date_created',
+              'date_updated',
+              { translations: ['id', 'languages_code', 'title'] },
+              { blocks: ['id', 'collection'] }
+            ] 
+          },
+          { 
+            categories: [
+              'id', 
+              'color',
+              'sort',
+              { translations: ['id', 'languages_code', 'title'] }
+            ] 
+          },
+          { 
+            globals: [
+              'id', 
+              'title', 
+              'url',
+              'tagline',
+              'description',
+              'email',
+              'phone'
+            ] 
+          },
+          { 
+            languages: [
+              'id',
+              { languages_id: ['code', 'name'] }
+            ] 
+          }
+        ] as unknown) as never,
+      }));
+      return { success: true, data: sites?.[0] };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get site' };
+    }
+  },
+
+  async createSite(payload: { event_id: number; slug?: string; domain?: string; status?: string }) {
+    try {
+      const site = await directus.request(createItem('sites' as never, payload as never));
+      return { success: true, data: site };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to create site' };
+    }
+  },
+
+  // Pages
+  async createPage(payload: { site_id: number; slug?: string; sort?: number; translations?: Array<{ languages_code: string; title?: string }> }) {
+    try {
+      const page = await directus.request(createItem('pages' as never, payload as never));
+      return { success: true, data: page };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to create page' };
+    }
+  },
+
+  async getPagesBySite(siteId: number) {
+    try {
+      const pages = await directus.request(readItems('pages' as never, {
+        filter: { site_id: { _eq: Number(siteId) } },
+        fields: (['id','slug','sort',{ translations: ['title'] }] as unknown) as never,
+      }));
+      return { success: true, data: pages };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get pages' };
+    }
+  },
+
+  async getPage(pageId: string) {
+    try {
+      const pages = await directus.request(readItems('pages' as never, {
+        filter: { id: { _eq: pageId } },
+        limit: 1,
+        fields: ([
+          'id','slug','sort','status','site_id','date_created','date_updated',
+          { translations: ['id','languages_code','title','description'] },
+          { blocks: [
+            'id','collection','sort','hide_block',
+            { item: ['*'] }
+          ] }
+        ] as unknown) as never,
+      }));
+      return { success: true, data: pages?.[0] || null };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get page' };
+    }
+  },
+
+  async updatePage(pageId: string, payload: Record<string, unknown>) {
+    try {
+      const page = await directus.request(updateItem('pages' as never, pageId, payload as never));
+      return { success: true, data: page };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update page' };
+    }
+  },
+
+  // Blocks via junction page_blocks
+  async getBlocksByPage(pageId: string) {
+    try {
+      const blocks = await directus.request(readItems('page_blocks' as never, {
+        filter: { pages_id: { _eq: pageId } },
+        fields: (['id','collection','hide_block','sort'] as unknown) as never,
+        sort: (['sort'] as unknown) as never
+      }));
+      return { success: true, data: blocks };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get blocks' };
+    }
+  },
+
+  async upsertPageBlock(payload: { pages_id: string; collection: string; item: Record<string, unknown>; sort?: number; hide_block?: boolean }) {
+    try {
+      // Create the block item first
+      const createdItem = await directus.request(createItem(payload.collection as never, payload.item as never));
+      const link = await directus.request(createItem('page_blocks' as never, {
+        pages_id: payload.pages_id,
+        collection: payload.collection,
+        item: createdItem.id,
+        sort: payload.sort || 1,
+        hide_block: payload.hide_block || false,
+      } as never));
+      return { success: true, data: link };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to save block' };
+    }
+  },
+
+  // Navigation (single per site)
+  async getNavigation(siteId: number) {
+    try {
+      const nav = await directus.request(readItems('navigation' as never, {
+        filter: { site_id: { _eq: Number(siteId) } },
+        limit: 1,
+        fields: ([
+          'id','status','type','site_id',
+          { translations: ['languages_code','title'] },
+          { items: [
+            'id','sort','type','url','open_in_new_tab','has_children',
+            { translations: ['languages_code','title'] },
+            { page: ['id', { translations: ['title'] }] },
+            { parent: ['id'] },
+            { children: [
+              'id','sort','type','url','open_in_new_tab','has_children',
+              { translations: ['languages_code','title'] },
+              { page: ['id', { translations: ['title'] }] },
+              { parent: ['id'] }
+            ]}
+          ] }
+        ] as unknown) as never,
+      }));
+      return { success: true, data: nav?.[0] || null };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get navigation' };
+    }
+  },
+
+  async getNavigations(siteId: number) {
+    try {
+      const list = await directus.request(readItems('navigation' as never, {
+        filter: { site_id: { _eq: Number(siteId) } },
+        fields: ([
+          'id','status','type','site_id',
+          { translations: ['languages_code','title'] },
+          { items: [
+            'id','sort','type','url','open_in_new_tab','has_children',
+            { translations: ['languages_code','title'] },
+            { page: ['id', { translations: ['title'] }] },
+            { parent: ['id'] },
+            { children: [
+              'id','sort','type','url','open_in_new_tab','has_children',
+              { translations: ['languages_code','title'] },
+              { page: ['id', { translations: ['title'] }] },
+              { parent: ['id'] }
+            ]}
+          ] }
+        ] as unknown) as never,
+      }));
+      return { success: true, data: list };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get navigations' };
+    }
+  },
+
+  async updateNavigation(id: string, payload: Record<string, unknown>) {
+    try {
+      const updated = await directus.request(updateItem('navigation' as never, id as never, payload as never));
+      return { success: true, data: updated };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update navigation' };
+    }
+  },
+
+  async createNavigation(payload: Record<string, unknown>) {
+    try {
+      const created = await directus.request(createItem('navigation' as never, payload as never));
+      return { success: true, data: created };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to create navigation' };
+    }
+  },
+
+  async createNavigationItem(payload: Record<string, unknown>) {
+    try {
+      const created = await directus.request(createItem('navigation_items' as never, payload as never));
+      return { success: true, data: created };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to create navigation item' };
+    }
+  },
+
+  async updateNavigationItem(id: string, payload: Record<string, unknown>) {
+    try {
+      const updated = await directus.request(updateItem('navigation_items' as never, id as never, payload as never));
+      return { success: true, data: updated };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update navigation item' };
     }
   },
 };

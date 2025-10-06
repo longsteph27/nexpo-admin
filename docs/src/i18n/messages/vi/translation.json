@@ -1,0 +1,45 @@
+{
+  "global": {
+    "home_title": "Trang chủ",
+    "theme": "Chủ đề",
+    "search": {
+      "no": "Không có kết quả",
+      "end": "Không còn kết quả nào nữa",
+      "for_posts": "Tìm kiếm bài viết",
+      "for_help_articles": "Tìm kiếm tài liệu trợ giúp"
+    },
+    "locale_switcher": {
+      "label": "Ngôn ngữ",
+      "locale": "Tiếng Việt"
+    },
+    "lang_redirect": {
+      "heading": "Không có nội dung nào bằng ngôn ngữ của bạn.",
+      "note": "Hãy thử chuyển sang ngôn ngữ khác."
+    },
+    "go_top": "Quay lại đầu trang"
+  },
+  "projects": {
+    "page_title": "Tất cả dự án",
+    "latest": "Dự án mới nhất",
+    "build_with": "Công nghệ sử dụng",
+    "client": "Khách hàng",
+    "cost": "Chi phí",
+    "gallery": "Thư viện hình ảnh dự án"
+  },
+  "help": {
+    "page_title": "Tài liệu",
+    "article_name": "Tài liệu",
+    "view": "Xem",
+    "title": "Trung tâm tài liệu",
+    "headline": "<p>Bạn cần <em>giúp đỡ</em> gì?</p>",
+    "all_collections": "Tất cả tài liệu"
+  },
+  "posts": {
+    "page_title": "Tất cả bài viết",
+    "search": "Tìm kiếm bài viết",
+    "categories": "Danh mục bài viết",
+    "featured": "Bài viết nổi bật",
+    "latest": "Bài viết mới nhất",
+    "category_for": "Bài viết theo danh mục: "
+  }
+}

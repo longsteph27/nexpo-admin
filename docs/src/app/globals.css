@@ -1,0 +1,158 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Biến CSS cho theme động */
+:root {
+  --color-primary: #1E40AF;
+  --color-gray: #374151;
+  --border-radius: 1rem;  
+  --font-display: Poppins, serif;
+  --font-body: Inter, sans-serif;
+  --font-code: Fira Code, monospace;
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
+body {
+  font-family: var(--font-body, Inter, sans-serif);
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+    to bottom,
+    rgb(var(--background-start-rgb)),
+    rgb(var(--background-end-rgb))
+  );
+  min-height: 100vh;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display, Poppins, serif);
+}
+
+code, pre {
+  font-family: var(--font-code, 'Fira Code', monospace);
+}
+
+/* Style cho HeroBlock
+.hero-headline {
+  color: var(--color-primary, #8b5cf6);
+  font-family: var(--font-display, Poppins, serif);
+}
+.hero-content {
+  font-family: var(--font-body, Inter, sans-serif);
+}  */
+
+.btn {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  border: 2px solid var(--color-primary) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.btn:hover, .btn:focus {
+  background-color: white !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+}
+
+.btn.btn-primary.btn-md.my-btn-primary {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  border: 2px solid var(--color-primary) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn.btn-primary.btn-md.my-btn-primary:hover {
+  background-color: white !important;
+  color: var(--color-primary) !important;
+  border: 2px solid var(--color-primary) !important;
+}
+
+@layer components {
+  .glass {
+    @apply bg-glass-light dark:bg-glass-dark backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg;
+  }
+
+  .glass-card {
+    @apply glass rounded-xl p-6 transition-all duration-300 hover:shadow-xl hover:scale-[1.02];
+  }
+
+  .glass-button {
+    @apply glass rounded-lg px-4 py-2 transition-all duration-300 
+           hover:bg-white/10 dark:hover:bg-white/5 
+           active:scale-95 focus:outline-none focus:ring-2 focus:ring-white/20;
+  }
+
+  .glass-input {
+    @apply glass rounded-lg px-4 py-2 w-full
+           focus:outline-none focus:ring-2 focus:ring-white/20
+           placeholder:text-gray-400 dark:placeholder:text-gray-500;
+  }
+
+  .glass-gradient {
+    @apply bg-gradient-to-r from-white/10 via-white/5 to-white/10
+           dark:from-white/5 dark:via-white/10 dark:to-white/5
+           bg-[length:200%_100%] animate-glass-shine;
+  }
+
+  .glass-hover {
+    @apply transition-all duration-300
+           hover:bg-white/10 dark:hover:bg-white/5
+           hover:shadow-lg hover:scale-[1.02];
+  }
+
+  .glass-container {
+    @apply relative overflow-hidden;
+  }
+
+  .glass-container::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-br from-white/20 to-transparent dark:from-white/10;
+    filter: blur(100px);
+    z-index: -1;
+  }
+
+  .glass-container::after {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-tr from-transparent to-white/20 dark:to-white/10;
+    filter: blur(100px);
+    z-index: -1;
+  }
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-white/20 dark:bg-white/10 rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-white/30 dark:bg-white/20;
+}

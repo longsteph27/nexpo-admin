@@ -1002,6 +1002,56 @@
             }
         },
         {
+            "collection": "block_hero",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_hero",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_hero",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_faqs",
             "field": "id",
             "type": "uuid",
@@ -1184,6 +1234,56 @@
             }
         },
         {
+            "collection": "block_faqs",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_faqs",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_faqs",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 8,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_quote",
             "field": "id",
             "type": "uuid",
@@ -1304,6 +1404,56 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_quote",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_quote",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_quote",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "enableLink": true,
+                    "template": "{{name}}"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 10,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -1458,6 +1608,56 @@
                 "readonly": false,
                 "hidden": false,
                 "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_columns",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_columns",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_columns",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
                 "width": "full",
                 "translations": null,
                 "note": null,
@@ -2031,6 +2231,56 @@
             }
         },
         {
+            "collection": "block_columns_rows",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_columns_rows",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_columns_rows",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 13,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_form",
             "field": "id",
             "type": "uuid",
@@ -2153,6 +2403,105 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_form",
+            "field": "tenant_id",
+            "type": "integer",
+            "schema": {
+                "name": "tenant_id",
+                "table": "block_form",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "tenants",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_form",
+                "field": "tenant_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_form",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_form",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_form",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -2404,6 +2753,56 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_testimonials",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_testimonials",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_testimonials",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -2837,6 +3236,56 @@
             }
         },
         {
+            "collection": "block_testimonial_slider_items",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_testimonial_slider_items",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_testimonial_slider_items",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 11,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_logocloud",
             "field": "id",
             "type": "uuid",
@@ -2987,6 +3436,55 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_logocloud",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_logocloud",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_logocloud",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -3364,6 +3862,56 @@
             }
         },
         {
+            "collection": "block_team",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_team",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_team",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 9,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_cta",
             "field": "id",
             "type": "uuid",
@@ -3531,6 +4079,56 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_cta",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_cta",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_cta",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 9,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -3862,6 +4460,56 @@
             }
         },
         {
+            "collection": "block_richtext",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_richtext",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_richtext",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 8,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_steps",
             "field": "id",
             "type": "uuid",
@@ -4106,6 +4754,56 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_steps",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_steps",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_steps",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -4514,6 +5212,55 @@
             }
         },
         {
+            "collection": "block_step_items",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_step_items",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_step_items",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 10,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_divider",
             "field": "id",
             "type": "uuid",
@@ -4644,6 +5391,56 @@
                 "readonly": false,
                 "hidden": false,
                 "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_divider",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_divider",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_divider",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
                 "width": "full",
                 "translations": null,
                 "note": null,
@@ -4803,6 +5600,56 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_gallery",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_gallery",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_gallery",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -5595,6 +6442,56 @@
             }
         },
         {
+            "collection": "block_video",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_video",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_video",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 9,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_button_group",
             "field": "id",
             "type": "uuid",
@@ -6014,6 +6911,56 @@
                 "readonly": false,
                 "hidden": false,
                 "sort": 10,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_button_group",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_button_group",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_button_group",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 11,
                 "width": "full",
                 "translations": null,
                 "note": null,
@@ -6839,6 +7786,56 @@
             }
         },
         {
+            "collection": "block_button",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_button",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_button",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 18,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
             "collection": "block_html",
             "field": "tenant_id",
             "type": "integer",
@@ -6910,6 +7907,56 @@
                 "note": null,
                 "conditions": null,
                 "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "block_html",
+            "field": "event_id",
+            "type": "integer",
+            "schema": {
+                "name": "event_id",
+                "table": "block_html",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "block_html",
+                "field": "event_id",
+                "special": [
+                    "m2o"
+                ],
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{name}}",
+                    "enableLink": true
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
                 "group": null,
                 "validation": null,
                 "validation_message": null
@@ -7091,6 +8138,32 @@
             }
         },
         {
+            "collection": "block_hero",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_hero_event_id_foreign",
+                "table": "block_hero",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_hero",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_faqs",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7108,6 +8181,32 @@
                 "many_collection": "block_faqs",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_faqs",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_faqs_event_id_foreign",
+                "table": "block_faqs",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_faqs",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -7143,6 +8242,32 @@
             }
         },
         {
+            "collection": "block_quote",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_quote_event_id_foreign",
+                "table": "block_quote",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_quote",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_columns",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7160,6 +8285,32 @@
                 "many_collection": "block_columns",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_columns",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_columns_event_id_foreign",
+                "table": "block_columns",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_columns",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -7325,6 +8476,58 @@
             }
         },
         {
+            "collection": "block_columns_rows",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_columns_rows_event_id_foreign",
+                "table": "block_columns_rows",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_columns_rows",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_form",
+            "field": "tenant_id",
+            "related_collection": "tenants",
+            "schema": {
+                "constraint_name": "block_form_tenant_id_foreign",
+                "table": "block_form",
+                "column": "tenant_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "tenants",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_form",
+                "many_field": "tenant_id",
+                "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_form",
             "field": "form",
             "related_collection": "forms",
@@ -7351,6 +8554,32 @@
             }
         },
         {
+            "collection": "block_form",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_form_event_id_foreign",
+                "table": "block_form",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_form",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_testimonials",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7368,6 +8597,32 @@
                 "many_collection": "block_testimonials",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_testimonials",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_testimonials_event_id_foreign",
+                "table": "block_testimonials",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_testimonials",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -7507,6 +8762,32 @@
             }
         },
         {
+            "collection": "block_testimonial_slider_items",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_testimonial_slider_items_event_id_foreign",
+                "table": "block_testimonial_slider_items",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_testimonial_slider_items",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_logocloud",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7524,6 +8805,32 @@
                 "many_collection": "block_logocloud",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_logocloud",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_logocloud_event_id_foreign",
+                "table": "block_logocloud",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_logocloud",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -7611,6 +8918,32 @@
             }
         },
         {
+            "collection": "block_team",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_team_event_id_foreign",
+                "table": "block_team",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_team",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_cta",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7663,6 +8996,32 @@
             }
         },
         {
+            "collection": "block_cta",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_cta_event_id_foreign",
+                "table": "block_cta",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_cta",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_richtext",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7689,6 +9048,32 @@
             }
         },
         {
+            "collection": "block_richtext",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_richtext_event_id_foreign",
+                "table": "block_richtext",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_richtext",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_steps",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7706,6 +9091,32 @@
                 "many_collection": "block_steps",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_steps",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_steps_event_id_foreign",
+                "table": "block_steps",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_steps",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -7819,6 +9230,32 @@
             }
         },
         {
+            "collection": "block_step_items",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_step_items_event_id_foreign",
+                "table": "block_step_items",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_step_items",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_divider",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7845,6 +9282,32 @@
             }
         },
         {
+            "collection": "block_divider",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_divider_event_id_foreign",
+                "table": "block_divider",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_divider",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_gallery",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -7862,6 +9325,32 @@
                 "many_collection": "block_gallery",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_gallery",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_gallery_event_id_foreign",
+                "table": "block_gallery",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_gallery",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -8027,6 +9516,32 @@
             }
         },
         {
+            "collection": "block_video",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_video_event_id_foreign",
+                "table": "block_video",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_video",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_button_group",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -8096,6 +9611,32 @@
                 "many_collection": "block_button_group",
                 "many_field": "user_created",
                 "one_collection": "directus_users",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_button_group",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_button_group_event_id_foreign",
+                "table": "block_button_group",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_button_group",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,
@@ -8261,6 +9802,32 @@
             }
         },
         {
+            "collection": "block_button",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_button_event_id_foreign",
+                "table": "block_button",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_button",
+                "many_field": "event_id",
+                "one_collection": "events",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
             "collection": "block_html",
             "field": "tenant_id",
             "related_collection": "tenants",
@@ -8278,6 +9845,32 @@
                 "many_collection": "block_html",
                 "many_field": "tenant_id",
                 "one_collection": "tenants",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "block_html",
+            "field": "event_id",
+            "related_collection": "events",
+            "schema": {
+                "constraint_name": "block_html_event_id_foreign",
+                "table": "block_html",
+                "column": "event_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "events",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "block_html",
+                "many_field": "event_id",
+                "one_collection": "events",
                 "one_field": null,
                 "one_collection_field": null,
                 "one_allowed_collections": null,

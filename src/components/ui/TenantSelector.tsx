@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Icon } from '@iconify/react';
-import { useAuthStore } from '@/store/auth';
+import { useAuth } from '@/contexts/AuthContext';
 import type { Tenant } from '@/lib/directus';
 
 export default function TenantSelector() {
-  const { tenants, selectedTenant, setSelectedTenant } = useAuthStore();
+  const { tenants, selectedTenant, setSelectedTenant } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   if (tenants.length <= 1) {
@@ -16,8 +16,15 @@ export default function TenantSelector() {
   }
 
   const handleTenantSelect = (tenant: Tenant) => {
-    setSelectedTenant(tenant);
-    setIsOpen(false);
+    // Only redirect if selecting a different tenant
+    if (selectedTenant?.id !== tenant.id) {
+      setSelectedTenant(tenant);
+      setIsOpen(false);
+      // The context will handle the redirect to home admin page
+    } else {
+      // Just close the dropdown if selecting the same tenant
+      setIsOpen(false);
+    }
   };
 
   return (
