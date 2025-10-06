@@ -1,5 +1,5 @@
 .color-em {
     em {
-      @apply text-accent not-italic;
+      @apply text-green-500 not-italic;
     }
   }

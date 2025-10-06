@@ -8,6 +8,9 @@ module.exports = {
     theme: {
         extend: {
             colors: {
+                // Accent color (DaisyUI compatible)
+                accent: '#22C55E',
+                
                 // NEXPO Brand Colors
                 nexpo: {
                     // Primary Brand Colors
