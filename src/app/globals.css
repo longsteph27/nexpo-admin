@@ -1,4 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -8,6 +10,13 @@
   --vnpt-light-blue: #3b82f6;
   --vnpt-gray: #374151;
   --vnpt-light-gray: #9ca3af;
+  
+  /* Hero Block CSS Variables - Synced with docs version */
+  --color-primary: #1E40AF;
+  --color-gray: #374151;
+  --font-display: Poppins, serif;
+  --font-body: Inter, sans-serif;
+  --font-code: Fira Code, monospace;
 }
 
 @theme inline {
@@ -34,11 +43,19 @@ html {
 }
 
 body {
-  background: var(--background);
+  font-family: var(--font-body, Inter, sans-serif);
   color: var(--foreground);
-  font-family: 'Poppins', system-ui, sans-serif;
+  background: var(--background);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display, Poppins, serif);
+}
+
+code, pre {
+  font-family: var(--font-code, 'Fira Code', monospace);
 }
 
 /* Custom scrollbar */

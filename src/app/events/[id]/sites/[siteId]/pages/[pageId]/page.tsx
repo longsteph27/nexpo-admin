@@ -12,6 +12,10 @@ import BlockSelectorModal from '@/components/pagebuilder/BlockSelectorModal';
 import BlockEditorModal from '@/components/pagebuilder/BlockEditorModal';
 import PagePreview from '@/components/pagebuilder/PagePreview';
 import NavigationEditor from '@/components/pagebuilder/NavigationEditor';
+import InlineBlockWrapper from '@/components/pagebuilder/InlineBlockWrapper';
+import { useAuth } from '@/contexts/AuthContext';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import BlockSkeleton from '@/components/ui/BlockSkeleton';
 
 interface Block {
   id: string;
@@ -24,9 +28,14 @@ export default function PageBuilderPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { selectedTenant } = useAuth();
   const eventId = String(params?.id || '');
   const siteId = String(params?.siteId || '');
   const pageId = String(params?.pageId || '');
+  
+  // Get folder and event ID for uploads
+  const folderId = (selectedTenant as any)?.folder_files_id || undefined;
+  const uploadEventId = eventId || undefined;
 
   // State
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -40,13 +49,15 @@ export default function PageBuilderPage() {
   const [headerItems, setHeaderItems] = useState<any[]>([]);
   const [footerItems, setFooterItems] = useState<any[]>([]);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [inlineEditMode, setInlineEditMode] = useState(false);
+  const [isLoadingBlocks, setIsLoadingBlocks] = useState(false);
 
   // Fetch page data
   const { data: page, isLoading } = useQuery({
     queryKey: ['page-detail', pageId],
     queryFn: async () => {
       const result = await siteApi.getPage(pageId);
-      return result.data;
+      return result.data || null;
     },
     enabled: !!pageId,
   });
@@ -64,7 +75,24 @@ export default function PageBuilderPage() {
   // Load blocks when page data is fetched
   useEffect(() => {
     if (page?.blocks) {
-      setBlocks(page.blocks);
+      setIsLoadingBlocks(true);
+      console.log('[Page Load] Blocks from server:', page.blocks.map(b => ({ id: b.id, collection: b.collection })));
+      
+      // Simulate loading time for better UX
+      setTimeout(() => {
+        const sortedBlocks = page.blocks
+          .filter((block: any) => !block.hide_block)
+          .sort((a: any, b: any) => a.sort - b.sort)
+          .map((block: any) => ({
+            id: String(block.id),
+            collection: block.collection,
+            sort: block.sort,
+            item: block.item,
+          }));
+        
+        setBlocks(sortedBlocks);
+        setIsLoadingBlocks(false);
+      }, 500);
     }
   }, [page]);
 
@@ -132,7 +160,7 @@ export default function PageBuilderPage() {
   // Select block type
   const handleBlockTypeSelected = (blockType: string) => {
     const newBlock: Block = {
-      id: `temp-${Date.now()}`,
+      id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       collection: blockType,
       sort: selectedBlockIndex ?? blocks.length,
       item: {},
@@ -143,29 +171,87 @@ export default function PageBuilderPage() {
   };
 
   // Save block data
-  const handleBlockSaved = (blockData: any) => {
-    if (editingBlock) {
-      const updatedBlock = {
-        ...editingBlock,
-        item: blockData,
-      };
+  const handleInlineBlockUpdate = (blockId: string, updatedData: any) => {
+    setBlocks(blocks.map(block => 
+      block.id === blockId 
+        ? { ...block, item: updatedData }
+        : block
+    ));
+    setHasUnsavedChanges(true);
+  };
 
-      if (editingBlock.id.startsWith('temp-')) {
-        // New block
+  const handleBlockSaved = (blockData: any) => {
+    if (!editingBlock) {
+      console.error('[handleBlockSaved] No editingBlock!');
+      return;
+    }
+    
+    const blockId = String(editingBlock.id); // Ensure ID is string
+    const isTemp = blockId.startsWith('temp-');
+    
+    console.log('[handleBlockSaved] ========================================');
+    console.log('[handleBlockSaved] editingBlock.id:', blockId);
+    console.log('[handleBlockSaved] isTemp:', isTemp);
+    console.log('[handleBlockSaved] selectedBlockIndex:', selectedBlockIndex);
+    console.log('[handleBlockSaved] current blocks:', blocks.map(b => ({ id: String(b.id), collection: b.collection })));
+    
+    const updatedBlock = {
+      ...editingBlock,
+      id: blockId, // Ensure ID is string
+      item: blockData,
+    };
+
+    if (isTemp) {
+      // New block - insert at position
+      console.log('[handleBlockSaved] ➕ Creating NEW block at position:', selectedBlockIndex ?? blocks.length);
+      
+      // Check if this temp ID already exists (shouldn't happen, but safety check)
+      const existingIndex = blocks.findIndex(b => String(b.id) === blockId);
+      if (existingIndex !== -1) {
+        console.error('[handleBlockSaved] ⚠️ Temp ID already exists! Replacing instead of inserting.');
+        setBlocks(blocks.map(b => String(b.id) === blockId ? updatedBlock : b));
+      } else {
         const newBlocks = [...blocks];
         newBlocks.splice(selectedBlockIndex ?? blocks.length, 0, updatedBlock);
         setBlocks(newBlocks.map((b, i) => ({ ...b, sort: i })));
-      } else {
-        // Update existing block
-        setBlocks(blocks.map(b => b.id === editingBlock.id ? updatedBlock : b));
       }
+    } else {
+      // Update existing block - replace in place
+      console.log('[handleBlockSaved] ✏️ UPDATING existing block with id:', blockId);
+      const existingIndex = blocks.findIndex(b => String(b.id) === blockId);
+      console.log('[handleBlockSaved] Found at index:', existingIndex);
+      
+      if (existingIndex === -1) {
+        console.error('[handleBlockSaved] ⚠️ Block not found! This shouldn\'t happen.');
+        return;
+      }
+      
+      const oldBlocksCount = blocks.length;
+      const newBlocks = blocks.map(b => String(b.id) === blockId ? updatedBlock : b);
+      console.log('[handleBlockSaved] Old count:', oldBlocksCount, '→ New count:', newBlocks.length);
+      
+      if (newBlocks.length !== oldBlocksCount) {
+        console.error('[handleBlockSaved] ❌ Block count changed! This is the bug!');
+      }
+      
+      setBlocks(newBlocks);
     }
+    
+    console.log('[handleBlockSaved] ✅ Done');
+    console.log('[handleBlockSaved] ========================================');
+    
+    // Clean up all state
     setShowBlockEditor(false);
     setEditingBlock(null);
+    setSelectedBlockIndex(null);
   };
 
   // Edit block
   const handleEditBlock = (index: number) => {
+    console.log('[handleEditBlock] Opening editor for block at index:', index);
+    console.log('[handleEditBlock] Block ID:', blocks[index].id);
+    console.log('[handleEditBlock] Clearing selectedBlockIndex');
+    setSelectedBlockIndex(null); // Clear insert position
     setEditingBlock(blocks[index]);
     setShowBlockEditor(true);
   };
@@ -398,74 +484,111 @@ export default function PageBuilderPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            <AnimatePresence>
-              {blocks.map((block, index) => (
-                <motion.div
-                  key={block.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  className="group bg-neutral-50 border border-neutral-200 rounded-lg p-3 hover:border-neutral-300 hover:shadow-sm transition-all"
-                >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Icon
-                        icon={getBlockIcon(block.collection)}
-                        className="w-4 h-4 text-neutral-600"
-                      />
-                      <div>
-                        <div className="text-xs font-medium text-neutral-900">
-                          {getBlockLabel(block.collection)}
+            {isLoadingBlocks ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, index) => (
+                  <div key={index} className="bg-gray-100 rounded-lg p-3 animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded mb-2" />
+                    <div className="h-3 bg-gray-200 rounded w-2/3" />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <AnimatePresence>
+                {blocks.map((block, index) => {
+                // Get preview data for the block
+                const translation = block.item?.translations?.find((t: any) => t.languages_code === previewLang) || block.item?.translations?.[0];
+                const headline = translation?.headline || translation?.title || '';
+                const content = translation?.content || translation?.description || '';
+                const imageId = block.item?.image || block.item?.gallery_items?.[0];
+                const imageUrl = imageId ? `https://app.nexpo.vn/assets/${imageId}?width=80&height=80&fit=cover` : null;
+
+                return (
+                  <motion.div
+                    key={block.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -20 }}
+                    className="group bg-neutral-50 border border-neutral-200 rounded-lg p-3 hover:border-neutral-300 hover:shadow-sm transition-all"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-start space-x-2 flex-1">
+                        <Icon
+                          icon={getBlockIcon(block.collection)}
+                          className="w-4 h-4 text-neutral-600 mt-0.5"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs font-medium text-neutral-900">
+                            {getBlockLabel(block.collection)}
+                          </div>
+                          <div className="text-xs text-neutral-500">Section {index + 1}</div>
+                          
+                          {/* Preview content */}
+                          {headline && (
+                            <div className="text-xs text-neutral-700 mt-1 line-clamp-1" dangerouslySetInnerHTML={{ __html: headline }} />
+                          )}
+                          {content && (
+                            <div className="text-xs text-neutral-500 mt-0.5 line-clamp-1">
+                              {content.replace(/<[^>]*>/g, '').substring(0, 50)}
+                            </div>
+                          )}
                         </div>
-                        <div className="text-xs text-neutral-500">Section {index + 1}</div>
+                        {imageUrl && (
+                          <img
+                            src={imageUrl}
+                            alt="Preview"
+                            className="w-12 h-12 rounded object-cover flex-shrink-0"
+                          />
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                        <button
+                          className="p-1 hover:bg-neutral-200 rounded"
+                          onClick={() => handleMoveBlock(index, 'up')}
+                          disabled={index === 0}
+                        >
+                          <Icon icon="lucide:chevron-up" className="w-3 h-3" />
+                        </button>
+                        <button
+                          className="p-1 hover:bg-neutral-200 rounded"
+                          onClick={() => handleMoveBlock(index, 'down')}
+                          disabled={index === blocks.length - 1}
+                        >
+                          <Icon icon="lucide:chevron-down" className="w-3 h-3" />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center space-x-2">
                       <button
-                        className="p-1 hover:bg-neutral-200 rounded"
-                        onClick={() => handleMoveBlock(index, 'up')}
-                        disabled={index === 0}
+                        className="flex-1 text-xs px-2 py-1.5 bg-white border border-neutral-200 rounded hover:bg-neutral-50 transition-colors"
+                        onClick={() => handleEditBlock(index)}
                       >
-                        <Icon icon="lucide:chevron-up" className="w-3 h-3" />
+                        <Icon icon="lucide:edit-2" className="w-3 h-3 inline mr-1" />
+                        Edit
                       </button>
                       <button
-                        className="p-1 hover:bg-neutral-200 rounded"
-                        onClick={() => handleMoveBlock(index, 'down')}
-                        disabled={index === blocks.length - 1}
+                        className="text-xs px-2 py-1.5 text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition-colors"
+                        onClick={() => handleDeleteBlock(index)}
                       >
-                        <Icon icon="lucide:chevron-down" className="w-3 h-3" />
+                        <Icon icon="lucide:trash-2" className="w-3 h-3" />
                       </button>
                     </div>
-                  </div>
-                  <div className="flex items-center space-x-2">
+                    
+                    {/* Insert section button */}
                     <button
-                      className="flex-1 text-xs px-2 py-1.5 bg-white border border-neutral-200 rounded hover:bg-neutral-50 transition-colors"
-                      onClick={() => handleEditBlock(index)}
+                      className="w-full mt-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded transition-colors opacity-0 group-hover:opacity-100"
+                      onClick={() => handleInsertSection(index + 1)}
                     >
-                      <Icon icon="lucide:edit-2" className="w-3 h-3 inline mr-1" />
-                      Edit
+                      <Icon icon="lucide:plus" className="w-3 h-3 inline mr-1" />
+                      Insert below
                     </button>
-                    <button
-                      className="text-xs px-2 py-1.5 text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded transition-colors"
-                      onClick={() => handleDeleteBlock(index)}
-                    >
-                      <Icon icon="lucide:trash-2" className="w-3 h-3" />
-                    </button>
-                  </div>
-                  
-                  {/* Insert section button */}
-                  <button
-                    className="w-full mt-2 py-1 text-xs text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded transition-colors opacity-0 group-hover:opacity-100"
-                    onClick={() => handleInsertSection(index + 1)}
-                  >
-                    <Icon icon="lucide:plus" className="w-3 h-3 inline mr-1" />
-                    Insert below
-                  </button>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                  </motion.div>
+                );
+              })}
+              </AnimatePresence>
+            )}
 
-            {blocks.length === 0 && (
+            {!isLoadingBlocks && blocks.length === 0 && (
               <div className="text-center py-12">
                 <Icon icon="lucide:layout" className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
                 <p className="text-sm text-neutral-500 mb-4">No sections yet</p>
@@ -488,6 +611,17 @@ export default function PageBuilderPage() {
               <span className="text-sm font-medium text-neutral-900">Live Preview</span>
             </div>
             <div className="flex items-center space-x-2">
+              <button 
+                onClick={() => setInlineEditMode(!inlineEditMode)}
+                className={`p-2 rounded transition-colors ${
+                  inlineEditMode 
+                    ? 'bg-blue-100 text-blue-600 hover:bg-blue-200' 
+                    : 'hover:bg-neutral-100 text-neutral-600'
+                }`}
+                title={inlineEditMode ? 'Exit Inline Edit' : 'Enter Inline Edit'}
+              >
+                <Icon icon="lucide:edit-3" className="w-4 h-4" />
+              </button>
               <button className="p-2 hover:bg-neutral-100 rounded transition-colors">
                 <Icon icon="lucide:smartphone" className="w-4 h-4 text-neutral-600" />
               </button>
@@ -502,7 +636,32 @@ export default function PageBuilderPage() {
 
           <div className="flex-1 overflow-y-auto p-8">
             <div className="max-w-6xl mx-auto bg-white rounded-lg shadow-lg overflow-hidden">
-              <PagePreview blocks={blocks} lang={previewLang} />
+              {isLoadingBlocks ? (
+                <div className="p-8 space-y-8">
+                  <div className="flex items-center justify-center py-12">
+                    <div className="text-center">
+                      <LoadingSpinner size="lg" className="mb-4" />
+                      <p className="text-gray-500 text-sm">Loading blocks...</p>
+                    </div>
+                  </div>
+                  <BlockSkeleton type="hero" />
+                  <BlockSkeleton type="columns" />
+                </div>
+              ) : inlineEditMode ? (
+                <div className="p-8 space-y-8">
+                  {blocks.map((block) => (
+                    <InlineBlockWrapper
+                      key={block.id}
+                      block={block}
+                      pageId={pageId}
+                      lang={previewLang}
+                      onBlockUpdate={handleInlineBlockUpdate}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <PagePreview blocks={blocks} lang={previewLang} />
+              )}
             </div>
           </div>
         </div>
@@ -524,9 +683,13 @@ export default function PageBuilderPage() {
         onClose={() => {
           setShowBlockEditor(false);
           setEditingBlock(null);
+          setSelectedBlockIndex(null);
         }}
         block={editingBlock}
         onSave={handleBlockSaved}
+        activeLang={previewLang}
+        folderId={folderId}
+        eventId={uploadEventId}
       />
     </div>
   );

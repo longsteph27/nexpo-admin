@@ -12,11 +12,15 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
+    dangerouslyAllowSVG: true, // allow <Image> to show svg.
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "app.nexpo.vn",
-        pathname: "/assets/**",
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
       },
     ],
   },

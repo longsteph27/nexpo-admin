@@ -51,6 +51,13 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     immediatelyRender: false,
   });
 
+  // Sync editor content when value prop changes
+  React.useEffect(() => {
+    if (editor && value !== editor.getHTML()) {
+      editor.commands.setContent(value || '');
+    }
+  }, [value, editor]);
+
   if (!editor) {
     return null;
   }

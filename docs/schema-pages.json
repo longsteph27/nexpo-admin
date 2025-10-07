@@ -25,9 +25,260 @@
                 "versioning": true
             },
             "schema": {}
+        },
+        {
+            "collection": "pages_translations",
+            "meta": {
+                "collection": "pages_translations",
+                "icon": "import_export",
+                "note": null,
+                "display_template": null,
+                "hidden": true,
+                "singleton": false,
+                "translations": null,
+                "archive_field": null,
+                "archive_app_filter": true,
+                "archive_value": null,
+                "unarchive_value": null,
+                "sort_field": null,
+                "accountability": "all",
+                "color": null,
+                "item_duplication_fields": null,
+                "sort": 37,
+                "group": null,
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
         }
     ],
     "fields": [
+        {
+            "collection": "pages_translations",
+            "field": "id",
+            "type": "integer",
+            "schema": {
+                "name": "id",
+                "table": "pages_translations",
+                "data_type": "integer",
+                "default_value": "nextval('pages_translations_id_seq'::regclass)",
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": true,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "pages_translations",
+                "field": "id",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "pages_translations",
+            "field": "pages_id",
+            "type": "uuid",
+            "schema": {
+                "name": "pages_id",
+                "table": "pages_translations",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "pages",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "pages_translations",
+                "field": "pages_id",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "pages_translations",
+            "field": "languages_code",
+            "type": "string",
+            "schema": {
+                "name": "languages_code",
+                "table": "pages_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "languages",
+                "foreign_key_column": "code",
+                "comment": null
+            },
+            "meta": {
+                "collection": "pages_translations",
+                "field": "languages_code",
+                "special": null,
+                "interface": null,
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": true,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "pages_translations",
+            "field": "title",
+            "type": "string",
+            "schema": {
+                "name": "title",
+                "table": "pages_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "pages_translations",
+                "field": "title",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "pages_translations",
+            "field": "permalink",
+            "type": "string",
+            "schema": {
+                "name": "permalink",
+                "table": "pages_translations",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "pages_translations",
+                "field": "permalink",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": true,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
         {
             "collection": "pages",
             "field": "id",
@@ -183,15 +434,15 @@
                 "options": {
                     "choices": [
                         {
-                            "text": "Published",
+                            "text": "$t:published",
                             "value": "published"
                         },
                         {
-                            "text": "Draft",
+                            "text": "$t:draft",
                             "value": "draft"
                         },
                         {
-                            "text": "Archived",
+                            "text": "$t:archived",
                             "value": "archived"
                         }
                     ]
@@ -200,19 +451,19 @@
                 "display_options": {
                     "choices": [
                         {
-                            "text": "Published",
+                            "text": "$t:published",
                             "value": "published",
                             "foreground": "#FFFFFF",
                             "background": "var(--primary)"
                         },
                         {
-                            "text": "Draft",
+                            "text": "$t:draft",
                             "value": "draft",
                             "foreground": "#18222F",
                             "background": "#D3DAE4"
                         },
                         {
-                            "text": "Archived",
+                            "text": "$t:archived",
                             "value": "archived",
                             "foreground": "#FFFFFF",
                             "background": "var(--warning)"
@@ -657,6 +908,58 @@
         }
     ],
     "relations": [
+        {
+            "collection": "pages_translations",
+            "field": "languages_code",
+            "related_collection": "languages",
+            "schema": {
+                "constraint_name": "pages_translations_languages_code_foreign",
+                "table": "pages_translations",
+                "column": "languages_code",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "languages",
+                "foreign_key_column": "code",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "pages_translations",
+                "many_field": "languages_code",
+                "one_collection": "languages",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": "pages_id",
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "pages_translations",
+            "field": "pages_id",
+            "related_collection": "pages",
+            "schema": {
+                "constraint_name": "pages_translations_pages_id_foreign",
+                "table": "pages_translations",
+                "column": "pages_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "pages",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "pages_translations",
+                "many_field": "pages_id",
+                "one_collection": "pages",
+                "one_field": "translations",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": "languages_code",
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
         {
             "collection": "pages",
             "field": "seo",

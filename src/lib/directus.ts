@@ -6,6 +6,7 @@ interface Tenant {
   name: string;
   email?: string;
   logo?: string;
+  folder_files_id?: string;
   settings?: unknown;
   status: 'active' | 'inactive';
   sort?: number;
@@ -521,7 +522,7 @@ export const directusHelpers = {
             {
               tenants: [
                 {
-                  tenants_id: ['id', 'name', 'email', 'logo', 'status']
+                  tenants_id: ['id', 'name', 'email', 'logo', 'status', 'folder_files_id']
                 }
               ]
             }
@@ -587,7 +588,7 @@ export const directusHelpers = {
             ? ([...fields, { forms: ['id'] }] as unknown as never)
             : ([
                 '*',
-                { tenant: ['id', 'name', 'logo', 'status'] },
+                { tenant: ['id', 'name', 'logo', 'status', 'folder_files_id'] },
                 { forms: ['id'] }
               ] as unknown as never)
           ),
@@ -653,22 +654,31 @@ export const directusHelpers = {
   // File uploads
   async uploadFile(file: File, folderId?: string, eventId?: string) {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      console.log('[uploadFile] Starting upload:', { fileName: file.name, folderId, eventId });
       
-      // Add folder if provided
+      const formData = new FormData();
+      
+      // Add folder FIRST if provided (before file)
       if (folderId) {
+        console.log('[uploadFile] Adding folder to FormData:', folderId);
         formData.append('folder', folderId);
+      } else {
+        console.warn('[uploadFile] No folderId provided - file will upload to root');
       }
       
-      // Add event_id metadata if provided
+      // Add event_id metadata if provided (before file)
       if (eventId) {
+        console.log('[uploadFile] Adding event_id to FormData:', eventId);
         formData.append('event_id', eventId);
       }
       
+      // Add file LAST
+      formData.append('file', file);
+      
       // Get auth token from tokenManager
-      const { getAccessToken } = await import('./tokenManager');
-      const token = getAccessToken();
+      const { tokenManager } = await import('./tokenManager');
+      const token = tokenManager.getBestAvailableToken();
+      console.log('[uploadFile] Token available:', !!token);
       
       if (!token) {
         throw new Error('Authentication required. Please log in.');
@@ -694,6 +704,42 @@ export const directusHelpers = {
     } catch (error) {
       console.error('File upload error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to upload file' };
+    }
+  },
+
+  // Get files from tenant folder
+  async getFilesByFolder(folderId: string, limit: number = 50) {
+    try {
+      console.log('[getFilesByFolder] Fetching files from folder:', folderId);
+      
+      const { tokenManager } = await import('./tokenManager');
+      const token = tokenManager.getBestAvailableToken();
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+      
+      // Fetch files from Directus with filter
+      const response = await fetch(`https://app.nexpo.vn/files?filter[folder][_eq]=${folderId}&limit=${limit}&sort[]=-uploaded_on`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Fetch files failed:', response.status, errorText);
+        throw new Error(`Failed to fetch files: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('[getFilesByFolder] Fetched files:', result.data?.length || 0);
+      return { success: true, data: result.data || [] };
+    } catch (error) {
+      console.error('Get files error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch files' };
     }
   },
 
@@ -889,7 +935,7 @@ export const directusHelpers = {
   },
 
   // Pages
-  async createPage(payload: { site_id: number; slug?: string; sort?: number; translations?: Array<{ languages_code: string; title?: string }> }) {
+  async createPage(payload: { site_id: number; sort?: number; translations?: { create: Array<{ languages_code: { code: string }; title?: string; permalink?: string }> } }) {
     try {
       const page = await directus.request(createItem('pages' as never, payload as never));
       return { success: true, data: page };
@@ -902,7 +948,7 @@ export const directusHelpers = {
     try {
       const pages = await directus.request(readItems('pages' as never, {
         filter: { site_id: { _eq: Number(siteId) } },
-        fields: (['id','slug','sort',{ translations: ['title'] }] as unknown) as never,
+        fields: (['id','sort',{ translations: ['title', 'permalink'] }] as unknown) as never,
       }));
       return { success: true, data: pages };
     } catch (error) {
@@ -916,11 +962,14 @@ export const directusHelpers = {
         filter: { id: { _eq: pageId } },
         limit: 1,
         fields: ([
-          'id','slug','sort','status','site_id','date_created','date_updated',
-          { translations: ['id','languages_code','title','description'] },
+          'id','sort','status','site_id','date_created','date_updated',
+          { translations: ['id','languages_code','title','permalink'] },
           { blocks: [
             'id','collection','sort','hide_block',
-            { item: ['*'] }
+            { item: [
+              '*',
+              { translations: ['*'] }
+            ] }
           ] }
         ] as unknown) as never,
       }));

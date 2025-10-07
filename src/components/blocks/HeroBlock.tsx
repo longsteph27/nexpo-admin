@@ -23,6 +23,7 @@ export interface BlockHero {
   title?: string | null
   content: string
   image?: string
+  image_position?: 'left' | 'right'
   buttons?: BlockHeroButton[]
   button_group?: {
     buttons: BlockHeroButton[]
@@ -49,6 +50,7 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
   const content = translation?.content || '';
 
   const buttons = data.buttons || data.button_group?.buttons || [];
+  const imagePosition = data.image_position || 'right'; // Default to right
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -61,47 +63,63 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
     }
   }, []);
 
+  // Render content and image based on position - using exact docs styling
+  const contentSection = (
+    <div
+      className='md:col-span-2 md:pt-12 transition-all duration-700 ease-out'
+    >
+      <h1
+        className="text-[var(--color-primary)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-[var(--font-display)] font-bold leading-tight mb-4"
+        dangerouslySetInnerHTML={headline ? { __html: headline } : undefined}
+      />
+      <p className="w-full py-4 font-[var(--font-body)] text-sm sm:text-base md:text-lg leading-relaxed text-[var(--color-gray)]">
+        {content}
+      </p>
+      <div className='flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0'>
+        {buttons.map((button) => {
+          const btnTrans = button.translations?.find(t => t.languages_code === directusLang)
+          return (
+            <VButton
+              key={button.id}
+              href={btnTrans?.href || button.href}
+              variant={button.variant}
+              target={button.open_in_new_window ? '_blank' : '_self'}
+              size='lg'
+            >
+              {btnTrans?.label || button.label}
+            </VButton>
+          )
+        })}
+      </div>
+    </div>
+  );
+
+  const imageSection = data.image && (
+    <div
+      className='p-4 flex items-center justify-center'
+    >
+      <Image
+        className='w-full h-auto max-h-[500px] object-contain'
+        width='500'
+        height='500'
+        src={getDirectusMedia(data.image) as any}
+        alt=''
+      />
+    </div>
+  );
+
   return (
     <BlockContainer className='relative grid gap-6 md:grid-cols-3'>
-      <div
-        className='md:col-span-2 md:pt-12 transition-all duration-700 ease-out opacity-0 translate-y-5 animate-fade-in'
-      >
-        <h1
-          className="text-[var(--color-primary)] xs:text-5xl font-[var(--font-display) ] font-bold text-4xl  sm:text-2xl lg:text-6xl leading-snug ]"
-          dangerouslySetInnerHTML={headline ? { __html: headline } : undefined}
-        />
-        <p className="w-full py-6 font-[var(--font-display)] text-[18px] lg:leading-loose text-[var(--color-gray)]">
-          {content}
-        </p>
-        <div className='flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0'>
-          {buttons.map((button) => {
-            const btnTrans = button.translations?.find(t => t.languages_code === directusLang)
-            return (
-              <VButton
-                key={button.id}
-                href={btnTrans?.href || button.href}
-                variant={button.variant}
-                target={button.open_in_new_window ? '_blank' : '_self'}
-                size='lg'
-              >
-                {btnTrans?.label || button.label}
-              </VButton>
-            )
-          })}
-        </div>
-      </div>
-      {data.image && (
-        <div
-          className='p-2 md:-mr-16 lg:relative lg:-mr-48 lg:h-full flex items-center justify-center'
-        >
-          <Image
-            className='max-h-[700px] w-full overflow-hidden object-cover'
-            width='700'
-            height='700'
-            src={getDirectusMedia(data.image) as any}
-            alt=''
-          />
-        </div>
+      {imagePosition === 'left' ? (
+        <>
+          {imageSection}
+          {contentSection}
+        </>
+      ) : (
+        <>
+          {contentSection}
+          {imageSection}
+        </>
       )}
     </BlockContainer>
   )

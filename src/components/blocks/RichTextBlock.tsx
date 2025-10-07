@@ -1,65 +1,73 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import BlockContainer from '@/components/BlockContainer'
-import TypographyHeadline from '@/components/typography/TypographyHeadline'
-import TypographyProse from '@/components/typography/TypographyProse'
-import TypographyTitle from '@/components/typography/TypographyTitle'
 
-interface RichText {
-  id: string
-  title?: string
-  headline?: string
-  content?: string
+export interface BlockRichtext {
+  title?: string | null
+  headline?: string | null
+  content?: string | null
+  alignment?: 'left' | 'center' | 'right'
   translations?: Array<{
+    languages_code: string
     title?: string
     headline?: string
     content?: string
-    languages_code: string
   }>
 }
 
 interface RichTextBlockProps {
-  data: RichText
+  data: BlockRichtext
   lang: string
 }
 
-function RichTextBlock({ data, lang }: RichTextBlockProps) {
+export default function RichTextBlock({ data, lang }: RichTextBlockProps) {
   const directusLang = lang === 'en' ? 'en-US' : 'vi-VN'
   const translations = Array.isArray(data.translations) ? data.translations : []
-  const translation = translations.find(t => t.languages_code === directusLang) || translations[0]
+  const translation = translations.find((t: any) => t.languages_code === directusLang) || translations[0]
+
   const title = translation?.title || data.title || ''
   const headline = translation?.headline || data.headline || ''
   const content = translation?.content || data.content || ''
+  const alignment = data.alignment || 'center'
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const bodyStyles = window.getComputedStyle(document.body)
-    }
-  }, [])
+  // Alignment classes
+  const alignmentClasses = {
+    left: 'text-left',
+    center: 'text-center',
+    right: 'text-right'
+  }
 
   return (
-    <BlockContainer>
-      <div className='text-center'>
+    <BlockContainer className={`py-12 ${alignmentClasses[alignment]}`}>
+      <div className="max-w-4xl mx-auto px-4">
+        {/* Title */}
         {title && (
-          <TypographyTitle
-            className="font-[var(--font-display)] text-[var(--color-gray)]"
-          >
+          <div className="text-sm font-medium text-[var(--color-gray)] uppercase tracking-wide mb-2">
             {title}
-          </TypographyTitle>
+          </div>
         )}
+
+        {/* Headline */}
         {headline && (
-          <TypographyHeadline
-            content={headline}
-            size='xl'
-            className="font-[var(--font-display) ] font-semibold  text-[var(--color-primary)]"
+          <h2 
+            className="text-3xl sm:text-4xl lg:text-5xl font-[var(--font-display)] font-bold text-[var(--color-primary)] mb-6"
+            dangerouslySetInnerHTML={{ __html: headline }}
+          />
+        )}
+
+        {/* Content */}
+        {content && (
+          <div 
+            className="prose prose-lg max-w-none font-[var(--font-body)] text-[var(--color-gray)] leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: content }}
+            style={{
+              '--tw-prose-body': 'var(--color-gray)',
+              '--tw-prose-headings': 'var(--color-primary)',
+              '--tw-prose-links': 'var(--color-primary)',
+              '--tw-prose-bold': 'var(--color-primary)',
+            } as React.CSSProperties}
           />
         )}
       </div>
-      <TypographyProse
-        content={content}
-        className='font-[var(--font-body)] mx-auto mt-8 text-gray-800'
-      />
     </BlockContainer>
   )
 }
-
-export default RichTextBlock

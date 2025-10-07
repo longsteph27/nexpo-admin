@@ -41,18 +41,23 @@ export default function EventPagesPage() {
   const createPageMutation = useMutation({
     mutationFn: async (values: {
       title: string;
-      slug: string;
+      permalink: string;
       language: string;
     }) => {
       if (!site) throw new Error("No site found");
 
       const result = await siteApi.createPage({
         site_id: site.id,
-        slug: values.slug,
         sort: (pages.length || 0) + 1,
-        translations: [
-          { languages_code: values.language, title: values.title },
-        ],
+        translations: {
+          create: [
+            { 
+              languages_code: { code: values.language }, 
+              title: values.title,
+              permalink: values.permalink
+            },
+          ],
+        },
       });
 
       if (!result.success) {
@@ -172,7 +177,7 @@ export default function EventPagesPage() {
                 <h3 className="font-semibold text-gray-900 mb-2">
                   {page.translations?.[0]?.title || `Page ${page.id}`}
                 </h3>
-                <p className="text-sm text-gray-500 mb-4">{page.slug || "—"}</p>
+                <p className="text-sm text-gray-500 mb-4">{page.translations?.[0]?.permalink || "—"}</p>
                 <div className="flex items-center justify-between text-xs text-gray-500">
                   <span>{page.blocks?.length || 0} blocks</span>
                   <div className="flex space-x-2">

@@ -238,7 +238,7 @@ export const siteApi = {
   },
 
   // Create a page with translations (title) for a site
-  createPage: async (payload: { site_id: number; slug?: string; sort?: number; translations?: Array<{ languages_code: string; title?: string }> }): Promise<ApiResponse<unknown>> => {
+  createPage: async (payload: { site_id: number; sort?: number; translations?: { create: Array<{ languages_code: { code: string }; title?: string; permalink?: string }> } }): Promise<ApiResponse<unknown>> => {
     try {
       const res = await directusHelpers.createPage(payload);
       return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
@@ -246,10 +246,10 @@ export const siteApi = {
       return { success: false, error: handleAxiosError(error, 'Failed to create page') };
     }
   },
-  getPagesBySite: async (siteId: number): Promise<ApiResponse<Array<{ id: string; slug?: string; translations?: { title?: string }[] }>>> => {
+  getPagesBySite: async (siteId: number): Promise<ApiResponse<Array<{ id: string; translations?: { title?: string; permalink?: string }[] }>>> => {
     try {
       const res = await directusHelpers.getPagesBySite(siteId);
-      return res.success ? { success: true, data: res.data as Array<{ id: string; slug?: string; translations?: { title?: string }[] }> } : { success: false, error: res.error };
+      return res.success ? { success: true, data: res.data as Array<{ id: string; translations?: { title?: string; permalink?: string }[] }> } : { success: false, error: res.error };
     } catch (error: unknown) {
       return { success: false, error: handleAxiosError(error, 'Failed to get pages') };
     }

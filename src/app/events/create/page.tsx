@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import { Icon } from '@iconify/react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
+import { ImageUpload } from '@/components/ui/ImageUpload';
 import { useAuthStore } from '@/store/auth';
 import { directusHelpers } from '@/lib/directus';
 
@@ -26,17 +26,9 @@ export default function CreateEventPage() {
   const [endDate, setEndDate] = useState('2025-12-18');
   const [endTime, setEndTime] = useState('13:00');
   const [location, setLocation] = useState('SECC – Saigon Exhibition & Convention Center, District 7, HCMC');
-  const [logoFileId, setLogoFileId] = useState<string | null>(null);
-  const [bannerFileId, setBannerFileId] = useState<string | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null);
-  const [logoUploading, setLogoUploading] = useState(false);
-  const [bannerUploading, setBannerUploading] = useState(false);
+  const [logoFileId, setLogoFileId] = useState<string>('');
+  const [bannerFileId, setBannerFileId] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
-
-  // Upload inputs
-  const logoInputRef = useRef<HTMLInputElement | null>(null);
-  const bannerInputRef = useRef<HTMLInputElement | null>(null);
 
   const goToStep = (nextStep: number) => {
     const clamped = Math.min(3, Math.max(1, nextStep));
@@ -164,34 +156,14 @@ export default function CreateEventPage() {
               <div className="space-y-10">
                 {/* Logo */}
                 <div>
-                  <div className="font-medium text-gray-900 mb-2">Event logo</div>
+                  <div className="font-medium text-gray-900 mb-4">Event logo</div>
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-1">
-                      <button
-                        type="button"
-                        className="w-28 h-28 bg-white border border-gray-200 rounded-md flex flex-col items-center justify-center shadow-sm hover:bg-gray-50"
-                        onClick={() => logoInputRef.current?.click()}
-                      >
-                        {logoPreview ? (
-                          <Image src={logoPreview} alt="Logo preview" width={112} height={112} className="w-full h-full object-cover rounded-md" />
-                        ) : (
-                          <>
-                            <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-500 mb-2">
-                              <Icon icon="lucide:plus" className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm text-gray-700">{logoUploading ? 'Uploading...' : 'Upload'}</span>
-                          </>
-                        )}
-                      </button>
-                      <input ref={logoInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setLogoPreview(URL.createObjectURL(file));
-                        setLogoUploading(true);
-                        const result = await directusHelpers.uploadFile(file);
-                        if (result.success) setLogoFileId(result.data?.id || null);
-                        setLogoUploading(false);
-                      }} />
+                      <ImageUpload
+                        value={logoFileId}
+                        onChange={setLogoFileId}
+                        folderId={(selectedTenant as any)?.folder_files_id}
+                      />
                     </div>
                     <div className="col-span-2 text-sm text-gray-700">
                       <div><span className="font-semibold">File Size:</span> Up to 5mb</div>
@@ -203,34 +175,12 @@ export default function CreateEventPage() {
 
                 {/* Banner */}
                 <div>
-                  <div className="font-medium text-gray-900 mb-2">Event banner</div>
-                  <div className="border border-gray-200 rounded-md bg-white p-4">
-                    <button
-                      type="button"
-                      className="h-56 w-full bg-gray-50 border border-gray-200 rounded flex flex-col items-center justify-center"
-                      onClick={() => bannerInputRef.current?.click()}
-                    >
-                      {bannerPreview ? (
-                        <Image src={bannerPreview} alt="Banner preview" width={400} height={200} className="w-full h-full object-cover rounded" />
-                      ) : (
-                        <>
-                          <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center text-gray-500 mb-2">
-                            <Icon icon="lucide:plus" className="w-4 h-4" />
-                          </div>
-                          <span className="text-gray-600">{bannerUploading ? 'Uploading...' : 'Upload'}</span>
-                        </>
-                      )}
-                    </button>
-                    <input ref={bannerInputRef} type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      setBannerPreview(URL.createObjectURL(file));
-                      setBannerUploading(true);
-                      const result = await directusHelpers.uploadFile(file);
-                      if (result.success) setBannerFileId(result.data?.id || null);
-                      setBannerUploading(false);
-                    }} />
-                  </div>
+                  <div className="font-medium text-gray-900 mb-4">Event banner</div>
+                  <ImageUpload
+                    value={bannerFileId}
+                    onChange={setBannerFileId}
+                    folderId={(selectedTenant as any)?.folder_files_id}
+                  />
                 </div>
 
                 <div className="text-xs text-gray-500 flex items-center gap-2">

@@ -8,6 +8,7 @@ import Input from '@/components/ui/Input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { assetsApi } from '@/lib/api';
+import RichtextBlockEditor from './RichtextBlockEditor';
 
 interface Block {
   id: string;
@@ -21,6 +22,9 @@ interface BlockEditorModalProps {
   onClose: () => void;
   block: Block | null;
   onSave: (blockData: any) => void;
+  activeLang?: 'en-US' | 'vi-VN';
+  folderId?: string;
+  eventId?: string;
 }
 
 export default function BlockEditorModal({
@@ -28,8 +32,11 @@ export default function BlockEditorModal({
   onClose,
   block,
   onSave,
+  activeLang: propActiveLang,
+  folderId,
+  eventId,
 }: BlockEditorModalProps) {
-  const [activeLang, setActiveLang] = useState<'en-US' | 'vi-VN'>('en-US');
+  const [activeLang, setActiveLang] = useState<'en-US' | 'vi-VN'>(propActiveLang || 'en-US');
   const [formData, setFormData] = useState<any>({});
 
   // Initialize form data when block changes
@@ -148,7 +155,7 @@ export default function BlockEditorModal({
 
               {/* Content */}
               <div className="flex-1 overflow-y-auto p-6">
-                {renderBlockEditor(block.collection, formData, updateTranslation, updateField, getCurrentTranslation())}
+                {renderBlockEditor(block.collection, formData, updateTranslation, updateField, getCurrentTranslation(), folderId, eventId)}
               </div>
 
               {/* Footer */}
@@ -186,17 +193,19 @@ function renderBlockEditor(
   formData: any,
   updateTranslation: (field: string, value: any) => void,
   updateField: (field: string, value: any) => void,
-  currentTranslation: any
+  currentTranslation: any,
+  folderId?: string,
+  eventId?: string
 ) {
   switch (collection) {
     case 'block_hero':
-      return <HeroBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
+      return <HeroBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
     
     case 'block_richtext':
       return <RichTextBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
     
     case 'block_columns':
-      return <ColumnsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
+      return <ColumnsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
     
     case 'block_quote':
       return <QuoteBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
@@ -208,10 +217,10 @@ function renderBlockEditor(
       return <VideoBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
     
     case 'block_gallery':
-      return <GalleryBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
+      return <GalleryBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
     
     case 'block_steps':
-      return <StepsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
+      return <StepsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
     
     case 'block_cta':
       return <CtaBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
@@ -228,7 +237,7 @@ function renderBlockEditor(
 }
 
 // Hero Block Editor
-function HeroBlockEditor({ formData, updateTranslation, updateField, currentTranslation }: any) {
+function HeroBlockEditor({ formData, updateTranslation, updateField, currentTranslation, folderId, eventId }: any) {
   return (
     <div className="space-y-6">
       <div>
@@ -286,6 +295,8 @@ function HeroBlockEditor({ formData, updateTranslation, updateField, currentTran
         <ImageUpload
           value={formData.image || ''}
           onChange={(assetId) => updateField('image', assetId)}
+          folderId={folderId}
+          eventId={eventId}
         />
       </div>
     </div>
@@ -360,7 +371,7 @@ function RichTextBlockEditor({ formData, updateTranslation, currentTranslation }
 }
 
 // Columns Block Editor
-function ColumnsBlockEditor({ formData, updateTranslation, updateField, currentTranslation }: any) {
+function ColumnsBlockEditor({ formData, updateTranslation, updateField, currentTranslation, folderId, eventId }: any) {
   const [rows, setRows] = useState<any[]>(formData.rows || []);
 
   const addRow = () => {
@@ -501,6 +512,8 @@ function ColumnsBlockEditor({ formData, updateTranslation, updateField, currentT
                     <ImageUpload
                       value={row.image || ''}
                       onChange={(assetId) => updateRow(index, 'image', assetId, false)}
+                      folderId={folderId}
+                      eventId={eventId}
                     />
                   </div>
                 </div>
@@ -698,7 +711,7 @@ function VideoBlockEditor({ formData, updateTranslation, updateField, currentTra
 }
 
 // Gallery Block Editor
-function GalleryBlockEditor({ formData, updateTranslation, updateField, currentTranslation }: any) {
+function GalleryBlockEditor({ formData, updateTranslation, updateField, currentTranslation, folderId, eventId }: any) {
   const [galleryImages, setGalleryImages] = useState<string[]>(formData.gallery_items || []);
 
   const handleAddImage = (assetId: string) => {
@@ -757,6 +770,8 @@ function GalleryBlockEditor({ formData, updateTranslation, updateField, currentT
         <ImageUpload
           value=""
           onChange={handleAddImage}
+          folderId={folderId}
+          eventId={eventId}
         />
       </div>
     </div>
@@ -764,7 +779,7 @@ function GalleryBlockEditor({ formData, updateTranslation, updateField, currentT
 }
 
 // Steps Block Editor
-function StepsBlockEditor({ formData, updateTranslation, updateField, currentTranslation }: any) {
+function StepsBlockEditor({ formData, updateTranslation, updateField, currentTranslation, folderId, eventId }: any) {
   const [steps, setSteps] = useState<any[]>(formData.steps || []);
 
   const addStep = () => {
@@ -895,6 +910,8 @@ function StepsBlockEditor({ formData, updateTranslation, updateField, currentTra
                     <ImageUpload
                       value={step.image || ''}
                       onChange={(assetId) => updateStep(index, 'image', assetId, false)}
+                      folderId={folderId}
+                      eventId={eventId}
                     />
                   </div>
                 </div>
