@@ -2,10 +2,10 @@ import React from 'react'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
 
 interface RichtextBlockEditorProps {
-  formData: any
-  updateTranslation: (field: string, value: any) => void
-  updateField: (field: string, value: any) => void
-  currentTranslation: any
+  formData: Record<string, unknown>
+  updateTranslation: (field: string, value: string) => void
+  updateField: (field: string, value: string) => void
+  currentTranslation: Record<string, unknown>
   folderId?: string
   eventId?: string
 }
