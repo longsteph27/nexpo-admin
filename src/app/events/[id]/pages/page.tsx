@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { siteApi } from "@/lib/api";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
 
@@ -114,7 +114,7 @@ export default function EventPagesPage() {
           </p>
         </div>
         <Button 
-          className="gradient-primary"
+          variant="gradient"
           onClick={() => router.push(`/events/${eventId}/pages/create`)}
         >
           <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -141,7 +141,7 @@ export default function EventPagesPage() {
               Create your first page to get started
             </p>
             <Button 
-              className="gradient-primary"
+              variant="gradient"
               onClick={() => router.push(`/events/${eventId}/pages/create`)}
             >
               <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />

@@ -192,7 +192,9 @@ module.exports = {
     },
     plugins: [
         // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require("daisyui")
+        require("daisyui"),
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require("@tailwindcss/typography")
     ],
     daisyui: {
         themes: [

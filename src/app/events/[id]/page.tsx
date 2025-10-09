@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useEvent } from "@/hooks/useEvents";
 import { Icon } from "@iconify/react";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button";
 
 export default function EventDetailsPage() {
   const router = useRouter();
@@ -62,7 +62,7 @@ export default function EventDetailsPage() {
             <Icon icon="lucide:eye" className="w-4 h-4 mr-2" />
             Preview Event
           </Button>
-          <Button className="gradient-primary">
+          <Button variant="gradient">
             <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
             Save Changes
           </Button>

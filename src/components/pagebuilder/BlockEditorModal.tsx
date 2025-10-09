@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { assetsApi } from '@/lib/api';
@@ -55,7 +55,16 @@ export default function BlockEditorModal({
   }, [block]);
 
   const handleSave = () => {
-    onSave(formData);
+    // Ensure event_id và tenant_id luôn có trong formData
+    const dataToSave = {
+      ...formData,
+      event_id: formData.event_id || block?.item?.event_id,
+      tenant_id: formData.tenant_id || block?.item?.tenant_id,
+    };
+    
+    // Gọi onSave với formData
+    // Page editor sẽ xử lý format cho create/update/delete
+    onSave(dataToSave);
   };
 
   const updateTranslation = (field: string, value: any) => {
@@ -77,7 +86,12 @@ export default function BlockEditorModal({
   };
 
   const updateField = (field: string, value: any) => {
-    setFormData((prev: any) => ({ ...prev, [field]: value }));
+    console.log('[BlockEditorModal] updateField called:', { field, value, currentFormData: formData });
+    setFormData((prev: any) => {
+      const updated = { ...prev, [field]: value };
+      console.log('[BlockEditorModal] formData updated:', updated);
+      return updated;
+    });
   };
 
   const getCurrentTranslation = () => {
@@ -109,10 +123,10 @@ export default function BlockEditorModal({
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col pointer-events-auto"
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col pointer-events-auto"
             >
               {/* Header */}
-              <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-neutral-200 flex items-center justify-between rounded-t-2xl">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
                     <Icon icon={getBlockIcon(block.collection)} className="w-5 h-5 text-neutral-600" />
@@ -154,30 +168,22 @@ export default function BlockEditorModal({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto p-6">
+              <div className="flex-1 overflow-y-auto p-6 bg-white">
                 {renderBlockEditor(block.collection, formData, updateTranslation, updateField, getCurrentTranslation(), folderId, eventId)}
               </div>
 
               {/* Footer */}
-              <div className="px-6 py-4 border-t border-neutral-200 flex items-center justify-between bg-neutral-50">
+              <div className="px-6 py-4 border-t border-neutral-200 flex items-center justify-between bg-neutral-50 rounded-b-2xl">
                 <Button variant="ghost" onClick={onClose}>
                   Cancel
                 </Button>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" onClick={handleSave}>
-                    Apply
-                  </Button>
-                  <Button
-                    className="bg-neutral-900 hover:bg-neutral-800 text-white"
-                    onClick={() => {
-                      handleSave();
-                      onClose();
-                    }}
-                  >
-                    <Icon icon="lucide:check" className="w-4 h-4 mr-2" />
-                    Save & Close
-                  </Button>
-                </div>
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  onClick={handleSave}
+                >
+                  <Icon icon="lucide:check" className="w-4 h-4 mr-2" />
+                  Apply
+                </Button>
               </div>
             </motion.div>
           </div>
@@ -202,7 +208,7 @@ function renderBlockEditor(
       return <HeroBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
     
     case 'block_richtext':
-      return <RichTextBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
+      return <RichtextBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
     
     case 'block_columns':
       return <ColumnsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
@@ -303,72 +309,6 @@ function HeroBlockEditor({ formData, updateTranslation, updateField, currentTran
   );
 }
 
-// Rich Text Block Editor
-function RichTextBlockEditor({ formData, updateTranslation, currentTranslation }: any) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Title
-        </label>
-        <Input
-          value={currentTranslation.title || ''}
-          onChange={(e) => updateTranslation('title', e.target.value)}
-          placeholder="Section title..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Headline
-        </label>
-        <Input
-          value={currentTranslation.headline || ''}
-          onChange={(e) => updateTranslation('headline', e.target.value)}
-          placeholder="Eye-catching headline..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Content <span className="text-red-500">*</span>
-        </label>
-        <RichTextEditor
-          value={currentTranslation.content || ''}
-          onChange={(value) => updateTranslation('content', value)}
-          placeholder="Write your content here..."
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Alignment
-        </label>
-        <div className="flex items-center space-x-2">
-          {[
-            { value: 'left', icon: 'lucide:align-left', label: 'Left' },
-            { value: 'center', icon: 'lucide:align-center', label: 'Center' },
-          ].map(option => (
-            <button
-              key={option.value}
-              className={`flex-1 py-2 px-3 border-2 rounded-lg transition-all ${
-                formData.alignment === option.value
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-neutral-200 hover:border-neutral-300'
-              }`}
-              onClick={() => updateTranslation('alignment', option.value)}
-            >
-              <div className="flex items-center justify-center space-x-2">
-                <Icon icon={option.icon} className="w-4 h-4" />
-                <span className="text-sm font-medium">{option.label}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // Columns Block Editor
 function ColumnsBlockEditor({ formData, updateTranslation, updateField, currentTranslation, folderId, eventId }: any) {

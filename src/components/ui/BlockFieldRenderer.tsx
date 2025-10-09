@@ -5,6 +5,7 @@ import { useDropzone } from 'react-dropzone';
 import { Icon } from '@iconify/react';
 import { assetsApi, siteApi } from '@/lib/api';
 import { RichTextEditor } from './RichTextEditor';
+import { toast } from 'sonner';
 
 interface FieldRendererProps {
   field: {
@@ -198,7 +199,9 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
         onChange('');
       } else {
         console.error('Failed to delete item:', response.error);
-        alert('Failed to delete item. Please try again.');
+        toast.error('Failed to delete item', {
+          description: response.error || 'Please try again.',
+        });
       }
     }
   };

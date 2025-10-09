@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { formsApi } from "@/lib/api";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
 
@@ -48,7 +48,7 @@ export default function EventFormsPage() {
             Create and manage registration forms for your event
           </p>
         </div>
-        <Button className="gradient-primary">
+        <Button variant="gradient">
           <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
           Create Form
         </Button>
@@ -72,7 +72,7 @@ export default function EventFormsPage() {
             <p className="text-gray-500 mb-6">
               Create your first form to collect registrations
             </p>
-            <Button className="gradient-primary">
+            <Button variant="gradient">
               <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
               Create First Form
             </Button>

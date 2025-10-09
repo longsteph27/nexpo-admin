@@ -8,8 +8,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '@/store/auth';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -179,7 +179,7 @@ export default function LoginPage() {
               size="lg"
               fullWidth
               loading={isLoading}
-              className="gradient-primary"
+              variant="gradient"
             >
               {isLoading ? 'Signing in...' : 'Log in'}
             </Button>

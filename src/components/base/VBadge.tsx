@@ -1,10 +1,11 @@
 import React from 'react'
+import { Badge } from '@/components/ui/badge'
 import { getContrastColor } from '@/lib/utils/color'
-import clsx from 'clsx'
+import { cn } from '@/lib/utils'
 
 interface BadgeProps {
   color?: string
-  size: string
+  size?: string
   className?: string
   children?: React.ReactNode
 }
@@ -15,38 +16,68 @@ function VBadge({
   children,
   className,
 }: BadgeProps) {
-  const badgeColor = clsx({
-    'bg-gray-100 text-gray-800': !color || color === '',
-    'bg-gray-100 text-gray-80': color === 'gray',
-    'bg-green-100 text-green-800': color === 'gray',
-    'bg-purple-100 text-purple-800': color === 'purple',
-    'bg-blue-100 text-blue-800': color === 'blue',
-    'bg-amber-100 text-amber-800': color === 'amber',
-    'bg-orange-100 text-orange-800': color === 'orange',
-    'bg-red-100 text-red-800': color === 'red',
-    'bg-indigo-100 text-indigo-800': color === 'indigo',
-    'bg-violet-100 text-violet-800': color === 'violet',
-    'bg-primary-100 text-accent': color === 'pink',
-    'bg-yellow-100 text-yellow-800': color === 'yellow',
-    'px-2 py-0.5 text-xs': size === 'sm',
-    'px-2.5 py-0.5': size === 'lg',
-  })
+  // If a custom hex color is provided, use it with dynamic contrast
+  if (color && color.startsWith('#')) {
+    return (
+      <Badge
+        style={{
+          backgroundColor: color,
+          color: getContrastColor(color),
+        }}
+        className={cn(
+          'inline-flex items-center font-serif font-medium',
+          size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-0.5',
+          className
+        )}
+      >
+        {children}
+      </Badge>
+    )
+  }
+
+  // Use predefined color variants
+  const variantMap: Record<string, any> = {
+    default: 'default',
+    gray: 'secondary',
+    green: 'default',
+    purple: 'default',
+    blue: 'default',
+    amber: 'default',
+    orange: 'default',
+    red: 'destructive',
+    indigo: 'default',
+    violet: 'default',
+    pink: 'default',
+    yellow: 'default',
+  }
+
+  const colorClasses: Record<string, string> = {
+    gray: 'bg-gray-100 text-gray-800',
+    green: 'bg-green-100 text-green-800',
+    purple: 'bg-purple-100 text-purple-800',
+    blue: 'bg-blue-100 text-blue-800',
+    amber: 'bg-amber-100 text-amber-800',
+    orange: 'bg-orange-100 text-orange-800',
+    indigo: 'bg-indigo-100 text-indigo-800',
+    violet: 'bg-violet-100 text-violet-800',
+    pink: 'bg-primary-100 text-accent',
+    yellow: 'bg-yellow-100 text-yellow-800',
+  }
 
   return (
-    <span
-      style={{
-        backgroundColor: color,
-        color: getContrastColor(color),
-      }}
-      className={clsx(
+    <Badge
+      variant={variantMap[color] || 'default'}
+      className={cn(
         'inline-flex items-center font-serif font-medium',
-        className,
-        badgeColor
+        colorClasses[color],
+        size === 'sm' ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-0.5',
+        className
       )}
     >
       {children}
-    </span>
+    </Badge>
   )
 }
 
 export default VBadge
+

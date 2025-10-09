@@ -6,7 +6,7 @@ import '@/styles/pagebuilder.css';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { siteApi, navigationApi } from '@/lib/api';
 import BlockSelectorModal from '@/components/pagebuilder/BlockSelectorModal';
 import BlockEditorModal from '@/components/pagebuilder/BlockEditorModal';
@@ -16,6 +16,7 @@ import InlineBlockWrapper from '@/components/pagebuilder/InlineBlockWrapper';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import BlockSkeleton from '@/components/ui/BlockSkeleton';
+import { toast } from 'sonner';
 
 interface Block {
   id: string;
@@ -163,7 +164,15 @@ export default function PageBuilderPage() {
       id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       collection: blockType,
       sort: selectedBlockIndex ?? blocks.length,
-      item: {},
+      item: {
+        // Tự động thêm event_id và tenant_id
+        event_id: page?.site?.event_id,
+        tenant_id: page?.site?.tenant_id,
+        translations: [
+          { languages_code: 'en-US' },
+          { languages_code: 'vi-VN' },
+        ],
+      },
     };
     setEditingBlock(newBlock);
     setShowBlockSelector(false);
@@ -275,26 +284,59 @@ export default function PageBuilderPage() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // Save each block
-      for (let i = 0; i < blocks.length; i++) {
-        const block = blocks[i];
+      // Prepare blocks payload with create/update/delete structure
+      const originalBlocks = page?.blocks || [];
+      const originalBlockIds = new Set(originalBlocks.map((b: any) => b.id));
+      const currentBlockIds = new Set(blocks.map(b => b.id).filter(id => !String(id).startsWith('temp-')));
+      
+      // Categorize blocks
+      const blocksPayload = {
+        create: [] as any[],
+        update: [] as any[],
+        delete: [] as string[],
+      };
+
+      // Find blocks to delete (in original but not in current)
+      originalBlocks.forEach((originalBlock: any) => {
+        if (!currentBlockIds.has(originalBlock.id)) {
+          blocksPayload.delete.push(originalBlock.id);
+        }
+      });
+
+      // Process current blocks
+      blocks.forEach((block, index) => {
+        const isTemp = String(block.id).startsWith('temp-');
         
-        // Create or update block item in its collection
-        const blockPayload = {
-          ...block.item,
-          tenant_id: page?.site?.tenant_id,
-          event_id: page?.site?.event_id,
+        const blockData = {
+          collection: block.collection,
+          id: block.id,
+          sort: index,
+          item: {
+            ...block.item,
+            tenant_id: page?.site?.tenant_id,
+            event_id: page?.site?.event_id,
+          },
         };
 
-        // Call upsertPageBlock to create both block item and junction entry
-        await siteApi.upsertPageBlock({
-          pages_id: pageId,
-          collection: block.collection,
-          item: blockPayload,
-          sort: i,
-          hide_block: false,
-        });
-      }
+        if (isTemp) {
+          // New block - add to create
+          blocksPayload.create.push(blockData);
+        } else {
+          // Existing block - add to update
+          blocksPayload.update.push(blockData);
+        }
+      });
+
+      // Save page with blocks using create/update/delete structure
+      console.log('[handleSave] Saving page with payload:', {
+        blocks: blocksPayload,
+        event_id: page?.site?.event_id,
+      });
+
+      await siteApi.updatePageBlocks(pageId, {
+        blocks: blocksPayload,
+        event_id: page?.site?.event_id,
+      });
 
       // Save navigation if edited
       if (navigations && Array.isArray(navigations)) {
@@ -319,10 +361,14 @@ export default function PageBuilderPage() {
       queryClient.invalidateQueries({ queryKey: ['navigations', siteId] });
       
       setHasUnsavedChanges(false);
-      alert('Page saved successfully!');
+      toast.success('Page saved successfully!', {
+        description: 'All changes have been saved to Directus.',
+      });
     } catch (error) {
       console.error('Save error:', error);
-      alert('Failed to save page. Please try again.');
+      toast.error('Failed to save page', {
+        description: error instanceof Error ? error.message : 'Please try again.',
+      });
     } finally {
       setIsSaving(false);
     }

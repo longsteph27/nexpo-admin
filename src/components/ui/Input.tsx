@@ -1,7 +1,10 @@
 import React, { forwardRef } from 'react';
+import { Input } from './input-base';
+import { Label } from './label';
+import { cn } from '@/lib/utils';
 import { Icon } from '@iconify/react';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputEnhancedProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
   error?: string;
   success?: string;
@@ -11,7 +14,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   onRightIconClick?: () => void;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+const InputEnhanced = forwardRef<HTMLInputElement, InputEnhancedProps>(
   (
     {
       label,
@@ -26,27 +29,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
     },
     ref
   ) => {
-    const inputClasses = `
-      w-full px-4 py-3 border rounded-lg transition-all duration-200 
-      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-      disabled:bg-gray-50 disabled:cursor-not-allowed
-      ${leftIcon ? 'pl-12' : ''}
-      ${rightIcon ? 'pr-12' : ''}
-      ${error 
-        ? 'border-red-500 focus:ring-red-500' 
-        : success 
-        ? 'border-green-500 focus:ring-green-500' 
-        : 'border-gray-300 hover:border-gray-400'
-      }
-      ${className}
-    `.trim();
-
     return (
-      <div className="w-full">
+      <div className="w-full space-y-2">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 mb-2">
+          <Label className="text-sm font-medium text-gray-700">
             {label}
-          </label>
+          </Label>
         )}
         
         <div className="relative">
@@ -54,14 +42,23 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Icon 
                 icon={leftIcon} 
-                className={`w-5 h-5 ${error ? 'text-red-500' : success ? 'text-green-500' : 'text-gray-400'}`}
+                className={cn(
+                  "w-5 h-5",
+                  error ? 'text-red-500' : success ? 'text-green-500' : 'text-gray-400'
+                )}
               />
             </div>
           )}
           
-          <input
+          <Input
             ref={ref}
-            className={inputClasses}
+            className={cn(
+              leftIcon && 'pl-10',
+              rightIcon && 'pr-10',
+              error && 'border-red-500 focus-visible:ring-red-500',
+              success && 'border-green-500 focus-visible:ring-green-500',
+              className
+            )}
             {...props}
           />
           
@@ -69,11 +66,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
               <Icon 
                 icon={rightIcon} 
-                className={`w-5 h-5 ${
+                className={cn(
+                  'w-5 h-5',
                   onRightIconClick 
                     ? 'cursor-pointer hover:text-gray-600' 
-                    : 'pointer-events-none'
-                } ${error ? 'text-red-500' : success ? 'text-green-500' : 'text-gray-400'}`}
+                    : 'pointer-events-none',
+                  error ? 'text-red-500' : success ? 'text-green-500' : 'text-gray-400'
+                )}
                 onClick={onRightIconClick}
               />
             </div>
@@ -81,23 +80,23 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
         </div>
         
         {(error || success || helperText) && (
-          <div className="mt-2 flex items-center">
+          <div className="flex items-center text-sm">
             {error && (
               <>
-                <Icon icon="lucide:alert-circle" className="w-4 h-4 text-red-500 mr-1" />
-                <span className="text-sm text-red-600">{error}</span>
+                <Icon icon="lucide:alert-circle" className="w-4 h-4 text-red-500 mr-1.5" />
+                <span className="text-red-600">{error}</span>
               </>
             )}
             
             {success && !error && (
               <>
-                <Icon icon="lucide:check-circle" className="w-4 h-4 text-green-500 mr-1" />
-                <span className="text-sm text-green-600">{success}</span>
+                <Icon icon="lucide:check-circle" className="w-4 h-4 text-green-500 mr-1.5" />
+                <span className="text-green-600">{success}</span>
               </>
             )}
             
             {helperText && !error && !success && (
-              <span className="text-sm text-gray-500">{helperText}</span>
+              <span className="text-gray-500">{helperText}</span>
             )}
           </div>
         )}
@@ -106,6 +105,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+InputEnhanced.displayName = 'InputEnhanced';
 
-export default Input;
+export default InputEnhanced;
+

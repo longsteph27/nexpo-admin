@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useEvent } from '@/hooks/useEvents';
 import { siteApi } from '@/lib/api';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 // import NavigationDrawer from '@/components/ui/NavigationDrawer';
 // import { type Navigation } from '@/hooks/useNavigation';
@@ -74,7 +74,7 @@ export default function SiteDetailPage() {
             <Icon icon="lucide:eye" className="w-4 h-4 mr-2" />
             Preview Site
           </Button>
-          <Button className="gradient-primary">
+          <Button variant="gradient">
             <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
             Save Changes
           </Button>

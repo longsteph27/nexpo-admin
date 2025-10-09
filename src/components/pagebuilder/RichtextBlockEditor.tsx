@@ -1,5 +1,6 @@
 import React from 'react'
 import { RichTextEditor } from '@/components/ui/RichTextEditor'
+import { Icon } from '@iconify/react'
 
 interface RichtextBlockEditorProps {
   formData: Record<string, unknown>
@@ -35,12 +36,15 @@ export default function RichtextBlockEditor({
       {/* Headline */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Headline
+          Headline <span className="text-red-500">*</span>
         </label>
-        <RichTextEditor
+        <input
+          type="text"
           value={currentTranslation?.headline || ''}
-          onChange={(value) => updateTranslation('headline', value)}
+          onChange={(e) => updateTranslation('headline', e.target.value)}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           placeholder="Enter headline..."
+          required
         />
       </div>
 
@@ -57,28 +61,41 @@ export default function RichtextBlockEditor({
       </div>
 
       {/* Alignment */}
-      <div>
+      <div className="w-full">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Text Alignment
         </label>
-        <div className="flex space-x-4">
+        <div className="flex gap-2 w-full">
           {[
-            { value: 'left', label: 'Left' },
-            { value: 'center', label: 'Center' },
-            { value: 'right', label: 'Right' }
-          ].map((option) => (
-            <label key={option.value} className="flex items-center">
-              <input
-                type="radio"
-                name="alignment"
-                value={option.value}
-                checked={formData.alignment === option.value}
-                onChange={(e) => updateField('alignment', e.target.value)}
-                className="mr-2"
-              />
-              {option.label}
-            </label>
-          ))}
+            { value: 'left', label: 'Left', icon: 'lucide:align-left' },
+            { value: 'center', label: 'Center', icon: 'lucide:align-center' }
+          ].map((option) => {
+            const isSelected = (formData.alignment || 'center') === option.value;
+            return (
+              <div
+                key={option.value}
+                onClick={() => {
+                  updateField('alignment', option.value);
+                }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    updateField('alignment', option.value);
+                  }
+                }}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border rounded-lg transition-all cursor-pointer select-none ${
+                  isSelected
+                    ? 'bg-blue-100 border-blue-500 text-blue-700 shadow-sm'
+                    : 'border-gray-300 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                }`}
+              >
+                <Icon icon={option.icon} className="w-4 h-4" />
+                <span className="text-sm font-medium">{option.label}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

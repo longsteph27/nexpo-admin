@@ -4,8 +4,9 @@ import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm, useSaveForm } from '@/hooks/useForms';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { Icon } from '@iconify/react';
+import { toast } from 'sonner';
 
 type FormField = {
   id: string;
@@ -197,10 +198,14 @@ export default function FormBuilderPage() {
       { formId, eventId, formData },
       {
         onSuccess: () => {
-          alert('Form saved successfully!');
+          toast.success('Form saved successfully!', {
+            description: 'All changes have been saved to Directus.',
+          });
         },
         onError: (error) => {
-          alert('Failed to save form: ' + error.message);
+          toast.error('Failed to save form', {
+            description: error.message,
+          });
         },
       }
     );
@@ -295,7 +300,7 @@ export default function FormBuilderPage() {
             <Button 
               variant="primary" 
               icon="lucide:save" 
-              className="gradient-primary" 
+              variant="gradient" 
               onClick={handleSave}
               disabled={isSaving}
             >

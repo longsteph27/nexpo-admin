@@ -6,6 +6,8 @@ import { Fragment } from 'react';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import { directusHelpers } from '@/lib/directus';
+import { Button } from '@/components/ui/button-base';
+import { toast } from 'sonner';
 
 interface DirectusFile {
   id: string;
@@ -79,13 +81,17 @@ export default function ImagePickerDialog({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      toast.error('Invalid file type', {
+        description: 'Please select an image file.',
+      });
       return;
     }
 
     // Validate file size (5MB)
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      toast.error('File too large', {
+        description: 'File size must be less than 5MB.',
+      });
       return;
     }
 
@@ -100,12 +106,19 @@ export default function ImagePickerDialog({
         setSelectedFile(assetId);
         // Switch to library tab to show it
         setActiveTab('library');
+        toast.success('Image uploaded successfully', {
+          description: 'The image has been added to your library.',
+        });
       } else {
-        alert(`Upload failed: ${result.error}`);
+        toast.error('Upload failed', {
+          description: result.error || 'Please try again.',
+        });
       }
     } catch (error) {
       console.error('Upload error:', error);
-      alert('Failed to upload image');
+      toast.error('Upload failed', {
+        description: error instanceof Error ? error.message : 'Failed to upload image.',
+      });
     } finally {
       setUploading(false);
       if (fileInputRef.current) {
@@ -163,39 +176,42 @@ export default function ImagePickerDialog({
                   <Dialog.Title as="h3" className="text-lg font-semibold text-gray-900">
                     Select Image
                   </Dialog.Title>
-                  <button
+                  <Button
                     onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition"
+                    variant="ghost"
+                    size="icon"
                   >
                     <Icon icon="lucide:x" className="w-5 h-5" />
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Tabs */}
                 <div className="border-b border-gray-200">
                   <div className="flex px-6">
-                    <button
+                    <Button
                       onClick={() => setActiveTab('library')}
-                      className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+                      variant="ghost"
+                      className={`px-4 py-3 text-sm font-medium border-b-2 rounded-none ${
                         activeTab === 'library'
                           ? 'border-blue-600 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          : 'border-transparent text-gray-500'
                       }`}
                     >
                       <Icon icon="lucide:images" className="w-4 h-4 inline mr-2" />
                       Library
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={() => setActiveTab('upload')}
-                      className={`px-4 py-3 text-sm font-medium border-b-2 transition ${
+                      variant="ghost"
+                      className={`px-4 py-3 text-sm font-medium border-b-2 rounded-none ${
                         activeTab === 'upload'
                           ? 'border-blue-600 text-blue-600'
-                          : 'border-transparent text-gray-500 hover:text-gray-700'
+                          : 'border-transparent text-gray-500'
                       }`}
                     >
                       <Icon icon="lucide:upload" className="w-4 h-4 inline mr-2" />
                       Upload New
-                    </button>
+                    </Button>
                   </div>
                 </div>
 
@@ -302,19 +318,19 @@ export default function ImagePickerDialog({
 
                 {/* Footer */}
                 <div className="flex items-center justify-end gap-3 border-t border-gray-200 px-6 py-4 bg-gray-50">
-                  <button
+                  <Button
                     onClick={onClose}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
+                    variant="outline"
                   >
                     Cancel
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleSelect}
                     disabled={!selectedFile}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    variant="default"
                   >
                     Select Image
-                  </button>
+                  </Button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>

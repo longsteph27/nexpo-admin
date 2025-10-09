@@ -85,7 +85,9 @@ export default function HeroInlineEditor({
       setIsEditing(false)
     } catch (error) {
       console.error('Failed to save block:', error)
-      alert('Failed to save changes. Please try again.')
+      toast.error('Failed to save changes', {
+        description: error instanceof Error ? error.message : 'Please try again.',
+      })
     } finally {
       setIsSaving(false)
     }

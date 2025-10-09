@@ -1,5 +1,6 @@
 import React from 'react'
-import { motion } from 'framer-motion'
+import { Skeleton } from './skeleton'
+import { cn } from '@/lib/utils'
 
 interface SkeletonLoaderProps {
   className?: string
@@ -8,21 +9,11 @@ interface SkeletonLoaderProps {
 
 export default function SkeletonLoader({ className = '', lines = 1 }: SkeletonLoaderProps) {
   return (
-    <div className={`space-y-3 ${className}`}>
+    <div className={cn('space-y-3', className)}>
       {Array.from({ length: lines }).map((_, index) => (
-        <motion.div
-          key={index}
-          className="h-4 bg-gray-200 rounded"
-          animate={{
-            opacity: [0.5, 1, 0.5],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            delay: index * 0.1,
-          }}
-        />
+        <Skeleton key={index} className="h-4" />
       ))}
     </div>
   )
 }
+

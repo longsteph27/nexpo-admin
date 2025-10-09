@@ -1,102 +1,71 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { Button, ButtonProps } from './button-base';
+import { cn } from '@/lib/utils';
 import { Icon } from '@iconify/react';
+import { Loader2 } from 'lucide-react';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger';
-  size?: 'sm' | 'md' | 'lg';
+interface EnhancedButtonProps extends Omit<ButtonProps, 'children'> {
   loading?: boolean;
   icon?: string;
   iconPosition?: 'left' | 'right';
   fullWidth?: boolean;
+  children?: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({
-  children,
-  variant = 'primary',
-  size = 'md',
-  loading = false,
-  icon,
-  iconPosition = 'left',
-  fullWidth = false,
-  className = '',
-  disabled,
-  onDrag,
-  onDragEnd,
-  onDragStart,
-  ...props
-}) => {
-  const baseClasses = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed';
+const variantMap = {
+  primary: 'default',
+  secondary: 'secondary',
+  outline: 'outline',
+  ghost: 'ghost',
+  danger: 'destructive',
+} as const;
 
-  const variantClasses = {
-    primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500',
-    secondary: 'bg-gray-600 hover:bg-gray-700 text-white focus:ring-gray-500',
-    outline: 'border-2 border-blue-600 text-blue-600 hover:bg-blue-50 focus:ring-blue-500',
-    ghost: 'text-gray-600 hover:bg-gray-100 focus:ring-gray-500',
-    danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500',
-  };
+const ButtonEnhanced = React.forwardRef<HTMLButtonElement, EnhancedButtonProps>(
+  ({ 
+    children, 
+    loading = false, 
+    icon, 
+    iconPosition = 'left', 
+    fullWidth = false, 
+    variant,
+    className,
+    disabled,
+    ...props 
+  }, ref) => {
+    // Map old variants to new ones
+    const mappedVariant = variant ? variantMap[variant as keyof typeof variantMap] || variant : 'default';
+    const isDisabled = disabled || loading;
 
-  const sizeClasses = {
-    sm: 'px-3 py-1.5 text-sm',
-    md: 'px-4 py-2 text-base',
-    lg: 'px-6 py-3 text-lg',
-  };
+    return (
+      <Button
+        ref={ref}
+        variant={mappedVariant as any}
+        className={cn(
+          fullWidth && 'w-full',
+          className
+        )}
+        disabled={isDisabled}
+        {...props}
+      >
+        {loading && (
+          <Loader2 className="animate-spin" />
+        )}
+        
+        {!loading && icon && iconPosition === 'left' && (
+          <Icon icon={icon} width={18} />
+        )}
+        
+        {children}
+        
+        {!loading && icon && iconPosition === 'right' && (
+          <Icon icon={icon} width={18} />
+        )}
+      </Button>
+    );
+  }
+);
 
-  const classes = `
-    ${baseClasses}
-    ${variantClasses[variant]}
-    ${sizeClasses[size]}
-    ${fullWidth ? 'w-full' : ''}
-    ${className}
-  `.trim();
+ButtonEnhanced.displayName = 'ButtonEnhanced';
 
-  const isDisabled = disabled || loading;
+export default ButtonEnhanced;
 
-  const buttonElement = (
-    <button
-      className={classes}
-      disabled={isDisabled}
-      onDrag={onDrag}
-      onDragEnd={onDragEnd}
-      onDragStart={onDragStart}
-      {...props}
-    >
-      {loading && (
-        <Icon
-          icon="lucide:loader-2"
-          className={`animate-spin ${children ? 'mr-2' : ''}`}
-          width={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
-        />
-      )}
-      
-      {!loading && icon && iconPosition === 'left' && (
-        <Icon
-          icon={icon}
-          className={children ? 'mr-2' : ''}
-          width={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
-        />
-      )}
-      
-      {children}
-      
-      {!loading && icon && iconPosition === 'right' && (
-        <Icon
-          icon={icon}
-          className={children ? 'ml-2' : ''}
-          width={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
-        />
-      )}
-    </button>
-  );
-
-  return (
-    <motion.div
-      whileHover={!isDisabled ? { scale: 1.02 } : {}}
-      whileTap={!isDisabled ? { scale: 0.98 } : {}}
-    >
-      {buttonElement}
-    </motion.div>
-  );
-};
-
-export default Button;

@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import Button from '@/components/ui/Button';
+import Button from '@/components/ui/button';
 import { getPageInfo, getDirectusAssetUrl } from '@/util/static';
 import Image from 'next/image';
 import { useEvents } from '@/hooks/useEvents';
@@ -53,7 +53,7 @@ export default function EventsPage() {
               <h1 className="text-2xl font-bold text-gray-900">{pageInfo.title}</h1>
               <p className="text-gray-600 mt-1">{pageInfo.subtitle}</p>
             </div>
-            <Button onClick={handleCreateEvent} className="gradient-primary">
+            <Button onClick={handleCreateEvent} variant="gradient">
               <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
               Create Event
             </Button>
@@ -64,7 +64,7 @@ export default function EventsPage() {
               <Icon icon="lucide:calendar" className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-700 mb-2">No Events Yet</h3>
               <p className="text-gray-500 mb-6">Get started by creating your first event</p>
-              {/* <Button onClick={handleCreateEvent} className="gradient-primary">
+              {/* <Button onClick={handleCreateEvent} variant="gradient">
                 <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
                 Create Your First Event
               </Button> */}
@@ -83,7 +83,7 @@ export default function EventsPage() {
             <h1 className="text-2xl font-bold text-gray-900">{pageInfo.title}</h1>
             <p className="text-gray-600 mt-1">{pageInfo.subtitle}</p>
           </div>
-          <Button onClick={handleCreateEvent} className="gradient-primary">
+          <Button onClick={handleCreateEvent} variant="gradient">
             <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
             Create Event
           </Button>
@@ -98,7 +98,7 @@ export default function EventsPage() {
                   key={tab.id}
                   onClick={() => { setActiveFilter(tab.id); setCurrentPage(1); }}
                   className={`
-                    py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                    py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer
                     ${activeFilter === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
                   `}
                 >
@@ -166,19 +166,19 @@ export default function EventsPage() {
                             const el = (e.currentTarget as HTMLButtonElement).nextElementSibling as HTMLDivElement;
                             if (el) el.classList.toggle('hidden');
                           }}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                         >
                           <Icon icon="lucide:more-horizontal" className="w-5 h-5" />
                         </button>
                         <div className="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-10">
                           <button
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors"
                             onClick={(e) => { e.stopPropagation(); router.push(`/events/${event.id}`); }}
                           >
                             View Details
                           </button>
                           <button
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors"
                             onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                               e.stopPropagation();
                               const formId = (event as unknown as { forms?: { id: string }[] }).forms?.[0]?.id || event.id;

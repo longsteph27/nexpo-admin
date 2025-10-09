@@ -1,51 +1,49 @@
 'use client'
-import { cn } from '@/lib/utils/tw'
+import { cn } from '@/lib/utils'
 import { Link } from '@/lib/navigation'
-import React, { MouseEventHandler } from 'react'
+import React from 'react'
+import { Button } from '@/components/ui/button-base'
+import { type VariantProps } from 'class-variance-authority'
+import { buttonVariants } from '@/components/ui/button-base'
 
-interface ButtonProps {
-  type?: 'button' | 'submit' | 'reset'
-  variant?: 'solid' | 'outline' | 'soft' | 'ghost' | 'link' | string
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
-  loading?: boolean
-  disabled?: boolean
-  block?: boolean
-  target?: string
+interface VButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
   href?: string
-  className?: string
-  onClick?: MouseEventHandler<any> | undefined
+  target?: string
+  loading?: boolean
+  block?: boolean
   color?: 'primary' | 'gray' | 'black' | 'white'
+  variant?: 'solid' | 'outline' | 'soft' | 'ghost' | 'link' | string
   children: React.ReactNode
 }
 
+// Color and variant classes to maintain backward compatibility with original VButton
 function getButtonColorClass(color: string, variant: string) {
   if (variant === 'solid') {
-    if (color === 'primary' || null) return 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90';
-    if (color === 'gray') return 'bg-gray-400 text-white hover:bg-gray-500';
-    if (color === 'black') return 'bg-black text-white hover:bg-gray-800';
-    if (color === 'white') return 'bg-white text-black hover:bg-gray-100 border border-gray-300';
+    if (color === 'primary' || null) return 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90'
+    if (color === 'gray') return 'bg-gray-400 text-white hover:bg-gray-500'
+    if (color === 'black') return 'bg-black text-white hover:bg-gray-800'
+    if (color === 'white') return 'bg-white text-black hover:bg-gray-100 border border-gray-300'
   }
   if (variant === 'outline') {
-    if (color === 'primary') return 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10';
-    if (color === 'gray') return 'border-gray-400 text-gray-700 hover:bg-gray-100';
-    if (color === 'black') return 'border-black text-black hover:bg-gray-100';
-    if (color === 'white') return 'border-white text-white hover:bg-gray-100';
+    if (color === 'primary') return 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
+    if (color === 'gray') return 'border-gray-400 text-gray-700 hover:bg-gray-100'
+    if (color === 'black') return 'border-black text-black hover:bg-gray-100'
+    if (color === 'white') return 'border-white text-white hover:bg-gray-100'
   }
   if (variant === 'link') {
-    if (color === 'primary') return 'text-[var(--color-primary)] hover:text-[var(--color-primary)]/80';
-    if (color === 'gray') return 'text-gray-700 hover:text-gray-900';
-    if (color === 'black') return 'text-black hover:text-gray-800';
-    if (color === 'white') return 'text-white hover:text-gray-200';
+    if (color === 'primary') return 'text-[var(--color-primary)] hover:text-[var(--color-primary)]/80'
+    if (color === 'gray') return 'text-gray-700 hover:text-gray-900'
+    if (color === 'black') return 'text-black hover:text-gray-800'
+    if (color === 'white') return 'text-white hover:text-gray-200'
   }
-  // Add more for 'soft', 'ghost' as needed
-  return '';
+  return ''
 }
 
-function VButton(props: ButtonProps) {
+function VButton(props: VButtonProps) {
   const {
     type = 'button',
     variant = 'solid',
-    size = 'md',
+    size = 'default',
     loading,
     disabled,
     block,
@@ -53,40 +51,66 @@ function VButton(props: ButtonProps) {
     href,
     color = 'primary',
     children,
+    className,
+    onClick,
+    ...rest
   } = props
+
+  // Use custom color classes if color prop is provided, otherwise use shadcn variants
+  const useCustomColors = color !== 'primary' || variant === 'solid'
+  const customColorClass = useCustomColors ? getButtonColorClass(color, variant) : ''
+  
+  // Map to shadcn variants only if not using custom colors
+  const mappedVariant = !useCustomColors && variant === 'solid' ? 'default' : 
+                        variant === 'outline' ? 'outline' :
+                        variant === 'ghost' ? 'ghost' :
+                        variant === 'link' ? 'link' : 'default'
+
+  const sizeMap = {
+    xs: 'sm',
+    sm: 'sm', 
+    md: 'default',
+    lg: 'lg',
+    xl: 'lg',
+  } as const
+
+  const mappedSize = sizeMap[size as keyof typeof sizeMap] || size
 
   const buttonClasses = cn(
     'btn',
     size ? `btn-${size}` : '',
-    // 'font-[var(--font-body)]',
-    getButtonColorClass(color, variant),
-    props.className
+    block && 'w-full',
+    customColorClass,
+    className
   )
 
+  if (href) {
+    return (
+      <Link
+        href={href as any}
+        target={target}
+        className={buttonClasses}
+        onClick={onClick as any}
+      >
+        {children}
+      </Link>
+    )
+  }
+
   return (
-    <div>
-      {href && (
-        <Link
-          href={href as any}
-          target={target}
-          className={buttonClasses}
-          onClick={props.onClick}
-        >
-          {children}
-        </Link>
+    <Button
+      className={cn(
+        useCustomColors ? buttonClasses : cn(buttonVariants({ variant: mappedVariant as any, size: mappedSize as any }), block && 'w-full', className)
       )}
-      {!href && (
-        <button
-          className={buttonClasses}
-          disabled={disabled}
-          type={type}
-          onClick={props.onClick}
-        >
-          {children}
-        </button>
-      )}
-    </div>
+      disabled={disabled || loading}
+      type={type as any}
+      onClick={onClick}
+      {...rest}
+    >
+      {children}
+    </Button>
   )
 }
 
 export default VButton
+

@@ -1,5 +1,7 @@
 import React from 'react'
-import VIcon from '@/components/base/VIcon'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Icon } from '@iconify/react'
+import { cn } from '@/lib/utils'
 
 interface AlertProps {
   type: 'info' | 'success' | 'warning' | 'error'
@@ -14,61 +16,53 @@ const iconMap = {
   error: 'heroicons:x-circle-solid',
 }
 
-function Alert(props: AlertProps) {
-  const { type = 'info' } = props
+const variantMap = {
+  info: 'default',
+  success: 'default',
+  warning: 'default',
+  error: 'destructive',
+} as const
 
-  const getClassNames = () => {
-    let classNames = 'p-4  border-2 rounded-tr-xl rounded-bl-xl '
-    if (type === 'warning') {
-      classNames += 'border-amber-500 text-amber-800 dark:text-amber-200'
-    } else if (type === 'error') {
-      classNames += 'border-rose-500 text-rose-800 dark:text-rose-200'
-    } else if (type === 'success') {
-      classNames += 'border-green-500 text-green-800 dark:text-green-200'
-    } else if (type === 'info') {
-      classNames += 'border-blue-500 text-blue-800 dark:text-blue-200'
-    }
-    return classNames
+function VAlert(props: AlertProps) {
+  const { type = 'info', html, children } = props
+
+  const colorClasses = {
+    info: 'border-blue-500 text-blue-800 dark:text-blue-200',
+    success: 'border-green-500 text-green-800 dark:text-green-200',
+    warning: 'border-amber-500 text-amber-800 dark:text-amber-200',
+    error: 'border-rose-500',
   }
 
-  const getIconClass = () => {
-    let iconClass = 'w-6 h-6 '
-    if (type === 'warning') {
-      iconClass += 'text-amber-500'
-    } else if (type === 'error') {
-      iconClass += 'text-rose-500'
-    } else if (type === 'success') {
-      iconClass += 'text-green-500'
-    } else if (type === 'info') {
-      iconClass += 'text-blue-500'
-    }
-    return iconClass
+  const iconColorClasses = {
+    info: 'text-blue-500',
+    success: 'text-green-500',
+    warning: 'text-amber-500',
+    error: 'text-rose-500',
   }
 
   return (
-    <div className={getClassNames()}>
-      <div className='flex items-center'>
-        <div className='flex-shrink-0'>
-          <VIcon
-            icon={iconMap[type]}
-            className={getIconClass()}
-            aria-hidden='true'
-          />
-        </div>
-        {props.html && (
-          <div
-            className='ml-3 font-mono'
-            dangerouslySetInnerHTML={{
-              __html: props.html,
-            }}
-          >
-            {props.children}
-          </div>
+    <Alert 
+      variant={variantMap[type]}
+      className={cn(
+        'border-2 rounded-tr-xl rounded-bl-xl',
+        colorClasses[type]
+      )}
+    >
+      <Icon
+        icon={iconMap[type]}
+        className={cn('w-6 h-6', iconColorClasses[type])}
+        aria-hidden='true'
+      />
+      <AlertDescription className="font-mono">
+        {html ? (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          children
         )}
-        {!props.html && <div className='ml-3 font-mono'>{props.children}</div>}
-      </div>
-    </div>
+      </AlertDescription>
+    </Alert>
   )
 }
 
-export default Alert
+export default VAlert
+

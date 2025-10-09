@@ -1,6 +1,12 @@
 import React from 'react'
-import { Menu, Transition } from '@headlessui/react'
-import VIcon from '@/components/base/VIcon'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button-base'
+import { Icon } from '@iconify/react'
 
 interface DropdownProps {
   buttonLabel?: string
@@ -16,53 +22,36 @@ export const Dropdown: React.FC<DropdownProps> = ({
   variant = 'primary',
   menuItems = [{ label: 'Action', action: () => {} }],
 }) => {
-  const handleMenuItemClick = (item: { action: () => void }) => {
-    item.action()
-  }
+  const variantMap = {
+    primary: 'default',
+    default: 'default',
+    outline: 'outline',
+    danger: 'destructive',
+  } as const
 
   return (
-    <div className='relative'>
-      <Menu as='div' className='relative inline-block text-left'>
-        <Menu.Button className='v-button'>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant={variantMap[variant]}>
           <span>{buttonLabel}</span>
-          <VIcon
+          <Icon
             icon='heroicons:chevron-down'
-            className='text-primary-200 hover:text-primary-100 -mr-1 ml-2 h-5 w-5'
+            className='ml-2 h-5 w-5'
             aria-hidden='true'
           />
-        </Menu.Button>
-
-        <Transition
-          enter='transition duration-100 ease-out'
-          enterFrom='transform scale-95 opacity-0'
-          enterTo='transform scale-100 opacity-100'
-          leave='transition duration-75 ease-in'
-          leaveFrom='transform scale-100 opacity-100'
-          leaveTo='transform scale-95 opacity-0'
-        >
-          <Menu.Items className='absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none dark:bg-gray-800'>
-            <div className='px-1 py-1'>
-              {menuItems.map((item, itemIdx) => (
-                <Menu.Item key={itemIdx}>
-                  {({ active }) => (
-                    <button
-                      type='button'
-                      onClick={() => handleMenuItemClick(item)}
-                      className={`${
-                        active
-                          ? 'bg-accent text-white dark:bg-accent'
-                          : 'text-gray-900 dark:text-gray-100'
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
-                    >
-                      {item.label}
-                    </button>
-                  )}
-                </Menu.Item>
-              ))}
-            </div>
-          </Menu.Items>
-        </Transition>
-      </Menu>
-    </div>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-56">
+        {menuItems.map((item, itemIdx) => (
+          <DropdownMenuItem
+            key={itemIdx}
+            onClick={item.action}
+          >
+            {item.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
+

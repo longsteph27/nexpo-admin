@@ -293,6 +293,23 @@ export const siteApi = {
     }
   },
 
+  // Update page blocks using create/update/delete structure
+  updatePageBlocks: async (pageId: string, payload: { blocks: { create: any[]; update: any[]; delete: string[] }; event_id?: number }): Promise<ApiResponse<unknown>> => {
+    try {
+      // Call Directus API to update page with blocks
+      const response = await directus.request(
+        updateItem('pages' as never, pageId as never, {
+          blocks: payload.blocks,
+          event_id: payload.event_id,
+        } as never)
+      );
+      return { success: true, data: response as unknown };
+    } catch (error: unknown) {
+      console.error('[updatePageBlocks] Error:', error);
+      return { success: false, error: handleAxiosError(error, 'Failed to update page blocks') };
+    }
+  },
+
   // Related collections API for blocks
   getRelatedItems: async (collection: string, template?: string): Promise<ApiResponse<Record<string, unknown>[]>> => {
     try {

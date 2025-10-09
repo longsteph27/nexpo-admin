@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { siteApi } from "@/lib/api";
-import Button from "@/components/ui/Button";
+import Button from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 
 export default function EventSitesListPage() {
