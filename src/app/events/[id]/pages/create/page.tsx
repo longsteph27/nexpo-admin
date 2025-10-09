@@ -4,10 +4,11 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Icon } from '@iconify/react';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
+import Button from '@/components/ui/button';
+import Input from '@/components/ui/input';
 import { siteApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export default function CreatePagePage() {
   const params = useParams();
@@ -62,7 +63,9 @@ export default function CreatePagePage() {
 
   const handleCreate = async () => {
     if (!siteId || !formData.title_en || !formData.permalink) {
-      alert('Please fill in all required fields');
+      toast.error('Missing required fields', {
+        description: 'Please fill in all required fields.',
+      });
       return;
     }
 
@@ -99,13 +102,20 @@ export default function CreatePagePage() {
 
         // Redirect to page builder
         const pageId = (result.data as any).id;
+        toast.success('Page created successfully!', {
+          description: 'Redirecting to page editor...',
+        });
         router.push(`/events/${eventId}/sites/${siteId}/pages/${pageId}`);
       } else {
-        alert(result.error || 'Failed to create page');
+        toast.error('Failed to create page', {
+          description: result.error || 'Please try again.',
+        });
       }
     } catch (error) {
       console.error('Create page error:', error);
-      alert('Failed to create page. Please try again.');
+      toast.error('Failed to create page', {
+        description: error instanceof Error ? error.message : 'Please try again.',
+      });
     } finally {
       setIsCreating(false);
     }
