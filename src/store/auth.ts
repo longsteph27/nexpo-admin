@@ -65,7 +65,7 @@ export const useAuthStore = create<AuthState>()(
 
           // Handle tokens based on auth mode
           if (!IS_SESSION_MODE) {
-            const loginData = result.data as DirectusAuthResponse;
+              const loginData = result.data as DirectusAuthResponse;
             get().setTokens(loginData.access_token || null, loginData.refresh_token || null);
           }
           
@@ -80,21 +80,21 @@ export const useAuthStore = create<AuthState>()(
             return false;
           }
 
-          const user = userResult.data;
-          const tenants = user?.tenants ? user.tenants.map(t => t.tenants_id) : [];
+              const user = userResult.data;
+              const tenants = user?.tenants ? user.tenants.map(t => t.tenants_id) : [];
           const firstTenant = tenants[0] || null;
-          const permissions = permissionsResult.success ? permissionsResult.data : {};
-          
-          set({
-            user: user as User,
-            tenants,
-            selectedTenant: firstTenant,
-            permissions,
-            isAuthenticated: true,
-            isLoading: false,
-            error: null,
-          });
-          return true;
+              const permissions = permissionsResult.success ? permissionsResult.data : {};
+              
+              set({
+                user: user as User,
+                tenants,
+                selectedTenant: firstTenant,
+                permissions,
+                isAuthenticated: true,
+                isLoading: false,
+                error: null,
+              });
+              return true;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
           set({ isLoading: false, error: errorMessage });
@@ -143,6 +143,7 @@ export const useAuthStore = create<AuthState>()(
           isRefreshing: false,
           accessToken: null,
           refreshToken: null,
+          error: null,
         });
         // Clear token manager
         tokenManager.setAccessToken(null);
@@ -275,21 +276,30 @@ export const useAuthStore = create<AuthState>()(
       checkAuth: async () => {
         const { isRefreshing, refreshToken } = get();
         
+        console.log('[Auth Store] checkAuth called - IS_SESSION_MODE:', IS_SESSION_MODE, 'refreshToken:', !!refreshToken);
+        
         // Prevent multiple simultaneous calls
-        if (isRefreshing) return;
+        if (isRefreshing) {
+          console.log('[Auth Store] Already refreshing, skipping...');
+          return;
+        }
 
         if (IS_SESSION_MODE) {
           // Session mode: validate session via getCurrentUser
+          console.log('[Auth Store] Session mode - checking session...');
           set({ isLoading: true, isRefreshing: true });
           
           try {
             const userResult = await directusHelpers.getCurrentUser();
+            console.log('[Auth Store] getCurrentUser result:', userResult);
             
             if (userResult.success && userResult.data) {
               const user = userResult.data;
               const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
               const { selectedTenant } = get();
               const validTenant = tenants.find(t => t.id === selectedTenant?.id) || tenants[0] || null;
+              
+              console.log('[Auth Store] Setting authenticated state - tenants:', tenants.length, 'selectedTenant:', validTenant?.id);
               
               set({
                 user: user as User,
@@ -300,9 +310,11 @@ export const useAuthStore = create<AuthState>()(
                 isRefreshing: false,
               });
             } else {
+              console.log('[Auth Store] getCurrentUser failed, clearing auth data');
               get().clearAuthData();
             }
-          } catch {
+          } catch (error) {
+            console.error('[Auth Store] Session check error:', error);
             get().clearAuthData();
           }
           return;
@@ -310,9 +322,12 @@ export const useAuthStore = create<AuthState>()(
 
         // JSON mode: refresh token and get user
         if (!refreshToken) {
+          console.log('[Auth Store] No refresh token, clearing auth data');
           get().clearAuthData();
           return;
         }
+        
+        console.log('[Auth Store] JSON mode - refreshing token...');
 
         set({ isLoading: true, isRefreshing: true });
         
@@ -362,7 +377,8 @@ export const useAuthStore = create<AuthState>()(
         tenants: state.tenants,
         selectedTenant: state.selectedTenant,
         permissions: state.permissions,
-        isAuthenticated: state.isAuthenticated,
+        // Don't persist isAuthenticated to avoid race condition on page reload
+        // It will be set to true after successful checkAuth()
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
       }),

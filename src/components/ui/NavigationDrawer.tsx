@@ -7,8 +7,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useNavigations, useCreateNavigation, useUpdateNavigation, useDeleteNavigation, usePagesBySite, useCreateNavigationItem, useUpdateNavigationItem, type Navigation, type NavigationItem } from '@/hooks/useNavigation';
-import Button from './Button';
-import Input from './Input';
+import { Button } from './Button';
+import { Input } from './Input';
 
 // Form schemas
 const navigationSchema = z.object({
@@ -223,9 +223,9 @@ export default function NavigationDrawer({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'published': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
+      case 'draft': return 'bg-gray-100 text-content-primary';
       case 'archived': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-content-primary';
     }
   };
 
@@ -266,15 +266,15 @@ export default function NavigationDrawer({
                   <Icon icon="lucide:navigation" className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900">Navigation Manager</h2>
-                  <p className="text-sm text-gray-500">Manage site navigation menus</p>
+                  <h2 className="text-xl font-semibold text-content-primary">Navigation Manager</h2>
+                  <p className="text-sm text-content-tertiary">Manage site navigation menus</p>
                 </div>
               </div>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <Icon icon="lucide:x" className="w-5 h-5 text-gray-500" />
+                <Icon icon="lucide:x" className="w-5 h-5 text-content-tertiary" />
               </button>
             </div>
 
@@ -285,7 +285,7 @@ export default function NavigationDrawer({
                 className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
                   activeTab === 'list'
                     ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700'
+                    : 'text-content-tertiary hover:text-content-primary'
                 }`}
               >
                 <Icon icon="lucide:list" className="w-4 h-4 inline mr-2" />
@@ -296,7 +296,7 @@ export default function NavigationDrawer({
                 className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
                   activeTab === 'form'
                     ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                    : 'text-gray-500 hover:text-gray-700'
+                    : 'text-content-tertiary hover:text-content-primary'
                 }`}
               >
                 <Icon icon="lucide:plus" className="w-4 h-4 inline mr-2" />
@@ -308,7 +308,7 @@ export default function NavigationDrawer({
                   className={`flex-1 px-6 py-3 text-sm font-medium transition-colors ${
                     activeTab === 'items'
                       ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50'
-                      : 'text-gray-500 hover:text-gray-700'
+                      : 'text-content-tertiary hover:text-content-primary'
                   }`}
                 >
                   <Icon icon="lucide:menu" className="w-4 h-4 inline mr-2" />
@@ -322,7 +322,7 @@ export default function NavigationDrawer({
               {activeTab === 'list' && (
                 <div className="h-full overflow-y-auto p-6">
                   <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900">Navigation Menus</h3>
+                    <h3 className="text-lg font-semibold text-content-primary">Navigation Menus</h3>
                     <Button
                       onClick={() => {
                         setEditingNavigation(null);
@@ -341,9 +341,9 @@ export default function NavigationDrawer({
                     </div>
                   ) : navigations.length === 0 ? (
                     <div className="text-center py-12">
-                      <Icon icon="lucide:navigation" className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                      <h4 className="text-lg font-semibold text-gray-700 mb-2">No Navigations</h4>
-                      <p className="text-gray-500 mb-6">Create your first navigation menu</p>
+                      <Icon icon="lucide:navigation" className="w-16 h-16 text-content-tertiary mx-auto mb-4" />
+                      <h4 className="text-lg font-semibold text-content-primary mb-2">No Navigations</h4>
+                      <p className="text-content-tertiary mb-6">Create your first navigation menu</p>
                       <Button
                         onClick={() => {
                           setEditingNavigation(null);
@@ -367,17 +367,17 @@ export default function NavigationDrawer({
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
-                                <Icon icon={getTypeIcon(navigation.type)} className="w-5 h-5 text-gray-600" />
+                                <Icon icon={getTypeIcon(navigation.type)} className="w-5 h-5 text-content-secondary" />
                               </div>
                               <div>
-                                <h4 className="font-semibold text-gray-900">
+                                <h4 className="font-semibold text-content-primary">
                                   {navigation.title || `${navigation.type} Navigation`}
                                 </h4>
                                 <div className="flex items-center space-x-2 mt-1">
                                   <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(navigation.status)}`}>
                                     {navigation.status}
                                   </span>
-                                  <span className="text-xs text-gray-500 capitalize">
+                                  <span className="text-xs text-content-tertiary capitalize">
                                     {navigation.type}
                                   </span>
                                 </div>
@@ -386,7 +386,7 @@ export default function NavigationDrawer({
                             <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => handleManageItems(navigation as Navigation)}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-content-tertiary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                 title="Manage Items"
                               >
                                 <Icon icon="lucide:menu" className="w-4 h-4" />
@@ -396,21 +396,21 @@ export default function NavigationDrawer({
                                   setEditingNavigation(navigation as Navigation);
                                   setActiveTab('form');
                                 }}
-                                className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                className="p-2 text-content-tertiary hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                 title="Edit"
                               >
                                 <Icon icon="lucide:edit" className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteNavigation(navigation as Navigation)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                className="p-2 text-content-tertiary hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                 title="Delete"
                               >
                                 <Icon icon="lucide:trash-2" className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleNavigationClick(navigation as Navigation)}
-                                className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                                className="p-2 text-content-tertiary hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Select"
                               >
                                 <Icon icon="lucide:check" className="w-4 h-4" />
@@ -427,13 +427,13 @@ export default function NavigationDrawer({
               {activeTab === 'form' && (
                 <div className="h-full overflow-y-auto p-6">
                   <div className="max-w-md mx-auto">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-6">
+                    <h3 className="text-lg font-semibold text-content-primary mb-6">
                       {editingNavigation ? 'Edit Navigation' : 'Create New Navigation'}
                     </h3>
 
                     <form onSubmit={navigationForm.handleSubmit(handleNavigationSubmit)} className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Title
                         </label>
                         <Input
@@ -444,7 +444,7 @@ export default function NavigationDrawer({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Type
                         </label>
                         <select
@@ -458,7 +458,7 @@ export default function NavigationDrawer({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Status
                         </label>
                         <select
@@ -501,8 +501,8 @@ export default function NavigationDrawer({
                   <div className="max-w-md mx-auto">
                     <div className="flex items-center justify-between mb-6">
                       <div>
-                        <h3 className="text-lg font-semibold text-gray-900">Navigation Items</h3>
-                        <p className="text-sm text-gray-500">{selectedNavForItems.title}</p>
+                        <h3 className="text-lg font-semibold text-content-primary">Navigation Items</h3>
+                        <p className="text-sm text-content-tertiary">{selectedNavForItems.title}</p>
                       </div>
                       <Button
                         onClick={() => {
@@ -517,7 +517,7 @@ export default function NavigationDrawer({
 
                     <form onSubmit={navigationItemForm.handleSubmit(handleNavigationItemSubmit)} className="space-y-6">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Title
                         </label>
                         <Input
@@ -528,7 +528,7 @@ export default function NavigationDrawer({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Type
                         </label>
                         <select
@@ -542,7 +542,7 @@ export default function NavigationDrawer({
 
                       {navigationItemForm.watch('type') === 'page' && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-content-primary mb-2">
                             Page
                           </label>
                           <select
@@ -561,7 +561,7 @@ export default function NavigationDrawer({
 
                       {navigationItemForm.watch('type') === 'url' && (
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                          <label className="block text-sm font-medium text-content-primary mb-2">
                             URL
                           </label>
                           <Input
@@ -573,7 +573,7 @@ export default function NavigationDrawer({
                       )}
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Icon
                         </label>
                         <Input
@@ -583,7 +583,7 @@ export default function NavigationDrawer({
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-content-primary mb-2">
                           Label
                         </label>
                         <Input
@@ -598,7 +598,7 @@ export default function NavigationDrawer({
                           {...navigationItemForm.register('open_in_new_tab')}
                           className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                         />
-                        <label className="ml-2 text-sm text-gray-700">
+                        <label className="ml-2 text-sm text-content-primary">
                           Open in new tab
                         </label>
                       </div>

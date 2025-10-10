@@ -31,9 +31,9 @@ export default function TenantSelector() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-xl transition-colors text-white"
+        className="flex items-center space-x-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 cursor-pointer group"
       >
-        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
           {selectedTenant?.logo ? (
             <Image 
               src={`https://app.nexpo.vn/assets/${selectedTenant.logo}`} 
@@ -46,17 +46,17 @@ export default function TenantSelector() {
             <Icon icon="lucide:building" className="w-4 h-4 text-white" />
           )}
         </div>
-        <div className="flex-1 text-left">
-          <p className="text-sm font-medium">
+        <div className="flex-1 text-left min-w-0">
+          <p className="text-sm font-semibold text-content-primary truncate">
             {selectedTenant?.name || 'Select Tenant'}
           </p>
-          <p className="text-xs text-blue-200">
+          <p className="text-xs text-content-tertiary">
             {tenants.length} workspace{tenants.length !== 1 ? 's' : ''}
           </p>
         </div>
         <Icon 
-          icon="lucide:chevron-down" 
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          icon={isOpen ? "lucide:chevron-up" : "lucide:chevron-down"} 
+          className="w-4 h-4 text-content-secondary transition-all duration-200 flex-shrink-0 group-hover:text-content-primary"
         />
       </button>
 
@@ -78,7 +78,7 @@ export default function TenantSelector() {
               className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-200 z-50 overflow-hidden"
             >
               <div className="p-2">
-                <div className="px-3 py-2 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="px-3 py-2 text-xs font-medium text-content-tertiary uppercase tracking-wider">
                   Select Workspace
                 </div>
                 
@@ -90,7 +90,7 @@ export default function TenantSelector() {
                       w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors
                       ${selectedTenant?.id === tenant.id
                         ? 'bg-blue-50 text-blue-700'
-                        : 'hover:bg-gray-50 text-gray-700'
+                        : 'hover:bg-gray-50 text-content-primary'
                       }
                     `}
                   >
@@ -104,12 +104,12 @@ export default function TenantSelector() {
                           className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (
-                        <Icon icon="lucide:building" className="w-4 h-4 text-gray-500" />
+                        <Icon icon="lucide:building" className="w-4 h-4 text-content-tertiary" />
                       )}
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-medium">{tenant.name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-content-tertiary">
                         Status: {tenant.status === 'active' ? '🟢 Active' : '🔴 Inactive'}
                       </p>
                     </div>

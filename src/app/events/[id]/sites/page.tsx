@@ -33,7 +33,7 @@ export default function EventSitesListPage() {
       case "archived":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-content-primary";
     }
   };
 
@@ -51,7 +51,7 @@ export default function EventSitesListPage() {
       <div className="flex items-center justify-center h-full">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-lg font-medium text-gray-700">
+          <span className="text-lg font-medium text-content-primary">
             Loading sites...
           </span>
         </div>
@@ -64,8 +64,8 @@ export default function EventSitesListPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Sites</h1>
-          <p className="text-gray-600 mt-1">Manage websites for your event</p>
+          <h1 className="text-2xl font-bold text-content-primary">Sites</h1>
+          <p className="text-content-secondary mt-1">Manage websites for your event</p>
         </div>
         <Button variant="default">
           <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -76,7 +76,7 @@ export default function EventSitesListPage() {
       {/* Sites List */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900">
+          <h2 className="text-base font-semibold text-content-primary">
             All Sites ({sites.length})
           </h2>
         </div>
@@ -86,13 +86,13 @@ export default function EventSitesListPage() {
               <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Icon
                   icon="lucide:layout-grid"
-                  className="w-8 h-8 text-gray-400"
+                  className="w-8 h-8 text-content-tertiary"
                 />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-content-primary mb-2">
                 No sites found
               </h3>
-              <p className="text-gray-500 mb-6 max-w-md mx-auto">
+              <p className="text-content-tertiary mb-6 max-w-md mx-auto">
                 Create your first site to start building your event website
               </p>
               <Button variant="default">
@@ -128,13 +128,13 @@ export default function EventSitesListPage() {
                   {/* Site Info */}
                   <div className="space-y-3">
                     <div>
-                      <h3 className="font-semibold text-gray-900 text-lg mb-1 line-clamp-1">
+                      <h3 className="font-semibold text-content-primary text-lg mb-1 line-clamp-1">
                         {site.translations?.[0]?.title ||
                           site.slug ||
                           `Site #${site.id}`}
                       </h3>
                       {site.translations?.[0]?.description && (
-                        <p className="text-sm text-gray-500 line-clamp-2">
+                        <p className="text-sm text-content-tertiary line-clamp-2">
                           {site.translations[0].description}
                         </p>
                       )}
@@ -143,10 +143,10 @@ export default function EventSitesListPage() {
                     {/* Site Meta */}
                     <div className="space-y-2 pt-3 border-t border-gray-100">
                       {site.domain && (
-                        <div className="flex items-center space-x-2 text-xs text-gray-600">
+                        <div className="flex items-center space-x-2 text-xs text-content-secondary">
                           <Icon
                             icon="lucide:link"
-                            className="w-3.5 h-3.5 text-gray-400"
+                            className="w-3.5 h-3.5 text-content-tertiary"
                           />
                           <span className="font-mono truncate">
                             {site.domain}
@@ -154,10 +154,10 @@ export default function EventSitesListPage() {
                         </div>
                       )}
                       {site.slug && (
-                        <div className="flex items-center space-x-2 text-xs text-gray-600">
+                        <div className="flex items-center space-x-2 text-xs text-content-secondary">
                           <Icon
                             icon="lucide:hash"
-                            className="w-3.5 h-3.5 text-gray-400"
+                            className="w-3.5 h-3.5 text-content-tertiary"
                           />
                           <span className="font-mono">{site.slug}</span>
                         </div>
@@ -166,7 +166,7 @@ export default function EventSitesListPage() {
 
                     {/* Stats */}
                     <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                      <div className="flex items-center space-x-4 text-xs text-content-tertiary">
                         <div className="flex items-center space-x-1">
                           <Icon
                             icon="lucide:file-text"
@@ -194,12 +194,12 @@ export default function EventSitesListPage() {
                       </div>
                       <Icon
                         icon="lucide:arrow-right"
-                        className="w-4 h-4 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all"
+                        className="w-4 h-4 text-content-tertiary group-hover:text-blue-600 group-hover:translate-x-1 transition-all"
                       />
                     </div>
 
                     {/* Last Updated */}
-                    <div className="text-xs text-gray-400">
+                    <div className="text-xs text-content-tertiary">
                       Updated {formatDate(site.date_updated)}
                     </div>
                   </div>

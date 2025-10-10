@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import Button from '@/components/ui/button';
-import Input from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 interface NavigationItem {
   id: string;

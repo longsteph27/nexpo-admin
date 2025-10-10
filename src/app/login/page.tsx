@@ -71,8 +71,8 @@ export default function LoginPage() {
             >
               <span className="text-2xl font-bold text-white">NX</span>
             </motion.div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">NEXPO</h1>
-            <p className="text-gray-600">Welcome back</p>
+            <h1 className="text-2xl font-bold text-content-primary mb-2">NEXPO</h1>
+            <p className="text-content-secondary">Welcome back</p>
           </div>
 
           {/* Google Login Button */}
@@ -99,7 +99,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-gray-500">or continue with</span>
+              <span className="px-4 bg-white text-content-tertiary">or continue with</span>
             </div>
           </div>
 
@@ -142,7 +142,7 @@ export default function LoginPage() {
                   className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                   {...register('rememberMe')}
                 />
-                <span className="ml-2 text-sm text-gray-600">Always sign in on this device</span>
+                <span className="ml-2 text-sm text-content-secondary">Always sign in on this device</span>
               </label>
             </div>
 

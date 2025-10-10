@@ -56,7 +56,7 @@ export default function RichTextBlock({ data, lang }: RichTextBlockProps) {
       </div>
       <TypographyProse
         content={content}
-        className='font-[var(--font-body)] mx-auto mt-8 text-gray-800'
+        className='font-[var(--font-body)] mx-auto mt-8 text-content-primary'
       />
     </BlockContainer>
   )

@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useEvent } from '@/hooks/useEvents';
 import { siteApi } from '@/lib/api';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Icon } from '@iconify/react';
 // import NavigationDrawer from '@/components/ui/NavigationDrawer';
 // import { type Navigation } from '@/hooks/useNavigation';
@@ -34,7 +34,7 @@ export default function SiteDetailPage() {
       <div className="flex items-center justify-center h-full">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-lg font-medium text-gray-700">Loading site...</span>
+          <span className="text-lg font-medium text-content-primary">Loading site...</span>
         </div>
       </div>
     );
@@ -43,9 +43,9 @@ export default function SiteDetailPage() {
   if (!site) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center">
-        <Icon icon="lucide:alert-circle" className="w-16 h-16 text-gray-400 mb-4" />
-        <h3 className="text-xl font-semibold text-gray-700 mb-2">Site not found</h3>
-        <p className="text-gray-500 mb-6">The site you're looking for doesn't exist or has been removed.</p>
+        <Icon icon="lucide:alert-circle" className="w-16 h-16 text-content-tertiary mb-4" />
+        <h3 className="text-xl font-semibold text-content-primary mb-2">Site not found</h3>
+        <p className="text-content-tertiary mb-6">The site you're looking for doesn't exist or has been removed.</p>
         <Button onClick={() => router.push(`/events/${eventId}/sites`)}>
           <Icon icon="lucide:arrow-left" className="w-4 h-4 mr-2" />
           Back to Sites
@@ -63,10 +63,10 @@ export default function SiteDetailPage() {
             <Icon icon="lucide:arrow-left" className="w-4 h-4" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-content-primary">
               {site.translations?.[0]?.title || site.slug || 'Site Details'}
             </h1>
-            <p className="text-gray-600 mt-1">Configure your event website settings and content</p>
+            <p className="text-content-secondary mt-1">Configure your event website settings and content</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -87,8 +87,8 @@ export default function SiteDetailPage() {
         <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-gray-900">Site Information</h2>
-              <p className="text-xs text-gray-500">* Indicates a required field</p>
+              <h2 className="text-base font-semibold text-content-primary">Site Information</h2>
+              <p className="text-xs text-content-tertiary">* Indicates a required field</p>
             </div>
             <Button size="sm" variant="outline">
               <Icon icon="lucide:pencil" className="w-4 h-4 mr-2" />
@@ -98,40 +98,40 @@ export default function SiteDetailPage() {
           <div className="p-6 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Site ID</label>
-                  <div className="mt-1 text-gray-900">#{site.id}</div>
+                  <label className="text-sm font-medium text-content-primary">Site ID</label>
+                  <div className="mt-1 text-content-primary">#{site.id}</div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Status</label>
+                  <label className="text-sm font-medium text-content-primary">Status</label>
                   <div className="mt-1">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                       site.status === 'published' ? 'bg-green-100 text-green-800' : 
                       site.status === 'archived' ? 'bg-red-100 text-red-800' : 
-                      'bg-gray-100 text-gray-800'
+                      'bg-gray-100 text-content-primary'
                     }`}>
                       {site.status || 'draft'}
                     </span>
                   </div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Event ID</label>
-                  <div className="mt-1 text-gray-900">#{site.event_id}</div>
+                  <label className="text-sm font-medium text-content-primary">Event ID</label>
+                  <div className="mt-1 text-content-primary">#{site.event_id}</div>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Slug</label>
-                  <div className="mt-1 text-gray-900 font-mono text-sm">{site.slug || '—'}</div>
+                  <label className="text-sm font-medium text-content-primary">Slug</label>
+                  <div className="mt-1 text-content-primary font-mono text-sm">{site.slug || '—'}</div>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Domain</label>
-                  <div className="mt-1 text-gray-900 font-mono text-sm">{site.domain || '—'}</div>
+                  <label className="text-sm font-medium text-content-primary">Domain</label>
+                  <div className="mt-1 text-content-primary font-mono text-sm">{site.domain || '—'}</div>
                 </div>
               </div>
               {site.translations?.[0]?.description && (
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Description</label>
-                  <div className="mt-1 text-gray-900">{site.translations[0].description}</div>
+                  <label className="text-sm font-medium text-content-primary">Description</label>
+                  <div className="mt-1 text-content-primary">{site.translations[0].description}</div>
                 </div>
               )}
             </div>
@@ -141,8 +141,8 @@ export default function SiteDetailPage() {
           <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Site Media</h2>
-                <p className="text-xs text-gray-500">Upload logo and favicon for your site</p>
+                <h2 className="text-base font-semibold text-content-primary">Site Media</h2>
+                <p className="text-xs text-content-tertiary">Upload logo and favicon for your site</p>
               </div>
               <Button size="sm" variant="outline">
                 <Icon icon="lucide:upload" className="w-4 h-4 mr-2" />
@@ -152,20 +152,20 @@ export default function SiteDetailPage() {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Site Logo</label>
+                  <label className="text-sm font-medium text-content-primary mb-2 block">Site Logo</label>
                   <div className="w-32 h-32 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                    <Icon icon="lucide:image" className="w-8 h-8 text-gray-400" />
+                    <Icon icon="lucide:image" className="w-8 h-8 text-content-tertiary" />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-content-tertiary mt-2">
                     {site.logo ? `File ID: ${site.logo}` : 'No logo uploaded'}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700 mb-2 block">Favicon</label>
+                  <label className="text-sm font-medium text-content-primary mb-2 block">Favicon</label>
                   <div className="w-16 h-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50">
-                    <Icon icon="lucide:image" className="w-4 h-4 text-gray-400" />
+                    <Icon icon="lucide:image" className="w-4 h-4 text-content-tertiary" />
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-content-tertiary mt-2">
                     {site.favicon ? `File ID: ${site.favicon}` : 'No favicon uploaded'}
                   </p>
                 </div>
@@ -177,8 +177,8 @@ export default function SiteDetailPage() {
           <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Navigation</h2>
-                <p className="text-xs text-gray-500">Manage site navigation menus</p>
+                <h2 className="text-base font-semibold text-content-primary">Navigation</h2>
+                <p className="text-xs text-content-tertiary">Manage site navigation menus</p>
               </div>
               <Button size="sm" onClick={() => {/* setNavDrawerOpen(true) */}}>
                 <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -188,8 +188,8 @@ export default function SiteDetailPage() {
             <div className="p-6">
               {!site.navigation || (site.navigation as any[]).length === 0 ? (
                 <div className="text-center py-8">
-                  <Icon icon="lucide:navigation" className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-500 mb-4">No navigation menus configured</p>
+                  <Icon icon="lucide:navigation" className="w-12 h-12 text-content-tertiary mx-auto mb-3" />
+                  <p className="text-content-tertiary mb-4">No navigation menus configured</p>
                   <Button size="sm" onClick={() => {/* setNavDrawerOpen(true) */}}>
                     <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
                     Create Navigation
@@ -212,15 +212,15 @@ export default function SiteDetailPage() {
                             />
                           </div>
                           <div>
-                            <h4 className="font-medium text-gray-900">
+                            <h4 className="font-medium text-content-primary">
                               {nav.translations?.[0]?.title || 'Untitled Navigation'}
                             </h4>
                             <div className="flex items-center space-x-2 mt-1">
-                              <span className="text-xs text-gray-500 capitalize">{nav.type}</span>
+                              <span className="text-xs text-content-tertiary capitalize">{nav.type}</span>
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                                 nav.status === 'published' ? 'bg-green-100 text-green-800' : 
                                 nav.status === 'archived' ? 'bg-red-100 text-red-800' : 
-                                'bg-gray-100 text-gray-800'
+                                'bg-gray-100 text-content-primary'
                               }`}>
                                 {nav.status}
                               </span>
@@ -233,17 +233,17 @@ export default function SiteDetailPage() {
                       </div>
                       {nav.items && nav.items.length > 0 && (
                         <div className="ml-13 pl-4 border-l-2 border-gray-200">
-                          <div className="text-xs text-gray-500 mb-2">{nav.items.length} navigation items</div>
+                          <div className="text-xs text-content-tertiary mb-2">{nav.items.length} navigation items</div>
                           <div className="space-y-1">
                             {nav.items.slice(0, 3).map((item: any) => (
-                              <div key={item.id} className="text-xs text-gray-700 flex items-center space-x-2">
+                              <div key={item.id} className="text-xs text-content-primary flex items-center space-x-2">
                                 <Icon icon="lucide:circle" className="w-2 h-2" />
                                 <span className="truncate">{item.translations?.[0]?.title || 'Untitled Item'}</span>
-                                <span className="text-gray-400">({item.type})</span>
+                                <span className="text-content-tertiary">({item.type})</span>
                               </div>
                             ))}
                             {nav.items.length > 3 && (
-                              <div className="text-xs text-gray-400 ml-4">+{nav.items.length - 3} more</div>
+                              <div className="text-xs text-content-tertiary ml-4">+{nav.items.length - 3} more</div>
                             )}
                           </div>
                         </div>
@@ -259,8 +259,8 @@ export default function SiteDetailPage() {
           <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
             <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
               <div>
-                <h2 className="text-base font-semibold text-gray-900">Pages</h2>
-                <p className="text-xs text-gray-500">{(site.pages as any[])?.length || 0} pages</p>
+                <h2 className="text-base font-semibold text-content-primary">Pages</h2>
+                <p className="text-xs text-content-tertiary">{(site.pages as any[])?.length || 0} pages</p>
               </div>
               <Button size="sm" onClick={() => router.push(`/events/${eventId}/pages`)}>
                 <Icon icon="lucide:arrow-right" className="w-4 h-4 mr-2" />
@@ -269,7 +269,7 @@ export default function SiteDetailPage() {
             </div>
             <div className="p-6">
               {!site.pages || (site.pages as any[]).length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-content-tertiary">
                   No pages found for this site.
                 </div>
               ) : (
@@ -281,12 +281,12 @@ export default function SiteDetailPage() {
                       onClick={() => router.push(`/events/${eventId}/sites/${siteId}/pages/${page.id}`)}
                     >
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
-                        <Icon icon="lucide:file-text" className="w-4 h-4 text-gray-500" />
+                        <Icon icon="lucide:file-text" className="w-4 h-4 text-content-tertiary" />
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-gray-900 truncate">
+                          <h4 className="text-sm font-medium text-content-primary truncate">
                             {page.translations?.[0]?.title || 'Untitled'}
                           </h4>
-                          <div className="flex items-center space-x-2 text-xs text-gray-500 mt-1">
+                          <div className="flex items-center space-x-2 text-xs text-content-tertiary mt-1">
                             <span>{page.blocks?.length || 0} blocks</span>
                             <span>•</span>
                             <span>Updated {new Date(page.date_updated).toLocaleDateString()}</span>
@@ -297,11 +297,11 @@ export default function SiteDetailPage() {
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                           page.status === 'published' ? 'bg-green-100 text-green-800' : 
                           page.status === 'archived' ? 'bg-red-100 text-red-800' : 
-                          'bg-gray-100 text-gray-800'
+                          'bg-gray-100 text-content-primary'
                         }`}>
                           {page.status}
                         </span>
-                        <Icon icon="lucide:chevron-right" className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        <Icon icon="lucide:chevron-right" className="w-4 h-4 text-content-tertiary opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </div>
                   ))}
@@ -315,8 +315,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Categories</h2>
-                  <p className="text-xs text-gray-500">{(site.categories as any[])?.length || 0} categories</p>
+                  <h2 className="text-base font-semibold text-content-primary">Categories</h2>
+                  <p className="text-xs text-content-tertiary">{(site.categories as any[])?.length || 0} categories</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -348,8 +348,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Posts</h2>
-                  <p className="text-xs text-gray-500">{(site.posts as any[])?.length || 0} posts</p>
+                  <h2 className="text-base font-semibold text-content-primary">Posts</h2>
+                  <p className="text-xs text-content-tertiary">{(site.posts as any[])?.length || 0} posts</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -369,14 +369,14 @@ export default function SiteDetailPage() {
                               post.type === 'video' ? 'lucide:video' :
                               'lucide:file-text'
                             } 
-                            className="w-4 h-4 text-gray-500" 
+                            className="w-4 h-4 text-content-tertiary" 
                           />
-                          <h4 className="font-medium text-gray-900 truncate">{post.title || 'Untitled'}</h4>
+                          <h4 className="font-medium text-content-primary truncate">{post.title || 'Untitled'}</h4>
                         </div>
                         {post.summary && (
-                          <p className="text-sm text-gray-600 line-clamp-2 mb-2">{post.summary}</p>
+                          <p className="text-sm text-content-secondary line-clamp-2 mb-2">{post.summary}</p>
                         )}
-                        <div className="flex items-center space-x-3 text-xs text-gray-500">
+                        <div className="flex items-center space-x-3 text-xs text-content-tertiary">
                           {post.category && (
                             <span className="inline-flex items-center">
                               <Icon icon="lucide:tag" className="w-3 h-3 mr-1" />
@@ -398,12 +398,12 @@ export default function SiteDetailPage() {
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${
                           post.status === 'published' ? 'bg-green-100 text-green-800' : 
                           post.status === 'archived' ? 'bg-red-100 text-red-800' : 
-                          'bg-gray-100 text-gray-800'
+                          'bg-gray-100 text-content-primary'
                         }`}>
                           {post.status}
                         </span>
                         {post.type && (
-                          <span className="text-xs text-gray-500 capitalize">{post.type}</span>
+                          <span className="text-xs text-content-tertiary capitalize">{post.type}</span>
                         )}
                       </div>
                     </div>
@@ -418,8 +418,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Team Members</h2>
-                  <p className="text-xs text-gray-500">{(site.team as any[])?.length || 0} members</p>
+                  <h2 className="text-base font-semibold text-content-primary">Team Members</h2>
+                  <p className="text-xs text-content-tertiary">{(site.team as any[])?.length || 0} members</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -439,18 +439,18 @@ export default function SiteDetailPage() {
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-semibold text-gray-900 truncate">{member.name || 'Unnamed'}</h4>
+                          <h4 className="text-sm font-semibold text-content-primary truncate">{member.name || 'Unnamed'}</h4>
                           {member.translations?.[0]?.title && (
-                            <p className="text-xs text-gray-600 truncate">{member.translations[0].title}</p>
+                            <p className="text-xs text-content-secondary truncate">{member.translations[0].title}</p>
                           )}
                           {member.translations?.[0]?.bio && (
-                            <p className="text-xs text-gray-500 line-clamp-2 mt-1">{member.translations[0].bio}</p>
+                            <p className="text-xs text-content-tertiary line-clamp-2 mt-1">{member.translations[0].bio}</p>
                           )}
                           <div className="mt-2">
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                               member.status === 'published' ? 'bg-green-100 text-green-800' : 
                               member.status === 'archived' ? 'bg-red-100 text-red-800' : 
-                              'bg-gray-100 text-gray-800'
+                              'bg-gray-100 text-content-primary'
                             }`}>
                               {member.status}
                             </span>
@@ -469,8 +469,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Testimonials</h2>
-                  <p className="text-xs text-gray-500">{(site.testimonials as any[])?.length || 0} testimonials</p>
+                  <h2 className="text-base font-semibold text-content-primary">Testimonials</h2>
+                  <p className="text-xs text-content-tertiary">{(site.testimonials as any[])?.length || 0} testimonials</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -487,23 +487,23 @@ export default function SiteDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
-                            <h4 className="text-sm font-semibold text-gray-900">{testimonial.title || 'Untitled'}</h4>
+                            <h4 className="text-sm font-semibold text-content-primary">{testimonial.title || 'Untitled'}</h4>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                               testimonial.status === 'published' ? 'bg-green-100 text-green-800' : 
                               testimonial.status === 'archived' ? 'bg-red-100 text-red-800' : 
-                              'bg-gray-100 text-gray-800'
+                              'bg-gray-100 text-content-primary'
                             }`}>
                               {testimonial.status}
                             </span>
                           </div>
                           {testimonial.subtitle && (
-                            <p className="text-xs text-gray-600 mb-2">{testimonial.subtitle}</p>
+                            <p className="text-xs text-content-secondary mb-2">{testimonial.subtitle}</p>
                           )}
                           {testimonial.content && (
-                            <p className="text-sm text-gray-700 line-clamp-3 mb-2" dangerouslySetInnerHTML={{ __html: testimonial.content }}></p>
+                            <p className="text-sm text-content-primary line-clamp-3 mb-2" dangerouslySetInnerHTML={{ __html: testimonial.content }}></p>
                           )}
                           {testimonial.company && (
-                            <div className="flex items-center text-xs text-gray-500">
+                            <div className="flex items-center text-xs text-content-tertiary">
                               <Icon icon="lucide:building" className="w-3 h-3 mr-1" />
                               {testimonial.company}
                             </div>
@@ -522,8 +522,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Languages</h2>
-                  <p className="text-xs text-gray-500">Supported languages for this site</p>
+                  <h2 className="text-base font-semibold text-content-primary">Languages</h2>
+                  <p className="text-xs text-content-tertiary">Supported languages for this site</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -548,8 +548,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Redirects</h2>
-                  <p className="text-xs text-gray-500">{(site.redirects as any[])?.length || 0} URL redirects</p>
+                  <h2 className="text-base font-semibold text-content-primary">Redirects</h2>
+                  <p className="text-xs text-content-tertiary">{(site.redirects as any[])?.length || 0} URL redirects</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
@@ -563,12 +563,12 @@ export default function SiteDetailPage() {
                       <div className="flex items-center space-x-3 flex-1 min-w-0">
                         <Icon icon="lucide:corner-down-right" className="w-4 h-4 text-orange-500 flex-shrink-0" />
                         <div className="flex items-center space-x-2 text-sm flex-1 min-w-0">
-                          <code className="text-gray-700 font-mono text-xs truncate">{redirect.url_old}</code>
-                          <Icon icon="lucide:arrow-right" className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                          <code className="text-gray-700 font-mono text-xs truncate">{redirect.url_new}</code>
+                          <code className="text-content-primary font-mono text-xs truncate">{redirect.url_old}</code>
+                          <Icon icon="lucide:arrow-right" className="w-3 h-3 text-content-tertiary flex-shrink-0" />
+                          <code className="text-content-primary font-mono text-xs truncate">{redirect.url_new}</code>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-500 ml-2 whitespace-nowrap">
+                      <span className="text-xs text-content-tertiary ml-2 whitespace-nowrap">
                         {redirect.response_code === 301 ? '301 Permanent' : '302 Temporary'}
                       </span>
                     </div>
@@ -583,8 +583,8 @@ export default function SiteDetailPage() {
             <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
                 <div>
-                  <h2 className="text-base font-semibold text-gray-900">Global Settings</h2>
-                  <p className="text-xs text-gray-500">Site-wide configuration</p>
+                  <h2 className="text-base font-semibold text-content-primary">Global Settings</h2>
+                  <p className="text-xs text-content-tertiary">Site-wide configuration</p>
                 </div>
                 <Button size="sm" variant="outline">
                   <Icon icon="lucide:settings" className="w-4 h-4 mr-2" />
@@ -597,39 +597,39 @@ export default function SiteDetailPage() {
                     <div key={global.id} className="space-y-3">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs font-medium text-gray-500">Title</label>
-                          <div className="text-sm font-medium text-gray-900 mt-1">{global.title || '—'}</div>
+                          <label className="text-xs font-medium text-content-tertiary">Title</label>
+                          <div className="text-sm font-medium text-content-primary mt-1">{global.title || '—'}</div>
                         </div>
                         {global.tagline && (
                           <div>
-                            <label className="text-xs font-medium text-gray-500">Tagline</label>
-                            <div className="text-sm text-gray-900 mt-1">{global.tagline}</div>
+                            <label className="text-xs font-medium text-content-tertiary">Tagline</label>
+                            <div className="text-sm text-content-primary mt-1">{global.tagline}</div>
                           </div>
                         )}
                       </div>
                       {global.description && (
                         <div>
-                          <label className="text-xs font-medium text-gray-500">Description</label>
-                          <p className="text-sm text-gray-700 mt-1">{global.description}</p>
+                          <label className="text-xs font-medium text-content-tertiary">Description</label>
+                          <p className="text-sm text-content-primary mt-1">{global.description}</p>
                         </div>
                       )}
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {global.url && (
                           <div>
-                            <label className="text-xs font-medium text-gray-500">Base URL</label>
+                            <label className="text-xs font-medium text-content-tertiary">Base URL</label>
                             <code className="text-xs font-mono text-blue-600 mt-1 block truncate">{global.url}</code>
                           </div>
                         )}
                         {global.email && (
                           <div>
-                            <label className="text-xs font-medium text-gray-500">Email</label>
-                            <div className="text-sm text-gray-900 mt-1">{global.email}</div>
+                            <label className="text-xs font-medium text-content-tertiary">Email</label>
+                            <div className="text-sm text-content-primary mt-1">{global.email}</div>
                           </div>
                         )}
                         {global.phone && (
                           <div>
-                            <label className="text-xs font-medium text-gray-500">Phone</label>
-                            <div className="text-sm text-gray-900 mt-1">{global.phone}</div>
+                            <label className="text-xs font-medium text-content-tertiary">Phone</label>
+                            <div className="text-sm text-content-primary mt-1">{global.phone}</div>
                           </div>
                         )}
                       </div>

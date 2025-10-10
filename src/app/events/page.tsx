@@ -50,8 +50,8 @@ export default function EventsPage() {
         <div className="space-y-6">
           <div className="flex items-start justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">{pageInfo.title}</h1>
-              <p className="text-gray-600 mt-1">{pageInfo.subtitle}</p>
+              <h1 className="text-2xl font-bold text-content-primary">{pageInfo.title}</h1>
+              <p className="text-content-secondary mt-1">{pageInfo.subtitle}</p>
             </div>
             <Button onClick={handleCreateEvent} variant="gradient">
               <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
@@ -61,9 +61,9 @@ export default function EventsPage() {
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div className="text-center py-12">
-              <Icon icon="lucide:calendar" className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-700 mb-2">No Events Yet</h3>
-              <p className="text-gray-500 mb-6">Get started by creating your first event</p>
+              <Icon icon="lucide:calendar" className="w-16 h-16 text-content-tertiary mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-content-primary mb-2">No Events Yet</h3>
+              <p className="text-content-tertiary mb-6">Get started by creating your first event</p>
               {/* <Button onClick={handleCreateEvent} variant="gradient">
                 <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
                 Create Your First Event
@@ -80,8 +80,8 @@ export default function EventsPage() {
       <div className="space-y-6">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">{pageInfo.title}</h1>
-            <p className="text-gray-600 mt-1">{pageInfo.subtitle}</p>
+            <h1 className="text-2xl font-bold text-content-primary">{pageInfo.title}</h1>
+            <p className="text-content-secondary mt-1">{pageInfo.subtitle}</p>
           </div>
           <Button onClick={handleCreateEvent} variant="gradient">
             <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
@@ -99,11 +99,11 @@ export default function EventsPage() {
                   onClick={() => { setActiveFilter(tab.id); setCurrentPage(1); }}
                   className={`
                     py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer
-                    ${activeFilter === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}
+                    ${activeFilter === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-content-tertiary hover:text-content-secondary hover:border-gray-300'}
                   `}
                 >
                   {tab.label}
-                  <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2 rounded-full text-xs">
+                  <span className="ml-2 bg-gray-100 text-content-primary py-0.5 px-2 rounded-full text-xs">
                     {filterCounts[tab.id as keyof typeof filterCounts]}
                   </span>
                 </button>
@@ -126,29 +126,32 @@ export default function EventsPage() {
                 onClick={() => router.push(`/events/${event.id}`)}
               >
                 <div className="flex">
-                  <div className="w-48 h-32 flex-shrink-0 overflow-hidden">
-                    {event.logo ? (
-                      <Image
-                        src={getDirectusAssetUrl(event.logo)}
-                        alt={event.name}
-                        width={192}
-                        height={128}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className={`w-full h-full bg-gradient-to-br ${['from-indigo-200 to-purple-200','from-pink-200 to-rose-200','from-emerald-200 to-teal-200','from-sky-200 to-cyan-200','from-amber-200 to-orange-200'][Math.abs((event.id || 0) % 5)]}`} />
-                    )}
+                  {/* Image Container with padding on 3 sides */}
+                  <div className="w-56 h-40 flex-shrink-0 pl-2 pt-3 pb-3">
+                    <div className="w-full h-full overflow-hidden rounded-lg">
+                      {event.logo ? (
+                        <Image
+                          src={getDirectusAssetUrl(event.logo)}
+                          alt={event.name}
+                          width={224}
+                          height={128}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className={`w-full h-full bg-gradient-to-br ${['from-indigo-200 to-purple-200','from-pink-200 to-rose-200','from-emerald-200 to-teal-200','from-sky-200 to-cyan-200','from-amber-200 to-orange-200'][Math.abs((event.id || 0) % 5)]}`} />
+                      )}
+                    </div>
                   </div>
                   <div className="flex-1 p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{event.name}</h3>
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${event.status === 'published' ? 'bg-green-100 text-green-800' : event.status === 'draft' ? 'bg-gray-100 text-gray-800' : 'bg-red-100 text-red-800'}`}>
+                          <h3 className="text-lg font-semibold text-content-primary">{event.name}</h3>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${event.status === 'published' ? 'bg-green-100 text-green-800' : event.status === 'draft' ? 'bg-gray-100 text-content-primary' : 'bg-red-100 text-red-800'}`}>
                             {event.status}
                           </span>
                         </div>
-                        <div className="space-y-2 text-sm text-gray-600">
+                        <div className="space-y-2 text-sm text-content-secondary">
                           <div className="flex items-center">
                             <Icon icon="lucide:calendar" className="w-4 h-4 mr-2" />
                             <span>{event.start_date} {event.end_date ? `- ${event.end_date}` : ''}</span>
@@ -166,7 +169,7 @@ export default function EventsPage() {
                             const el = (e.currentTarget as HTMLButtonElement).nextElementSibling as HTMLDivElement;
                             if (el) el.classList.toggle('hidden');
                           }}
-                          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-content-tertiary hover:text-content-secondary hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                         >
                           <Icon icon="lucide:more-horizontal" className="w-5 h-5" />
                         </button>
@@ -198,7 +201,7 @@ export default function EventsPage() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-between bg-white px-6 py-4 rounded-lg border border-gray-200">
-              <div className="text-sm text-gray-700">
+              <div className="text-sm text-content-primary">
                 Showing {startIndex + 1} to {Math.min(startIndex + eventsPerPage, filteredEvents.length)} of {filteredEvents.length}
               </div>
               <div className="flex items-center space-x-2">
@@ -206,7 +209,7 @@ export default function EventsPage() {
                   <button
                     key={index + 1}
                     onClick={() => setCurrentPage(index + 1)}
-                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === index + 1 ? 'bg-blue-600 text-white' : 'text-gray-700 hover:bg-gray-100'}`}
+                    className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${currentPage === index + 1 ? 'bg-blue-600 text-white' : 'text-content-primary hover:bg-gray-100'}`}
                   >
                     {index + 1}
                   </button>

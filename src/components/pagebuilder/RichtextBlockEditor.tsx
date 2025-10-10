@@ -21,7 +21,7 @@ export default function RichtextBlockEditor({
     <div className="space-y-6">
       {/* Title */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-content-primary mb-2">
           Title (Optional)
         </label>
         <input
@@ -35,7 +35,7 @@ export default function RichtextBlockEditor({
 
       {/* Headline */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-content-primary mb-2">
           Headline <span className="text-red-500">*</span>
         </label>
         <input
@@ -50,7 +50,7 @@ export default function RichtextBlockEditor({
 
       {/* Content */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-content-primary mb-2">
           Content
         </label>
         <RichTextEditor
@@ -62,7 +62,7 @@ export default function RichtextBlockEditor({
 
       {/* Alignment */}
       <div className="w-full">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-content-primary mb-2">
           Text Alignment
         </label>
         <div className="flex gap-2 w-full">
@@ -88,7 +88,7 @@ export default function RichtextBlockEditor({
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 border rounded-lg transition-all cursor-pointer select-none ${
                   isSelected
                     ? 'bg-blue-100 border-blue-500 text-blue-700 shadow-sm'
-                    : 'border-gray-300 text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                    : 'border-gray-300 text-content-primary hover:border-blue-300 hover:bg-blue-50'
                 }`}
               >
                 <Icon icon={option.icon} className="w-4 h-4" />

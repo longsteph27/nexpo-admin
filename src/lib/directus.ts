@@ -1,5 +1,156 @@
 import { createDirectus, rest, authentication, readItems, readMe, createItem, updateItem, deleteItem } from '@directus/sdk';
 
+// Environment configuration (must be defined early for use in interceptor)
+const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://app.nexpo.vn';
+
+// Token refresh state to prevent multiple simultaneous refreshes
+let isRefreshing = false;
+let refreshPromise: Promise<string | null> | null = null;
+
+// Queue for pending requests during token refresh
+let requestQueue: Array<(token: string | null) => void> = [];
+
+// Process the queue after token refresh
+const processQueue = (token: string | null) => {
+  requestQueue.forEach(callback => callback(token));
+  requestQueue = [];
+};
+
+// Custom fetch wrapper with 401 interceptor
+const createAuthenticatedFetch = () => {
+  return async (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
+    // Make the initial request
+    const response = await fetch(url, options);
+    
+    // If not 401, return the response as is
+    if (response.status !== 401) {
+      return response;
+    }
+    
+    console.log('[Directus Interceptor] 401 detected, attempting token refresh...');
+    
+    // Handle 401 - need to refresh token
+    // Get the refresh token from storage
+    const getRefreshTokenFromStorage = (): string | null => {
+      if (typeof window === 'undefined') return null;
+      
+      try {
+        const authStorage = localStorage.getItem('nexpo-auth-storage');
+        if (authStorage) {
+          const authData = JSON.parse(authStorage);
+          return authData.state?.refreshToken || null;
+        }
+      } catch (error) {
+        console.error('[Directus Interceptor] Failed to get refresh token from storage:', error);
+      }
+      return null;
+    };
+    
+    const refreshToken = getRefreshTokenFromStorage();
+    
+    if (!refreshToken) {
+      console.log('[Directus Interceptor] No refresh token available, clearing auth...');
+      // No refresh token available, need to logout
+      if (typeof window !== 'undefined') {
+        // Import auth store dynamically to avoid circular dependency
+        import('@/store/auth').then(({ useAuthStore }) => {
+          useAuthStore.getState().clearAuthData();
+        });
+      }
+      return response;
+    }
+    
+    // Wait for any ongoing refresh or start a new one
+    let newAccessToken: string | null = null;
+    
+    if (isRefreshing && refreshPromise) {
+      // Wait for the ongoing refresh
+      console.log('[Directus Interceptor] Waiting for ongoing refresh...');
+      newAccessToken = await refreshPromise;
+    } else {
+      // Start a new refresh
+      isRefreshing = true;
+      refreshPromise = new Promise(async (resolve) => {
+        try {
+          console.log('[Directus Interceptor] Starting token refresh...');
+          const refreshResponse = await fetch(`${DIRECTUS_URL}/auth/refresh`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              refresh_token: refreshToken,
+            }),
+          });
+          
+          if (!refreshResponse.ok) {
+            console.log('[Directus Interceptor] Refresh failed, clearing auth...');
+            // Refresh failed, clear auth
+            if (typeof window !== 'undefined') {
+              import('@/store/auth').then(({ useAuthStore }) => {
+                useAuthStore.getState().clearAuthData();
+              });
+            }
+            resolve(null);
+            return;
+          }
+          
+          const refreshData = await refreshResponse.json();
+          const newToken = refreshData.data?.access_token || null;
+          const newRefreshToken = refreshData.data?.refresh_token || null;
+          
+          console.log('[Directus Interceptor] Token refresh successful');
+          
+          // Update tokens in store and token manager (without triggering re-render)
+          if (typeof window !== 'undefined' && newToken) {
+            import('@/store/auth').then(({ useAuthStore }) => {
+              useAuthStore.getState().setTokens(newToken, newRefreshToken);
+            });
+            import('@/lib/tokenManager').then(({ tokenManager }) => {
+              tokenManager.setAccessToken(newToken);
+            });
+          }
+          
+          resolve(newToken);
+        } catch (error) {
+          console.error('[Directus Interceptor] Refresh error:', error);
+          if (typeof window !== 'undefined') {
+            import('@/store/auth').then(({ useAuthStore }) => {
+              useAuthStore.getState().clearAuthData();
+            });
+          }
+          resolve(null);
+        } finally {
+          isRefreshing = false;
+          refreshPromise = null;
+        }
+      });
+      
+      newAccessToken = await refreshPromise;
+    }
+    
+    // Process the queue
+    processQueue(newAccessToken);
+    
+    if (!newAccessToken) {
+      console.log('[Directus Interceptor] No new token available, returning original response');
+      return response;
+    }
+    
+    // Retry the original request with the new token
+    console.log('[Directus Interceptor] Retrying request with new token...');
+    const newHeaders = new Headers(options.headers);
+    newHeaders.set('Authorization', `Bearer ${newAccessToken}`);
+    
+    const retryResponse = await fetch(url, {
+      ...options,
+      headers: newHeaders,
+    });
+    
+    return retryResponse;
+  };
+};
+
 // Define your schema types based on the actual Directus schema
 interface Tenant {
   id: number;
@@ -61,6 +212,54 @@ interface User {
   }[];
 }
 
+interface Site {
+  id: number;
+  event_id: number;
+  slug?: string;
+  domain?: string;
+  status: 'published' | 'draft' | 'archived';
+  sort?: number;
+  user_created?: string;
+  date_created?: string;
+  user_updated?: string;
+  date_updated?: string;
+  logo?: string;
+  favicon?: string;
+  tenant_id?: number;
+  translations?: SiteTranslation[];
+}
+
+interface SiteTranslation {
+  id: number;
+  sites_id: number;
+  languages_code: string;
+  description?: string;
+  title?: string;
+}
+
+interface Page {
+  id: string;
+  sort?: number;
+  status: 'published' | 'draft' | 'archived';
+  date_created?: string;
+  user_created?: string;
+  date_updated?: string;
+  user_updated?: string;
+  seo?: string;
+  site_id?: number;
+  tenant_id?: number;
+  event_id?: number;
+  translations?: PageTranslation[];
+}
+
+interface PageTranslation {
+  id: number;
+  pages_id: string;
+  languages_code: string;
+  title: string;
+  permalink: string;
+}
+
 // Permission structure from /permissions/me endpoint
 interface Permission {
   [collection: string]: {
@@ -81,8 +280,7 @@ interface Schema {
   form_submissions: Record<string, unknown>[];
 }
 
-// Environment configuration
-const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://app.nexpo.vn';
+// Additional environment configuration
 const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'session') || 'json';
 const AUTO_REFRESH = process.env.NEXT_PUBLIC_DIRECTUS_AUTO_REFRESH === 'true';
 
@@ -96,8 +294,15 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Create Directus client with environment-based configuration
-const directus = createDirectus<Schema>(DIRECTUS_URL)
+// Create custom fetch with interceptor
+const authenticatedFetch = createAuthenticatedFetch();
+
+// Create Directus client with environment-based configuration and custom fetch
+const directus = createDirectus<Schema>(DIRECTUS_URL, {
+  globals: {
+    fetch: authenticatedFetch,
+  },
+})
   .with(rest())
   .with(authentication(AUTH_MODE, { autoRefresh: AUTO_REFRESH }));
 
@@ -1108,6 +1313,38 @@ export const directusHelpers = {
       return { success: true, data: updated };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to update navigation item' };
+    }
+  },
+
+  // Sites queries
+  async getSitesByEvent(eventId: number) {
+    try {
+      const sites = await directus.request(
+        readItems('sites' as never, {
+          filter: { event_id: { _eq: eventId } },
+          fields: (['id', 'slug', 'domain', 'status', 'sort', 'translations.title'] as unknown) as never,
+          sort: (['sort'] as unknown) as never,
+        })
+      );
+      return { success: true, data: sites as unknown as Site[] };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch sites' };
+    }
+  },
+
+  // Pages queries (alternative implementation to avoid duplicate)
+  async getPagesBySiteList(siteId: number) {
+    try {
+      const pages = await directus.request(
+        readItems('pages' as never, {
+          filter: { site_id: { _eq: siteId } },
+          fields: (['id', 'status', 'sort', 'translations.title', 'translations.permalink', 'site_id'] as unknown) as never,
+          sort: (['sort'] as unknown) as never,
+        })
+      );
+      return { success: true, data: pages as unknown as Page[] };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch pages' };
     }
   },
 };

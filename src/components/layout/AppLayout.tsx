@@ -33,7 +33,7 @@ export default function AppLayout({
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="flex items-center space-x-3">
           <Icon icon="lucide:loader-2" className="w-8 h-8 text-blue-600 animate-spin" />
-          <span className="text-lg font-medium text-gray-700">Loading...</span>
+          <span className="text-lg font-medium text-content-primary">Loading...</span>
         </div>
       </div>
     );
@@ -55,7 +55,7 @@ export default function AppLayout({
       />
 
       {/* Page Content */}
-      <main className={`flex-1 overflow-hidden ${pathname?.startsWith('/events/create') ? 'p-0' : isEventDetailPage ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
+      <main className="flex-1 overflow-hidden flex">
         {isEventDetailPage && eventId ? (
           <EventLayout eventId={eventId}>
             {children}
@@ -65,9 +65,11 @@ export default function AppLayout({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
-            className="h-full overflow-y-auto"
+            className="flex-1 overflow-y-auto"
           >
-            {children}
+            <div className={`${pathname?.startsWith('/events/create') ? 'p-0' : isEventDetailPage ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
+              {children}
+            </div>
           </motion.div>
         )}
       </main>

@@ -16,11 +16,22 @@ export const eventKeys = {
 export function useEvents(status?: string) {
   const { selectedTenant } = useAuth();
   
+  console.log('[useEvents] selectedTenant:', selectedTenant);
+  console.log('[useEvents] enabled:', !!selectedTenant?.id);
+  
   return useQuery({
     queryKey: eventKeys.list(String(selectedTenant?.id || ''), status),
-    queryFn: () => eventsApi.getEvents(String(selectedTenant?.id || ''), status, ['id','name','start_date','end_date','location','status','logo'] as (keyof Event)[]),
+    queryFn: async () => {
+      console.log('[useEvents] Fetching events for tenant:', selectedTenant?.id);
+      const result = await eventsApi.getEvents(String(selectedTenant?.id || ''), status, ['id','name','start_date','end_date','location','status','logo'] as (keyof Event)[]);
+      console.log('[useEvents] API result:', result);
+      return result;
+    },
     enabled: !!selectedTenant?.id,
-    select: (data) => data.data || [],
+    select: (data) => {
+      console.log('[useEvents] Select data:', data);
+      return data.data || [];
+    },
   });
 }
 

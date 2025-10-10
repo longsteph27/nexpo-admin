@@ -135,22 +135,22 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
               <Icon icon="lucide:video" className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Add Video</h2>
-              <p className="text-xs text-gray-500">Upload or link a video to your content</p>
+              <h2 className="text-lg font-semibold text-content-primary">Add Video</h2>
+              <p className="text-xs text-content-tertiary">Upload or link a video to your content</p>
             </div>
           </div>
           <button
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             onClick={onClose}
           >
-            <Icon icon="lucide:x" className="w-5 h-5 text-gray-600" />
+            <Icon icon="lucide:x" className="w-5 h-5 text-content-secondary" />
           </button>
         </div>
 
         {/* Tabs */}
         <div className="px-6 py-3 border-b border-gray-200 bg-gray-50 flex items-center space-x-2">
-          <Icon icon="lucide:upload" className="w-4 h-4 text-gray-500" />
-          <span className="text-xs text-gray-600 font-medium">Upload Method:</span>
+          <Icon icon="lucide:upload" className="w-4 h-4 text-content-tertiary" />
+          <span className="text-xs text-content-secondary font-medium">Upload Method:</span>
           <div className="flex items-center space-x-1">
             {[
               { key: 'url', label: 'URL', icon: 'lucide:link' },
@@ -162,7 +162,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
                 className={`px-3 py-1 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
                   activeTab === tab.key
                     ? 'bg-blue-600 text-white'
-                    : 'text-gray-600 hover:bg-gray-200'
+                    : 'text-content-secondary hover:bg-gray-200'
                 }`}
                 onClick={() => setActiveTab(tab.key as any)}
               >
@@ -178,7 +178,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
           {activeTab === 'url' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-content-primary mb-2">
                   Video URL
                 </label>
                 <Input
@@ -188,7 +188,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
                   placeholder="https://example.com/video.mp4"
                   className="w-full"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-content-tertiary mt-1">
                   Enter a direct link to a video file (MP4, WebM, etc.)
                 </p>
               </div>
@@ -198,7 +198,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
           {activeTab === 'local' && (
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-content-primary mb-2">
                   Select Video File
                 </label>
                 <input
@@ -207,7 +207,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
                   onChange={handleFileUpload}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-content-tertiary mt-1">
                   Supported formats: MP4, WebM, AVI, MOV (Max 100MB)
                 </p>
               </div>
@@ -231,7 +231,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
           {activeTab === 'library' && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-medium text-gray-900">Video Library</h3>
+                <h3 className="text-lg font-medium text-content-primary">Video Library</h3>
                 <Button
                   onClick={loadLibraryVideos}
                   disabled={loading}
@@ -244,8 +244,8 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
               
               {libraryVideos.length === 0 ? (
                 <div className="text-center py-8">
-                  <Icon icon="lucide:folder-open" className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 mb-4">
+                  <Icon icon="lucide:folder-open" className="w-12 h-12 text-content-tertiary mx-auto mb-4" />
+                  <p className="text-content-tertiary mb-4">
                     No videos found in your media library
                   </p>
                   <Button
@@ -271,13 +271,13 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <Icon icon="lucide:video" className="w-6 h-6 text-gray-600" />
+                          <Icon icon="lucide:video" className="w-6 h-6 text-content-secondary" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-content-primary truncate">
                             {video.filename_download || video.id}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-content-tertiary">
                             {(video.filesize / (1024 * 1024)).toFixed(2)} MB
                           </p>
                         </div>

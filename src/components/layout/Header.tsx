@@ -4,6 +4,7 @@ import React from 'react';
 import { Icon } from '@iconify/react';
 import Image from 'next/image';
 import TenantSelector from '@/components/ui/TenantSelector';
+import AccountMenu from '@/components/ui/AccountMenu';
 import { useEvent } from '@/hooks/useEvents';
 
 interface HeaderProps {
@@ -22,7 +23,7 @@ export default function Header({ onMobileMenuClick, actions, eventId }: HeaderPr
     switch (status) {
       case 'published': return 'bg-green-100 text-green-800';
       case 'archived': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-content-primary';
     }
   };
 
@@ -35,7 +36,7 @@ export default function Header({ onMobileMenuClick, actions, eventId }: HeaderPr
             onClick={onMobileMenuClick}
             className="lg:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <Icon icon="lucide:menu" className="w-6 h-6 text-gray-600" />
+            <Icon icon="lucide:menu" className="w-6 h-6 text-content-secondary" />
           </button>
 
           {/* Logo and Event Info */}
@@ -50,7 +51,7 @@ export default function Header({ onMobileMenuClick, actions, eventId }: HeaderPr
               <>
                 <div className="h-6 w-px bg-gray-300"></div>
                 <div className="flex items-center space-x-3">
-                  <h1 className="text-lg font-semibold text-gray-900">{event.name}</h1>
+                  <h1 className="text-lg font-semibold text-content-primary">{event.name}</h1>
                   {event.status && (
                     <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(event.status)}`}>
                       {event.status}
@@ -75,15 +76,13 @@ export default function Header({ onMobileMenuClick, actions, eventId }: HeaderPr
 
             {/* User Menu */}
             <div className="flex items-center space-x-3">
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+              <button className="p-2 text-content-tertiary hover:text-content-secondary rounded-lg hover:bg-gray-100 transition-colors">
                 <Icon icon="lucide:bell" className="w-5 h-5" />
               </button>
-              <button className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors">
+              <button className="p-2 text-content-tertiary hover:text-content-secondary rounded-lg hover:bg-gray-100 transition-colors">
                 <Icon icon="lucide:help-circle" className="w-5 h-5" />
               </button>
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                <Icon icon="lucide:user" className="w-4 h-4 text-white" />
-              </div>
+              <AccountMenu />
             </div>
           </div>
         </div>

@@ -26,14 +26,14 @@ function getButtonColorClass(color: string, variant: string) {
   }
   if (variant === 'outline') {
     if (color === 'primary') return 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
-    if (color === 'gray') return 'border-gray-400 text-gray-700 hover:bg-gray-100'
+    if (color === 'gray') return 'border-gray-400 text-content-primary hover:bg-gray-100'
     if (color === 'black') return 'border-black text-black hover:bg-gray-100'
     if (color === 'white') return 'border-white text-white hover:bg-gray-100'
   }
   if (variant === 'link') {
     if (color === 'primary') return 'text-[var(--color-primary)] hover:text-[var(--color-primary)]/80'
-    if (color === 'gray') return 'text-gray-700 hover:text-gray-900'
-    if (color === 'black') return 'text-black hover:text-gray-800'
+    if (color === 'gray') return 'text-content-primary hover:text-content-primary'
+    if (color === 'black') return 'text-black hover:text-content-primary'
     if (color === 'white') return 'text-white hover:text-gray-200'
   }
   return ''

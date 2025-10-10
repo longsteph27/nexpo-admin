@@ -89,7 +89,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
     },
     editorProps: {
       attributes: {
-        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-6 text-gray-900 leading-relaxed font-sans',
+        class: 'prose prose-sm max-w-none focus:outline-none min-h-[120px] p-6 text-content-primary leading-relaxed font-sans',
         'data-testid': 'rich-text-editor',
       },
     },
@@ -304,7 +304,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   if (!editor) {
     return (
       <div className="border border-gray-200 rounded-lg overflow-hidden relative">
-        <div className="p-6 text-center text-gray-500">
+        <div className="p-6 text-center text-content-tertiary">
           Loading editor...
         </div>
       </div>
@@ -323,7 +323,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={toggleBold}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('bold') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-content-secondary'}`}
           title="Bold"
         >
           <Icon icon="lucide:bold" className="w-4 h-4" />
@@ -331,7 +331,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={toggleItalic}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('italic') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-content-secondary'}`}
           title="Italic"
         >
           <Icon icon="lucide:italic" className="w-4 h-4" />
@@ -339,7 +339,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={toggleUnderline}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('underline') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('underline') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-content-secondary'}`}
           title="Underline"
         >
           <Icon icon="lucide:underline" className="w-4 h-4" />
@@ -347,7 +347,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={toggleStrike}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('strike') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('strike') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-content-secondary'}`}
           title="Strikethrough"
         >
           <Icon icon="lucide:strikethrough" className="w-4 h-4" />
@@ -359,7 +359,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setHeading(1)}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('heading', { level: 1 }) ? 'bg-green-100 text-green-600 border border-green-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('heading', { level: 1 }) ? 'bg-green-100 text-green-600 border border-green-200' : 'text-content-secondary'}`}
           title="Heading 1"
         >
           <Icon icon="lucide:heading-1" className="w-4 h-4" />
@@ -367,7 +367,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setHeading(2)}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('heading', { level: 2 }) ? 'bg-green-100 text-green-600 border border-green-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('heading', { level: 2 }) ? 'bg-green-100 text-green-600 border border-green-200' : 'text-content-secondary'}`}
           title="Heading 2"
         >
           <Icon icon="lucide:heading-2" className="w-4 h-4" />
@@ -375,7 +375,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setHeading(3)}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('heading', { level: 3 }) ? 'bg-green-100 text-green-600 border border-green-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('heading', { level: 3 }) ? 'bg-green-100 text-green-600 border border-green-200' : 'text-content-secondary'}`}
           title="Heading 3"
         >
           <Icon icon="lucide:heading-3" className="w-4 h-4" />
@@ -386,7 +386,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
           <button
             type="button"
             onClick={() => setParagraphDropdownOpen(!paragraphDropdownOpen)}
-            className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 text-gray-600 flex items-center gap-1`}
+            className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 text-content-secondary flex items-center gap-1`}
             title="Paragraph Options"
           >
             <span className="text-sm font-medium">Paragraph</span>
@@ -401,8 +401,8 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
                 disabled={!editor?.isActive('link')}
                 className={`w-full px-3 py-2 text-left text-sm transition-colors ${
                   editor?.isActive('link') 
-                    ? 'text-gray-700 hover:bg-blue-50 hover:text-blue-600' 
-                    : 'text-gray-400 cursor-not-allowed'
+                    ? 'text-content-primary hover:bg-blue-50 hover:text-blue-600' 
+                    : 'text-content-tertiary cursor-not-allowed'
                 }`}
               >
                 Primary Button
@@ -417,7 +417,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={toggleBulletList}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('bulletList') ? 'bg-purple-100 text-purple-600 border border-purple-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('bulletList') ? 'bg-purple-100 text-purple-600 border border-purple-200' : 'text-content-secondary'}`}
           title="Bullet List"
         >
           <Icon icon="lucide:list" className="w-4 h-4" />
@@ -425,7 +425,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={toggleOrderedList}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('orderedList') ? 'bg-purple-100 text-purple-600 border border-purple-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('orderedList') ? 'bg-purple-100 text-purple-600 border border-purple-200' : 'text-content-secondary'}`}
           title="Numbered List"
         >
           <Icon icon="lucide:list-ordered" className="w-4 h-4" />
@@ -437,7 +437,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setTextAlign('left')}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive({ textAlign: 'left' }) ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive({ textAlign: 'left' }) ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'text-content-secondary'}`}
           title="Align Left"
         >
           <Icon icon="lucide:align-left" className="w-4 h-4" />
@@ -445,7 +445,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setTextAlign('center')}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive({ textAlign: 'center' }) ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive({ textAlign: 'center' }) ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'text-content-secondary'}`}
           title="Align Center"
         >
           <Icon icon="lucide:align-center" className="w-4 h-4" />
@@ -453,7 +453,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setTextAlign('right')}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive({ textAlign: 'right' }) ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive({ textAlign: 'right' }) ? 'bg-orange-100 text-orange-600 border border-orange-200' : 'text-content-secondary'}`}
           title="Align Right"
         >
           <Icon icon="lucide:align-right" className="w-4 h-4" />
@@ -465,7 +465,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={setLink}
-          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('link') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-gray-600'}`}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('link') ? 'bg-blue-100 text-blue-600 border border-blue-200' : 'text-content-secondary'}`}
           title="Add Link"
         >
           <Icon icon="lucide:link" className="w-4 h-4" />
@@ -474,7 +474,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setImageDialogOpen(true)}
-          className="p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 text-gray-600"
+          className="p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 text-content-secondary"
           title="Add Image"
         >
           <Icon icon="lucide:image" className="w-4 h-4" />
@@ -483,7 +483,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
         <button
           type="button"
           onClick={() => setVideoDialogOpen(true)}
-          className="p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 text-gray-600"
+          className="p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 text-content-secondary"
           title="Add Video"
         >
           <Icon icon="lucide:video" className="w-4 h-4" />

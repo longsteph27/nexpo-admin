@@ -130,7 +130,7 @@ function VForm(props: FormProps) {
                   className={cn(element.outerclass, 'w-full')}
                 >
                   <label className='label' htmlFor={element.name}>
-                    <span className='label-text text-gray-900'>{element.label}</span>
+                    <span className='label-text text-content-primary'>{element.label}</span>
                   </label>
                   <DirectusFormBuilder element={element} hookForm={hookForm} />
                   <ErrorMessage

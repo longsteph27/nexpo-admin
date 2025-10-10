@@ -123,7 +123,7 @@ export function LinkInputDialog({
         <div className="space-y-4 py-4">
           {/* URL Input */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <label className="text-sm font-medium text-content-primary flex items-center gap-2">
               <Icon icon="lucide:globe" className="w-4 h-4" />
               Link URL <span className="text-red-500">*</span>
             </label>
@@ -145,7 +145,7 @@ export function LinkInputDialog({
                 {error}
               </p>
             )}
-            <div className="text-xs text-gray-500 space-y-1">
+            <div className="text-xs text-content-tertiary space-y-1">
               <p className="flex items-center gap-1">
                 <Icon icon="lucide:info" className="w-3 h-3" />
                 Supported formats:
@@ -162,9 +162,9 @@ export function LinkInputDialog({
 
           {/* Text Input (Optional) */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+            <label className="text-sm font-medium text-content-primary flex items-center gap-2">
               <Icon icon="lucide:type" className="w-4 h-4" />
-              Link Text <span className="text-xs text-gray-500 font-normal">(optional)</span>
+              Link Text <span className="text-xs text-content-tertiary font-normal">(optional)</span>
             </label>
             <Input
               type="text"
@@ -173,7 +173,7 @@ export function LinkInputDialog({
               onChange={(e) => setText(e.target.value)}
               onKeyDown={handleKeyDown}
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-content-tertiary">
               Leave empty to use the selected text or URL as the link text.
             </p>
           </div>

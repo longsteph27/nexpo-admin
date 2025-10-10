@@ -66,7 +66,7 @@ function TranslationField({ translationFields, value, onChange, note }: Translat
 
   return (
     <div className="space-y-4">
-      <div className="text-xs text-gray-500">{note || 'Translations'}</div>
+      <div className="text-xs text-content-tertiary">{note || 'Translations'}</div>
       
       {/* Language Switch */}
       <div className="flex items-center space-x-2">
@@ -76,7 +76,7 @@ function TranslationField({ translationFields, value, onChange, note }: Translat
           className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
             currentLanguage === 'en-US'
               ? 'bg-blue-100 text-blue-700 border border-blue-200'
-              : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+              : 'bg-gray-100 text-content-secondary border border-gray-200 hover:bg-gray-200'
           }`}
         >
           🇺🇸 English
@@ -87,7 +87,7 @@ function TranslationField({ translationFields, value, onChange, note }: Translat
           className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
             currentLanguage === 'vi-VN'
               ? 'bg-blue-100 text-blue-700 border border-blue-200'
-              : 'bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200'
+              : 'bg-gray-100 text-content-secondary border border-gray-200 hover:bg-gray-200'
           }`}
         >
           🇻🇳 Vietnamese
@@ -96,12 +96,12 @@ function TranslationField({ translationFields, value, onChange, note }: Translat
 
       {/* Current Language Fields */}
       <div className="space-y-3">
-        <div className="text-sm font-medium text-gray-700 border-b border-gray-200 pb-1">
+        <div className="text-sm font-medium text-content-primary border-b border-gray-200 pb-1">
           {currentLanguage === 'en-US' ? 'English Content' : 'Vietnamese Content'}
         </div>
         {translationFields.map((transField) => (
           <div key={`${currentLanguage}-${transField.field}`} className="space-y-1">
-            <label className="text-xs text-gray-600">{transField.note || transField.field}</label>
+            <label className="text-xs text-content-secondary">{transField.note || transField.field}</label>
             {transField.interface === 'input-rich-text-html' ? (
               <RichTextEditor
                 value={getCurrentValue(transField.field)}
@@ -232,7 +232,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     if (type === 'uuid' && interfaceType === 'file') {
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <div
             {...getRootProps()}
             className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
@@ -243,12 +243,12 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
             {uploading ? (
               <div className="flex items-center justify-center space-x-2">
                 <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" />
-                <span className="text-sm text-gray-600">Uploading...</span>
+                <span className="text-sm text-content-secondary">Uploading...</span>
               </div>
             ) : value ? (
               <div className="space-y-2">
                 <Icon icon="lucide:check-circle" className="w-6 h-6 text-green-500 mx-auto" />
-                <div className="text-sm text-gray-600">File uploaded</div>
+                <div className="text-sm text-content-secondary">File uploaded</div>
                 <button
                   type="button"
                   onClick={(e) => {
@@ -262,11 +262,11 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
               </div>
             ) : (
               <div className="space-y-2">
-                <Icon icon="lucide:upload" className="w-6 h-6 text-gray-400 mx-auto" />
-                <div className="text-sm text-gray-600">
+                <Icon icon="lucide:upload" className="w-6 h-6 text-content-tertiary mx-auto" />
+                <div className="text-sm text-content-secondary">
                   {isDragActive ? 'Drop file here' : 'Click or drag file here'}
                 </div>
-                <div className="text-xs text-gray-500">Images, videos, PDFs</div>
+                <div className="text-xs text-content-tertiary">Images, videos, PDFs</div>
               </div>
             )}
           </div>
@@ -278,7 +278,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     if (interfaceType === 'select-dropdown-m2o' && relatedCollection) {
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <div className="space-y-2">
             <select
               className="w-full border rounded px-2 py-1 text-sm"
@@ -330,7 +330,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     if (interfaceType === 'select-radio' && options?.choices) {
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <div className="space-y-2">
             {(options.choices as Array<{value: string; text: string}>).map((choice) => (
               <label key={choice.value} className="flex items-center space-x-2">
@@ -342,7 +342,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
                   onChange={(e) => onChange(e.target.value)}
                   className="text-blue-600"
                 />
-                <span className="text-sm text-gray-700">{choice.text}</span>
+                <span className="text-sm text-content-primary">{choice.text}</span>
               </label>
             ))}
           </div>
@@ -355,7 +355,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
       const choices = options?.choices || [];
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <select
             className="w-full border rounded px-2 py-1 text-sm"
             value={value || ''}
@@ -385,7 +385,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
               onChange={(e) => onChange(e.target.checked)}
               className="rounded"
             />
-            <label htmlFor={fieldName} className="text-xs text-gray-600">
+            <label htmlFor={fieldName} className="text-xs text-content-secondary">
               {note || fieldName}
             </label>
           </div>
@@ -397,7 +397,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     if (interfaceType === 'input-rich-text-html') {
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <RichTextEditor
             value={value || ''}
             onChange={onChange}
@@ -411,7 +411,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     if (interfaceType === 'textarea' || type === 'text') {
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <textarea
             className="w-full border rounded px-2 py-1 text-sm"
             rows={3}
@@ -428,7 +428,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
       const { min = 0, max = 100, step = 1 } = options || {};
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <div className="space-y-2">
             <input
               type="range"
@@ -439,7 +439,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
               onChange={(e) => onChange(Number(e.target.value))}
               className="w-full"
             />
-            <div className="text-sm text-gray-600 text-center">{value || min}</div>
+            <div className="text-sm text-content-secondary text-center">{value || min}</div>
           </div>
         </div>
       );
@@ -449,7 +449,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     if (type === 'integer' || type === 'decimal' || type === 'float') {
       return (
         <div className="space-y-2">
-          <div className="text-xs text-gray-500">{note || fieldName}</div>
+          <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <input
             type="number"
             className="w-full border rounded px-2 py-1 text-sm"
@@ -465,7 +465,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
     // Default text input
     return (
       <div className="space-y-2">
-        <div className="text-xs text-gray-500">{note || fieldName}</div>
+        <div className="text-xs text-content-tertiary">{note || fieldName}</div>
         <input
           type="text"
           className="w-full border rounded px-2 py-1 text-sm"

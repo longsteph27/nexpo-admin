@@ -30,11 +30,11 @@ export default function EventFormsPage() {
       case "published":
         return "bg-green-100 text-green-800";
       case "draft":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-content-primary";
       case "archived":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-content-primary";
     }
   };
 
@@ -43,8 +43,8 @@ export default function EventFormsPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Forms</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-content-primary">Forms</h1>
+          <p className="text-content-secondary mt-1">
             Create and manage registration forms for your event
           </p>
         </div>
@@ -64,12 +64,12 @@ export default function EventFormsPage() {
           <div className="text-center">
             <Icon
               icon="lucide:file-input"
-              className="w-16 h-16 text-gray-400 mx-auto mb-4"
+              className="w-16 h-16 text-content-tertiary mx-auto mb-4"
             />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            <h3 className="text-lg font-semibold text-content-primary mb-2">
               No Forms Yet
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-content-tertiary mb-6">
               Create your first form to collect registrations
             </p>
             <Button variant="gradient">
@@ -103,13 +103,13 @@ export default function EventFormsPage() {
                     {form.status || "draft"}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-content-primary mb-2">
                   {form.translations?.[0]?.title || `Form ${form.id}`}
                 </h3>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2">
+                <p className="text-sm text-content-tertiary mb-4 line-clamp-2">
                   {form.translations?.[0]?.success_message || "No description"}
                 </p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <div className="flex items-center justify-between text-xs text-content-tertiary">
                   <span>{form.fields?.length || 0} fields</span>
                   <div className="flex space-x-2">
                     <button
@@ -125,7 +125,7 @@ export default function EventFormsPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                       }}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-content-tertiary hover:text-content-secondary"
                     >
                       Delete
                     </button>

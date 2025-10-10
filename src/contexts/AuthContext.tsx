@@ -46,6 +46,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const {
     isAuthenticated,
     isLoading,
+    isRefreshing,
     user,
     tenants,
     selectedTenant,
@@ -58,32 +59,53 @@ export function AuthProvider({ children }: AuthProviderProps) {
   } = useAuthStore();
 
   const hasInitializedRef = useRef(false);
+  const hasCheckedAuthRef = useRef(false);
   const isLoginPage = pathname === '/login';
 
   // Initialize authentication on mount - ONLY ONCE
   useEffect(() => {
+    console.log('[AuthContext] Init check - isLoginPage:', isLoginPage, 'hasInitialized:', hasInitializedRef.current);
     if (!hasInitializedRef.current && !isLoginPage) {
       hasInitializedRef.current = true;
-      checkAuth();
+      console.log('[AuthContext] Starting checkAuth...');
+      checkAuth().then(() => {
+        hasCheckedAuthRef.current = true;
+        console.log('[AuthContext] checkAuth completed');
+      });
     }
   }, [checkAuth, isLoginPage]);
 
-  // Handle authentication state - only redirect when needed
+  // Handle authentication state - only redirect after initial auth check is done
   useEffect(() => {
-    // Don't redirect if still loading or already on login page
-    if (isLoading || isLoginPage) return;
+    // Don't redirect if:
+    // 1. Still loading/refreshing
+    // 2. Already on login page
+    // 3. Haven't completed initial auth check yet (avoid race condition with stale isAuthenticated)
+    if (isLoading || isRefreshing || isLoginPage || !hasCheckedAuthRef.current) {
+      return;
+    }
     
-    // Redirect to login if not authenticated
+    // Only redirect to login if not authenticated after auth check is complete
     if (!isAuthenticated) {
       router.replace('/login');
     }
-  }, [isAuthenticated, isLoading, isLoginPage, router]);
+  }, [isAuthenticated, isLoading, isRefreshing, isLoginPage, router]);
 
   // Handle tenant changes
   const handleTenantChange = useCallback((tenant: Tenant | null) => {
     setSelectedTenant(tenant);
     router.push('/events');
   }, [setSelectedTenant, router]);
+
+  console.log('[AuthContext] State:', { 
+    isAuthenticated, 
+    isLoading, 
+    isRefreshing,
+    hasCheckedAuth: hasCheckedAuthRef.current,
+    user: user?.email,
+    selectedTenant: selectedTenant?.id,
+    tenantsCount: tenants.length
+  });
 
   const contextValue: AuthContextType = {
     // Authentication state
@@ -105,13 +127,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     clearError,
   };
 
-  // Show loading screen with white background
-  if (isLoading && !isLoginPage) {
+  // Show loading screen only during initial auth check
+  if ((isLoading || isRefreshing) && !isLoginPage && !hasCheckedAuthRef.current) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading...</p>
+          <p className="text-content-secondary text-lg">Loading...</p>
         </div>
       </div>
     );

@@ -50,7 +50,7 @@ export function RightDrawer({ open, title, widthClassName = 'w-[420px]', level =
           </div>
         </div>
         {/* Tip bar */}
-        <div className="absolute left-0 right-0 bottom-[56px] border-t bg-gray-50/90 backdrop-blur px-5 py-3 text-sm text-gray-600">
+        <div className="absolute left-0 right-0 bottom-[56px] border-t bg-gray-50/90 backdrop-blur px-5 py-3 text-sm text-content-secondary">
           {tipText}
         </div>
         {/* Footer buttons */}

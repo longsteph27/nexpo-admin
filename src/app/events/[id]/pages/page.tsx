@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { siteApi } from "@/lib/api";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
 
@@ -77,22 +77,22 @@ export default function EventPagesPage() {
       case "published":
         return "bg-green-100 text-green-800";
       case "draft":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-content-primary";
       case "archived":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-100 text-content-primary";
     }
   };
 
   if (!site) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
-        <Icon icon="lucide:globe" className="w-16 h-16 text-gray-400 mb-4" />
-        <h3 className="text-xl font-semibold text-gray-700 mb-2">
+        <Icon icon="lucide:globe" className="w-16 h-16 text-content-tertiary mb-4" />
+        <h3 className="text-xl font-semibold text-content-primary mb-2">
           No Site Found
         </h3>
-        <p className="text-gray-500 mb-6">
+        <p className="text-content-tertiary mb-6">
           Create a site first to manage pages
         </p>
         <Button onClick={() => router.push(`/events/${eventId}/sites`)}>
@@ -108,8 +108,8 @@ export default function EventPagesPage() {
       {/* Page Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Pages</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-2xl font-bold text-content-primary">Pages</h1>
+          <p className="text-content-secondary mt-1">
             Manage pages for your event website
           </p>
         </div>
@@ -132,12 +132,12 @@ export default function EventPagesPage() {
           <div className="text-center">
             <Icon
               icon="lucide:file-text"
-              className="w-16 h-16 text-gray-400 mx-auto mb-4"
+              className="w-16 h-16 text-content-tertiary mx-auto mb-4"
             />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            <h3 className="text-lg font-semibold text-content-primary mb-2">
               No Pages Yet
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-content-tertiary mb-6">
               Create your first page to get started
             </p>
             <Button 
@@ -174,17 +174,17 @@ export default function EventPagesPage() {
                     {page.status || "draft"}
                   </span>
                 </div>
-                <h3 className="font-semibold text-gray-900 mb-2">
+                <h3 className="font-semibold text-content-primary mb-2">
                   {page.translations?.[0]?.title || `Page ${page.id}`}
                 </h3>
-                <p className="text-sm text-gray-500 mb-4">{page.translations?.[0]?.permalink || "—"}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500">
+                <p className="text-sm text-content-tertiary mb-4">{page.translations?.[0]?.permalink || "—"}</p>
+                <div className="flex items-center justify-between text-xs text-content-tertiary">
                   <span>{page.blocks?.length || 0} blocks</span>
                   <div className="flex space-x-2">
                     <button className="text-blue-600 hover:text-blue-700">
                       Edit
                     </button>
-                    <button className="text-gray-400 hover:text-gray-600">
+                    <button className="text-content-tertiary hover:text-content-secondary">
                       Delete
                     </button>
                   </div>

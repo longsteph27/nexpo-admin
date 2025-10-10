@@ -193,10 +193,10 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
                   <Icon icon="lucide:upload" className="w-6 h-6 text-blue-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="font-semibold text-gray-900">Upload from Computer</div>
-                  <div className="text-sm text-gray-500">Select an image from your device</div>
+                  <div className="font-semibold text-content-primary">Upload from Computer</div>
+                  <div className="text-sm text-content-tertiary">Select an image from your device</div>
                 </div>
-                <Icon icon="lucide:chevron-right" className="w-5 h-5 text-gray-400 group-hover:text-blue-500" />
+                <Icon icon="lucide:chevron-right" className="w-5 h-5 text-content-tertiary group-hover:text-blue-500" />
               </button>
 
               {/* Add from URL */}
@@ -208,10 +208,10 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
                   <Icon icon="lucide:link" className="w-6 h-6 text-green-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="font-semibold text-gray-900">Add from URL</div>
-                  <div className="text-sm text-gray-500">Enter an image URL from the web</div>
+                  <div className="font-semibold text-content-primary">Add from URL</div>
+                  <div className="text-sm text-content-tertiary">Enter an image URL from the web</div>
                 </div>
-                <Icon icon="lucide:chevron-right" className="w-5 h-5 text-gray-400 group-hover:text-green-500" />
+                <Icon icon="lucide:chevron-right" className="w-5 h-5 text-content-tertiary group-hover:text-green-500" />
               </button>
 
               {/* Choose from library */}
@@ -223,10 +223,10 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
                   <Icon icon="lucide:library" className="w-6 h-6 text-purple-600" />
                 </div>
                 <div className="flex-1 text-left">
-                  <div className="font-semibold text-gray-900">Choose from Library</div>
-                  <div className="text-sm text-gray-500">Select from your uploaded images</div>
+                  <div className="font-semibold text-content-primary">Choose from Library</div>
+                  <div className="text-sm text-content-tertiary">Select from your uploaded images</div>
                 </div>
-                <Icon icon="lucide:chevron-right" className="w-5 h-5 text-gray-400 group-hover:text-purple-500" />
+                <Icon icon="lucide:chevron-right" className="w-5 h-5 text-content-tertiary group-hover:text-purple-500" />
               </button>
             </div>
           </>
@@ -251,7 +251,7 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">
+                <label className="text-sm font-medium text-content-primary">
                   Image URL
                 </label>
                 <Input
@@ -270,8 +270,8 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
 
               {urlInput && (
                 <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <div className="text-xs font-medium text-gray-500 mb-2">Preview URL:</div>
-                  <div className="text-sm text-gray-700 break-all">{urlInput}</div>
+                  <div className="text-xs font-medium text-content-tertiary mb-2">Preview URL:</div>
+                  <div className="text-sm text-content-primary break-all">{urlInput}</div>
                 </div>
               )}
             </div>
@@ -327,11 +327,11 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
                 className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all group"
               >
                 <div className="flex flex-col items-center justify-center py-6">
-                  <Icon icon="lucide:upload-cloud" className="w-12 h-12 text-gray-400 group-hover:text-blue-500 mb-3" />
-                  <p className="mb-2 text-sm text-gray-500">
+                  <Icon icon="lucide:upload-cloud" className="w-12 h-12 text-content-tertiary group-hover:text-blue-500 mb-3" />
+                  <p className="mb-2 text-sm text-content-tertiary">
                     <span className="font-semibold">Click to upload</span> or drag and drop
                   </p>
-                  <p className="text-xs text-gray-400">PNG, JPG, GIF, WebP (MAX. 10MB)</p>
+                  <p className="text-xs text-content-tertiary">PNG, JPG, GIF, WebP (MAX. 10MB)</p>
                 </div>
                 <input
                   id="file-upload"
@@ -376,20 +376,20 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
             <div className="py-4">
               {!folderId ? (
                 <div className="p-6 text-center">
-                  <Icon icon="lucide:folder-x" className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-2">No folder selected for this tenant</p>
-                  <p className="text-sm text-gray-500">Please configure a media folder for this tenant.</p>
+                  <Icon icon="lucide:folder-x" className="w-12 h-12 text-content-tertiary mx-auto mb-3" />
+                  <p className="text-content-secondary mb-2">No folder selected for this tenant</p>
+                  <p className="text-sm text-content-tertiary">Please configure a media folder for this tenant.</p>
                 </div>
               ) : loadingLibrary ? (
                 <div className="flex items-center justify-center py-12">
                   <Icon icon="lucide:loader-2" className="w-8 h-8 text-blue-500 animate-spin" />
-                  <span className="ml-3 text-gray-600">Loading images...</span>
+                  <span className="ml-3 text-content-secondary">Loading images...</span>
                 </div>
               ) : libraryFiles.length === 0 ? (
                 <div className="p-6 text-center">
-                  <Icon icon="lucide:image-off" className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                  <p className="text-gray-600 mb-2">No images in library</p>
-                  <p className="text-sm text-gray-500">Upload some images to get started.</p>
+                  <Icon icon="lucide:image-off" className="w-12 h-12 text-content-tertiary mx-auto mb-3" />
+                  <p className="text-content-secondary mb-2">No images in library</p>
+                  <p className="text-sm text-content-tertiary">Upload some images to get started.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 gap-3 max-h-[400px] overflow-y-auto">

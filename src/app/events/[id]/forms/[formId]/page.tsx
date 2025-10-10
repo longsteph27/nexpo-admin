@@ -292,8 +292,8 @@ export default function FormBuilderPage() {
       <div className="flex items-start justify-between">
           <div>
             <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm">Form Builder</div>
-            <h1 className="mt-2 text-2xl font-bold text-gray-900 tracking-tight">Design your form</h1>
-            <p className="text-gray-600 mt-1">Event <span className="font-medium">{eventId}</span> • Form <span className="font-medium">{formId}</span></p>
+            <h1 className="mt-2 text-2xl font-bold text-content-primary tracking-tight">Design your form</h1>
+            <p className="text-content-secondary mt-1">Event <span className="font-medium">{eventId}</span> • Form <span className="font-medium">{formId}</span></p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" icon="lucide:arrow-left" onClick={() => router.push(`/events/${eventId}`)}>Back</Button>
@@ -312,12 +312,12 @@ export default function FormBuilderPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Catalog */}
           <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="text-sm font-semibold text-gray-900 mb-3">Field Types</div>
+            <div className="text-sm font-semibold text-content-primary mb-3">Field Types</div>
             <div className="grid grid-cols-2 gap-2">
               {CATALOG.map((t) => (
                 <motion.button
                   key={t.id}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-800 cursor-pointer shadow-sm"
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 text-content-primary cursor-pointer shadow-sm"
                   onClick={() => {
                     const id = crypto.randomUUID();
                     setFields((prev) => [...prev, { id, type: t.id, name: t.label, sort: prev.length + 1 }]);
@@ -340,7 +340,7 @@ export default function FormBuilderPage() {
             onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; }}
             onDrop={handleCanvasDrop}
           >
-            <div className="text-sm font-semibold text-gray-900 mb-3">Form Layout</div>
+            <div className="text-sm font-semibold text-content-primary mb-3">Form Layout</div>
             <div className="space-y-2">
               <AnimatePresence>
               {fields.sort((a, b) => (a.sort || 0) - (b.sort || 0)).map((f, idx) => (
@@ -359,10 +359,10 @@ export default function FormBuilderPage() {
                   onDrop={(e) => handleItemDrop(e, f.id)}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon icon="lucide:grip-vertical" className="w-4 h-4 text-gray-400" />
+                    <Icon icon="lucide:grip-vertical" className="w-4 h-4 text-content-tertiary" />
                     <div>
-                      <div className="text-sm font-medium text-gray-900">{f.name || f.translations?.['en-US']?.label || 'Untitled'}</div>
-                      <div className="text-xs text-gray-500 capitalize">{f.type}</div>
+                      <div className="text-sm font-medium text-content-primary">{f.name || f.translations?.['en-US']?.label || 'Untitled'}</div>
+                      <div className="text-xs text-content-tertiary capitalize">{f.type}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
@@ -378,8 +378,8 @@ export default function FormBuilderPage() {
 
           {/* Inspector */}
           <div className="lg:col-span-3 bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-            <div className="text-sm font-semibold text-gray-900 mb-3">Field Settings</div>
-            {!selected && <div className="text-sm text-gray-500">Select a field to edit its settings</div>}
+            <div className="text-sm font-semibold text-content-primary mb-3">Field Settings</div>
+            {!selected && <div className="text-sm text-content-tertiary">Select a field to edit its settings</div>}
             {selected && (
               <motion.div className="space-y-4" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
                 {/* Language Tabs */}
@@ -395,7 +395,7 @@ export default function FormBuilderPage() {
                   ))}
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Label</label>
+                  <label className="block text-xs text-content-secondary mb-1">Label</label>
                   <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={selected.translations?.[activeLang]?.label || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => {
                       if (f.id !== selected.id) return f;
@@ -405,14 +405,14 @@ export default function FormBuilderPage() {
                     }))} />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Type</label>
+                  <label className="block text-xs text-content-secondary mb-1">Type</label>
                   <select className="select select-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 capitalize focus:outline-none focus:border-gray-500" value={selected.type || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => f.id === selected.id ? { ...f, type: e.target.value } : f))}>
                     {CATALOG.map((t) => (<option key={t.id} value={t.id}>{t.label}</option>))}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Placeholder</label>
+                  <label className="block text-xs text-content-secondary mb-1">Placeholder</label>
                   <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={selected.translations?.[activeLang]?.placeholder || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => {
                       if (f.id !== selected.id) return f;
@@ -422,7 +422,7 @@ export default function FormBuilderPage() {
                     }))} />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Help Text</label>
+                  <label className="block text-xs text-content-secondary mb-1">Help Text</label>
                   <textarea className="textarea textarea-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" rows={2} value={selected.translations?.[activeLang]?.help || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => {
                       if (f.id !== selected.id) return f;
@@ -432,7 +432,7 @@ export default function FormBuilderPage() {
                     }))} />
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Width</label>
+                  <label className="block text-xs text-content-secondary mb-1">Width</label>
                   <select className="select select-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:outline-none focus:border-gray-500" value={selected.width || 'full'}
                     onChange={(e) => setFields((prev) => prev.map((f) => f.id === selected.id ? { ...f, width: e.target.value } : f))}>
                     <option value="full">Full</option>
@@ -441,10 +441,10 @@ export default function FormBuilderPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <input id="req" type="checkbox" checked={!!selected.is_required} onChange={(e) => setFields((prev) => prev.map((f) => f.id === selected.id ? { ...f, is_required: e.target.checked } : f))} />
-                  <label htmlFor="req" className="text-sm text-gray-700">Required</label>
+                  <label htmlFor="req" className="text-sm text-content-primary">Required</label>
                 </div>
                 <div>
-                  <label className="block text-xs text-gray-600 mb-1">Validation</label>
+                  <label className="block text-xs text-content-secondary mb-1">Validation</label>
                   <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={selected.validation || ''}
                     onChange={(e) => setFields((prev) => prev.map((f) => f.id === selected.id ? { ...f, validation: e.target.value } : f))} />
                 </div>
@@ -452,11 +452,11 @@ export default function FormBuilderPage() {
                 {/* Options (for select/multiselect) */}
                 {(selected.type === 'select' || selected.type === 'multiselect') && (
                   <div>
-                    <label className="block text-xs text-gray-600 mb-2">Options</label>
+                    <label className="block text-xs text-content-secondary mb-2">Options</label>
                     {/* Header row */}
                     <div className="grid grid-cols-12 gap-2 mb-1">
-                      <div className="col-span-8 text-xs text-gray-500">Label</div>
-                      <div className="col-span-3 text-xs text-gray-500">Value</div>
+                      <div className="col-span-8 text-xs text-content-tertiary">Label</div>
+                      <div className="col-span-3 text-xs text-content-tertiary">Value</div>
                       <div className="col-span-1" />
                     </div>
                     <div className="space-y-2">
@@ -530,7 +530,7 @@ export default function FormBuilderPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <div className="text-sm font-semibold text-gray-900">Form Information</div>
+            <div className="text-sm font-semibold text-content-primary">Form Information</div>
             <div className="flex items-center gap-2">
               {(['en-US','vi-VN'] as const).map((lng) => (
                 <button key={lng} className={`px-2 py-1 rounded border text-xs ${activeLang === lng ? 'bg-blue-600 text-white border-blue-600' : 'hover:bg-gray-50 border-gray-200'}`} onClick={() => setActiveLang(lng)}>{lng}</button>
@@ -539,24 +539,24 @@ export default function FormBuilderPage() {
           </div>
           <div className="space-y-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Title</label>
+              <label className="block text-xs text-content-secondary mb-1">Title</label>
               <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={formLang[activeLang].title || ''} onChange={(e) => setFormLang((prev) => ({ ...prev, [activeLang]: { ...prev[activeLang], title: e.target.value } }))} />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Submit Label</label>
+              <label className="block text-xs text-content-secondary mb-1">Submit Label</label>
               <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={formLang[activeLang].submit_label || ''} onChange={(e) => setFormLang((prev) => ({ ...prev, [activeLang]: { ...prev[activeLang], submit_label: e.target.value } }))} />
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Success Message</label>
+              <label className="block text-xs text-content-secondary mb-1">Success Message</label>
               <textarea className="textarea textarea-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" rows={3} value={formLang[activeLang].success_message || ''} onChange={(e) => setFormLang((prev) => ({ ...prev, [activeLang]: { ...prev[activeLang], success_message: e.target.value } }))} />
             </div>
           </div>
         </section>
         <section className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm">
-          <div className="text-sm font-semibold text-gray-900 mb-3">Form Settings</div>
+          <div className="text-sm font-semibold text-content-primary mb-3">Form Settings</div>
           <div className="grid grid-cols-1 gap-3">
             <div>
-              <label className="block text-xs text-gray-600 mb-1">Status</label>
+              <label className="block text-xs text-content-secondary mb-1">Status</label>
               <select className="select select-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:outline-none focus:border-gray-500" value={formSettings.status || 'draft'} onChange={(e) => setFormSettings((s) => ({ ...s, status: e.target.value }))}>
                 <option value="published">Published</option>
                 <option value="draft">Draft</option>
@@ -564,7 +564,7 @@ export default function FormBuilderPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs text-gray-600 mb-1">On Success</label>
+              <label className="block text-xs text-content-secondary mb-1">On Success</label>
               <select className="select select-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:outline-none focus:border-gray-500" value={formSettings.on_success || 'message'} onChange={(e) => setFormSettings((s) => ({ ...s, on_success: e.target.value }))}>
                 <option value="redirect">Redirect to URL</option>
                 <option value="message">Show Message</option>
@@ -572,7 +572,7 @@ export default function FormBuilderPage() {
             </div>
             {formSettings.on_success === 'redirect' && (
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Redirect URL</label>
+                <label className="block text-xs text-content-secondary mb-1">Redirect URL</label>
                 <input className="input input-ghost w-full rounded-none px-0 border-0 border-b border-gray-300 focus:border-gray-500" value={formSettings.redirect_url || ''} onChange={(e) => setFormSettings((s) => ({ ...s, redirect_url: e.target.value }))} />
               </div>
             )}

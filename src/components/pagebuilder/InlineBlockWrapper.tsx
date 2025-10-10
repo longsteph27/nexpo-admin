@@ -61,7 +61,7 @@ export default function InlineBlockWrapper({
       default:
         // Fallback to regular block rendering
         return (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-content-tertiary">
             <p>Block type "{block.collection}" not supported for inline editing</p>
           </div>
         )

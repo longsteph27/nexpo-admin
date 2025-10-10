@@ -39,7 +39,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         {label && (
           <label 
             htmlFor={inputId} 
-            className="block text-sm font-medium text-gray-700 mb-2"
+            className="block text-sm font-medium text-content-primary mb-2"
           >
             {label}
           </label>
@@ -50,7 +50,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
               <Icon 
                 icon={leftIcon} 
-                className="w-5 h-5 text-gray-400" 
+                className="w-5 h-5 text-content-tertiary" 
               />
             </div>
           )}
@@ -82,7 +82,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                   "w-5 h-5",
                   hasError && "text-red-500",
                   hasSuccess && "text-green-500",
-                  !hasError && !hasSuccess && "text-gray-400"
+                  !hasError && !hasSuccess && "text-content-tertiary"
                 )} 
               />
             </div>
@@ -104,7 +104,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         )}
 
         {helperText && !error && !success && (
-          <p className="mt-2 text-sm text-gray-500">
+          <p className="mt-2 text-sm text-content-tertiary">
             {helperText}
           </p>
         )}

@@ -173,7 +173,7 @@ export default function ImagePickerDialog({
               <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white text-left align-middle shadow-xl transition-all">
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
-                  <Dialog.Title as="h3" className="text-lg font-semibold text-gray-900">
+                  <Dialog.Title as="h3" className="text-lg font-semibold text-content-primary">
                     Select Image
                   </Dialog.Title>
                   <Button
@@ -194,7 +194,7 @@ export default function ImagePickerDialog({
                       className={`px-4 py-3 text-sm font-medium border-b-2 rounded-none ${
                         activeTab === 'library'
                           ? 'border-blue-600 text-blue-600'
-                          : 'border-transparent text-gray-500'
+                          : 'border-transparent text-content-tertiary'
                       }`}
                     >
                       <Icon icon="lucide:images" className="w-4 h-4 inline mr-2" />
@@ -206,7 +206,7 @@ export default function ImagePickerDialog({
                       className={`px-4 py-3 text-sm font-medium border-b-2 rounded-none ${
                         activeTab === 'upload'
                           ? 'border-blue-600 text-blue-600'
-                          : 'border-transparent text-gray-500'
+                          : 'border-transparent text-content-tertiary'
                       }`}
                     >
                       <Icon icon="lucide:upload" className="w-4 h-4 inline mr-2" />
@@ -220,7 +220,7 @@ export default function ImagePickerDialog({
                   {activeTab === 'library' && (
                     <>
                       {!folderId ? (
-                        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                        <div className="flex flex-col items-center justify-center h-64 text-content-tertiary">
                           <Icon icon="lucide:folder-x" className="w-16 h-16 mb-4" />
                           <p>No folder selected for this tenant</p>
                         </div>
@@ -228,11 +228,11 @@ export default function ImagePickerDialog({
                         <div className="flex items-center justify-center h-64">
                           <div className="flex flex-col items-center">
                             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                            <p className="text-gray-600">Loading images...</p>
+                            <p className="text-content-secondary">Loading images...</p>
                           </div>
                         </div>
                       ) : files.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+                        <div className="flex flex-col items-center justify-center h-64 text-content-tertiary">
                           <Icon icon="lucide:image-off" className="w-16 h-16 mb-4" />
                           <p className="text-lg font-medium mb-2">No images in library</p>
                           <p className="text-sm">Upload your first image to get started</p>
@@ -266,10 +266,10 @@ export default function ImagePickerDialog({
                                 )}
                               </div>
                               <div className="p-2 bg-white">
-                                <p className="text-xs text-gray-600 truncate" title={file.filename_download}>
+                                <p className="text-xs text-content-secondary truncate" title={file.filename_download}>
                                   {file.filename_download}
                                 </p>
-                                <p className="text-xs text-gray-400">
+                                <p className="text-xs text-content-tertiary">
                                   {formatFileSize(file.filesize)}
                                 </p>
                               </div>
@@ -298,15 +298,15 @@ export default function ImagePickerDialog({
                         {uploading ? (
                           <>
                             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-                            <p className="text-gray-600 font-medium">Uploading...</p>
+                            <p className="text-content-secondary font-medium">Uploading...</p>
                           </>
                         ) : (
                           <>
-                            <Icon icon="lucide:upload-cloud" className="w-16 h-16 text-gray-400 mb-4" />
-                            <p className="text-lg font-medium text-gray-700 mb-2">
+                            <Icon icon="lucide:upload-cloud" className="w-16 h-16 text-content-tertiary mb-4" />
+                            <p className="text-lg font-medium text-content-primary mb-2">
                               Click to upload image
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-content-tertiary">
                               PNG, JPG, WEBP, SVG up to 5MB
                             </p>
                           </>

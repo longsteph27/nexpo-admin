@@ -54,15 +54,15 @@ export default function CreateEventPage() {
         <div className="col-span-12 md:col-span-8 bg-white p-8 relative">
           <div className="max-w-3xl mx-auto">
             <div className="mb-8">
-              <h2 className="text-xl font-semibold text-gray-900">{stepTitle.title}</h2>
-              <p className="text-xs text-gray-500 mt-2">{stepTitle.hint}</p>
+              <h2 className="text-xl font-semibold text-content-primary">{stepTitle.title}</h2>
+              <p className="text-xs text-content-tertiary mt-2">{stepTitle.hint}</p>
             </div>
 
             {step === 1 && (
               <div className="space-y-8">
                 {/* Category */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Category<span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-content-primary mb-2">Event Category<span className="text-red-500">*</span></label>
                   <div className="relative">
                     <select
                       className="w-full border-b border-gray-300 focus:border-gray-900 outline-none py-2 pr-8"
@@ -73,7 +73,7 @@ export default function CreateEventPage() {
                       <option value="Technology">Technology</option>
                       <option value="Business">Business</option>
                     </select>
-                    <Icon icon="lucide:chevron-down" className="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <Icon icon="lucide:chevron-down" className="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-content-tertiary" />
                   </div>
                 </div>
 
@@ -85,7 +85,7 @@ export default function CreateEventPage() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                 />
 
-                <div className="text-xs text-gray-500 flex items-center gap-2">
+                <div className="text-xs text-content-tertiary flex items-center gap-2">
                   <Icon icon="lucide:info" className="w-4 h-4" />
                   1/3 - Your fancy event name
                 </div>
@@ -99,7 +99,7 @@ export default function CreateEventPage() {
               <div className="space-y-8">
                 {/* Event type cards */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Event Type<span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-content-primary mb-2">Event Type<span className="text-red-500">*</span></label>
                   <div className="grid grid-cols-3 gap-4">
                     {[
                       { id: 'offline', title: 'Offline Event', desc: 'Conduct an event in a physical venue for face-to-face networking' },
@@ -112,8 +112,8 @@ export default function CreateEventPage() {
                         onClick={() => setEventType(c.id as 'offline' | 'online' | 'hybrid')}
                         className={`text-left rounded-xl border p-4 hover:shadow transition bg-white ${eventType === c.id ? 'ring-2 ring-blue-600 shadow' : ''}`}
                       >
-                        <div className="font-semibold text-gray-900 mb-1">{c.title}</div>
-                        <div className="text-xs text-gray-600 leading-relaxed">{c.desc}</div>
+                        <div className="font-semibold text-content-primary mb-1">{c.title}</div>
+                        <div className="text-xs text-content-secondary leading-relaxed">{c.desc}</div>
                       </button>
                     ))}
                   </div>
@@ -122,14 +122,14 @@ export default function CreateEventPage() {
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Start day</label>
+                    <label className="block text-sm font-medium text-content-primary mb-2">Start day</label>
                     <div className="flex gap-3">
                       <input type="date" className="flex-1 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
                       <input type="time" className="w-32 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">End date</label>
+                    <label className="block text-sm font-medium text-content-primary mb-2">End date</label>
                     <div className="flex gap-3">
                       <input type="date" className="flex-1 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
                       <input type="time" className="w-32 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
@@ -139,11 +139,11 @@ export default function CreateEventPage() {
 
                 {/* Location */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                  <label className="block text-sm font-medium text-content-primary mb-2">Location</label>
                   <input className="w-full border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={location} onChange={(e) => setLocation(e.target.value)} />
                 </div>
 
-                <div className="text-xs text-gray-500 flex items-center gap-2">
+                <div className="text-xs text-content-tertiary flex items-center gap-2">
                   <Icon icon="lucide:info" className="w-4 h-4" />
                   2/3 – Where to know about your Event
                 </div>
@@ -156,7 +156,7 @@ export default function CreateEventPage() {
               <div className="space-y-10">
                 {/* Logo */}
                 <div>
-                  <div className="font-medium text-gray-900 mb-4">Event logo</div>
+                  <div className="font-medium text-content-primary mb-4">Event logo</div>
                   <div className="grid grid-cols-3 gap-6">
                     <div className="col-span-1">
                       <ImageUpload
@@ -165,7 +165,7 @@ export default function CreateEventPage() {
                         folderId={(selectedTenant as any)?.folder_files_id}
                       />
                     </div>
-                    <div className="col-span-2 text-sm text-gray-700">
+                    <div className="col-span-2 text-sm text-content-primary">
                       <div><span className="font-semibold">File Size:</span> Up to 5mb</div>
                       <div className="mt-2"><span className="font-semibold">Optimal Dimension:</span> 600px x 600px</div>
                       <div className="mt-2"><span className="font-semibold">Supported file type:</span> PNG, JPG, WEBP, SVG.</div>
@@ -175,7 +175,7 @@ export default function CreateEventPage() {
 
                 {/* Banner */}
                 <div>
-                  <div className="font-medium text-gray-900 mb-4">Event banner</div>
+                  <div className="font-medium text-content-primary mb-4">Event banner</div>
                   <ImageUpload
                     value={bannerFileId}
                     onChange={setBannerFileId}
@@ -183,7 +183,7 @@ export default function CreateEventPage() {
                   />
                 </div>
 
-                <div className="text-xs text-gray-500 flex items-center gap-2">
+                <div className="text-xs text-content-tertiary flex items-center gap-2">
                   <Icon icon="lucide:info" className="w-4 h-4" />
                   3/3 – How to recognize your Event
                 </div>

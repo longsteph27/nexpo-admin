@@ -3,26 +3,92 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* SF Pro Font Family */
+/* 
+  IMPORTANT: Uncomment these @font-face declarations after downloading SF Pro fonts
+  Download from: https://developer.apple.com/fonts/
+  Place font files in: /public/fonts/
+  
+  Currently using system fonts (-apple-system will use SF Pro on macOS automatically)
+*/
+
+/*
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/fonts/SF-Pro-Display-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/fonts/SF-Pro-Display-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/fonts/SF-Pro-Display-Semibold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'SF Pro Display';
+  src: url('/fonts/SF-Pro-Display-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+*/
+
+@custom-variant dark (&:is(.dark *));
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Content Text Colors */
+  --content-primary: #1A1A1A;     /* Primary text - đen đậm */
+  --content-secondary: #404040;   /* Secondary text - xám đậm */
+  --content-tertiary: #666666;    /* Tertiary text - xám vừa */
+  
   --vnpt-blue: #1e40af;
   --vnpt-light-blue: #3b82f6;
   --vnpt-gray: #374151;
   --vnpt-light-gray: #9ca3af;
-  
+
   /* Hero Block CSS Variables - Synced with docs version */
   --color-primary: #1E40AF;
   --color-gray: #374151;
-  --font-display: Poppins, serif;
-  --font-body: Inter, sans-serif;
+  --font-display: Be Vietnam Pro, serif;
+  --font-body: Be Vietnam Pro, sans-serif;
   --font-code: Fira Code, monospace;
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-poppins);
+  --font-sf: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+  
+  /* Content Text Colors */
+  --color-content-primary: var(--content-primary);
+  --color-content-secondary: var(--content-secondary);
+  --color-content-tertiary: var(--content-tertiary);
+  
   --color-nexpo-blue: #0075F4;
   --color-nexpo-gray: #374151;
   --color-nexpo-light-gray: #D9D9D9;
@@ -32,6 +98,14 @@
   --color-vnpt-gray: #374151;
   --color-vnpt-light-gray: #9ca3af;
   --color-nexpo-bg-sidebar: #06043E;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
 }
 
 * {
@@ -94,4 +168,24 @@ select:focus,
 select:focus-visible {
   outline: none !important;
   box-shadow: none !important;
+}
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+@layer base {
+  * {
+    @apply border-gray-200 outline-blue-500/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

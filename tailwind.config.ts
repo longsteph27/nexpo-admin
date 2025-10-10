@@ -11,6 +11,13 @@ module.exports = {
                 // Accent color (DaisyUI compatible)
                 accent: '#22C55E',
                 
+                // Content Text Colors
+                content: {
+                    primary: '#1A1A1A',     // Primary text - đen đậm
+                    secondary: '#404040',   // Secondary text - xám đậm
+                    tertiary: '#666666',    // Tertiary text - xám vừa
+                },
+                
                 // NEXPO Brand Colors
                 nexpo: {
                     // Primary Brand Colors
@@ -173,6 +180,24 @@ module.exports = {
             fontFamily: {
                 sans: ["var(--font-geist-sans)", "Arial", "sans-serif"],
                 mono: ["var(--font-geist-mono)", "monospace"],
+                sf: [
+                    'SF Pro Display',
+                    '-apple-system',
+                    'BlinkMacSystemFont',
+                    'system-ui',
+                    'Segoe UI',
+                    'Roboto',
+                    'Helvetica Neue',
+                    'Arial',
+                    'sans-serif'
+                ],
+                'sf-text': [
+                    'SF Pro Text',
+                    '-apple-system',
+                    'BlinkMacSystemFont',
+                    'system-ui',
+                    'sans-serif'
+                ],
             },
 
             // Custom gradients

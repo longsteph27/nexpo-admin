@@ -379,7 +379,7 @@ export default function PageBuilderPage() {
       <div className="flex items-center justify-center h-full">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-gray-600">Loading page builder...</span>
+          <span className="text-content-secondary">Loading page builder...</span>
         </div>
       </div>
     );
@@ -687,7 +687,7 @@ export default function PageBuilderPage() {
                   <div className="flex items-center justify-center py-12">
                     <div className="text-center">
                       <LoadingSpinner size="lg" className="mb-4" />
-                      <p className="text-gray-500 text-sm">Loading blocks...</p>
+                      <p className="text-content-tertiary text-sm">Loading blocks...</p>
                     </div>
                   </div>
                   <BlockSkeleton type="hero" />

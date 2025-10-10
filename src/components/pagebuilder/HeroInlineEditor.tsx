@@ -146,7 +146,7 @@ export default function HeroInlineEditor({
         {/* Placeholder when no content */}
         {!formData.headline && !isEditing && (
           <div className="h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">Click edit to add headline</span>
+            <span className="text-content-tertiary text-sm">Click edit to add headline</span>
           </div>
         )}
       </div>
@@ -182,7 +182,7 @@ export default function HeroInlineEditor({
         {/* Placeholder when no content */}
         {!formData.content && !isEditing && (
           <div className="h-20 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-            <span className="text-gray-400 text-sm">Click edit to add content</span>
+            <span className="text-content-tertiary text-sm">Click edit to add content</span>
           </div>
         )}
       </div>
@@ -208,7 +208,7 @@ export default function HeroInlineEditor({
                       setFormData(prev => ({ ...prev, image: newImage }))
                     }
                   }}
-                  className="bg-white/90 text-gray-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-white transition-colors"
+                  className="bg-white/90 text-content-primary px-4 py-2 rounded-lg text-sm font-medium hover:bg-white transition-colors"
                 >
                   Change
                 </button>
@@ -245,9 +245,9 @@ export default function HeroInlineEditor({
           </div>
         ) : (
           <div className="w-full h-64 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center bg-gray-50">
-            <Icon icon="lucide:image" className="w-12 h-12 text-gray-400 mb-2" />
-            <p className="text-gray-500 font-medium">No image</p>
-            <p className="text-gray-400 text-sm">Click edit to add image</p>
+            <Icon icon="lucide:image" className="w-12 h-12 text-content-tertiary mb-2" />
+            <p className="text-content-tertiary font-medium">No image</p>
+            <p className="text-content-tertiary text-sm">Click edit to add image</p>
           </div>
         )
       )}
@@ -311,7 +311,7 @@ export default function HeroInlineEditor({
       {isEditing && (
         <div className="absolute bottom-4 left-4 z-10">
           <div className="bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg">
-            <label className="text-xs font-medium text-gray-700 mb-1 block">Image Position</label>
+            <label className="text-xs font-medium text-content-primary mb-1 block">Image Position</label>
             <select
               value={formData.image_position}
               onChange={(e) => setFormData(prev => ({ ...prev, image_position: e.target.value as 'left' | 'right' }))}
