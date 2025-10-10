@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 
 interface ReloadHandlerProps {
@@ -8,19 +9,21 @@ interface ReloadHandlerProps {
 }
 
 export function ReloadHandler({ children }: ReloadHandlerProps) {
+  const pathname = usePathname();
   const { isLoading, isRefreshing } = useAuthStore();
+  const isLoginPage = pathname === '/login';
 
-  // Show loading only during authentication process
-  const showLoading = isLoading || isRefreshing;
+  // Don't show loading overlay on login page or if not loading
+  const showLoading = (isLoading || isRefreshing) && !isLoginPage;
 
   return (
     <>
       {children}
       {showLoading && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 flex items-center space-x-3">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="text-gray-700">Authenticating...</span>
+        <div className="fixed inset-0 bg-white flex items-center justify-center z-50">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading...</p>
           </div>
         </div>
       )}
