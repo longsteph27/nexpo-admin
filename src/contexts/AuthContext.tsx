@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import { ReloadHandler } from '@/components/ReloadHandler';
 import type { User, Tenant } from '@/lib/directus';
@@ -17,8 +17,6 @@ interface AuthContextType {
   // Authentication actions
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
-  checkAuthOnReload: () => Promise<void>;
   
   // Tenant management
   setSelectedTenant: (tenant: Tenant | null) => void;
@@ -44,6 +42,7 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const {
     isAuthenticated,
     isLoading,
@@ -54,53 +53,36 @@ export function AuthProvider({ children }: AuthProviderProps) {
     login,
     logout,
     checkAuth,
-    checkAuthOnReload,
     setSelectedTenant,
     clearError,
   } = useAuthStore();
 
   const hasInitializedRef = useRef(false);
+  const isLoginPage = pathname === '/login';
 
   // Initialize authentication on mount - ONLY ONCE
   useEffect(() => {
-    if (!hasInitializedRef.current) {
+    if (!hasInitializedRef.current && !isLoginPage) {
       hasInitializedRef.current = true;
-      
-      // Always call checkAuth - it will handle reload detection internally
-      console.log('🔄 Initializing authentication...');
       checkAuth();
     }
-  }, [checkAuth]);
+  }, [checkAuth, isLoginPage]);
 
-  // Handle browser refresh/reload events (no additional checkAuth calls)
+  // Handle authentication state - only redirect when needed
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      console.log('🔄 Browser refresh/reload detected');
-    };
-
-    // Listen for page refresh/reload (no additional auth checks)
-    window.addEventListener('beforeunload', handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
-  }, []);
-
-  // Handle authentication state changes - only redirect to login if not loading and not authenticated
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      // Only redirect to login if we're not on the login page
-      if (window.location.pathname !== '/login') {
-        router.push('/login');
-      }
+    // Don't redirect if still loading or already on login page
+    if (isLoading || isLoginPage) return;
+    
+    // Redirect to login if not authenticated
+    if (!isAuthenticated) {
+      router.replace('/login');
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, isLoginPage, router]);
 
   // Handle tenant changes
   const handleTenantChange = useCallback((tenant: Tenant | null) => {
     setSelectedTenant(tenant);
-    // Redirect to home admin when tenant changes
-    router.push('/');
+    router.push('/events');
   }, [setSelectedTenant, router]);
 
   const contextValue: AuthContextType = {
@@ -114,8 +96,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Authentication actions
     login,
     logout,
-    checkAuth,
-    checkAuthOnReload,
     
     // Tenant management
     setSelectedTenant: handleTenantChange,
@@ -125,6 +105,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     clearError,
   };
 
+  // Show loading screen with white background
+  if (isLoading && !isLoginPage) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthContext.Provider value={contextValue}>
       <ReloadHandler>
@@ -132,32 +124,4 @@ export function AuthProvider({ children }: AuthProviderProps) {
       </ReloadHandler>
     </AuthContext.Provider>
   );
-}
-
-
-// Hook for authentication state
-export function useAuthState() {
-  const { isAuthenticated, isLoading, user, tenants, selectedTenant, error } = useAuth();
-  
-  return {
-    isAuthenticated,
-    isLoading,
-    user,
-    tenants,
-    selectedTenant,
-    error,
-  };
-}
-
-// Hook for authentication actions
-export function useAuthActions() {
-  const { login, logout, checkAuth, checkAuthOnReload, clearError } = useAuth();
-  
-  return {
-    login,
-    logout,
-    checkAuth,
-    checkAuthOnReload,
-    clearError,
-  };
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
@@ -21,7 +21,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login, isLoading, error, isAuthenticated, clearError } = useAuthStore();
+  const { login, isLoading, error } = useAuthStore();
   const [showPassword, setShowPassword] = useState(false);
 
   const {
@@ -39,24 +39,10 @@ export default function LoginPage() {
 
   const email = watch('email');
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      router.push('/events');
-    }
-  }, [isAuthenticated, router]);
-
-  useEffect(() => {
-    if (error) {
-      const timer = setTimeout(() => {
-        clearError();
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [error, clearError]);
-
   const onSubmit = async (data: LoginFormData) => {
     const success = await login(data.email, data.password);
     if (success) {
+      // Redirect immediately after successful login
       router.push('/events');
     }
   };
