@@ -202,13 +202,13 @@ export default function CreateEventPage() {
               </Button>
             )}
             {step < 3 ? (
-              <Button variant="primary" onClick={() => goToStep(step + 1)}>
+              <Button variant="default" onClick={() => goToStep(step + 1)}>
                 Next
                 <Icon icon="lucide:chevron-right" className="w-5 h-5 ml-2" />
               </Button>
             ) : (
               <Button
-                variant="primary"
+                variant="gradient"
                 loading={submitting}
                 onClick={async () => {
                   if (!selectedTenant) return;

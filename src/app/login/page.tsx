@@ -175,11 +175,10 @@ export default function LoginPage() {
             {/* Login Button */}
             <Button
               type="submit"
-              variant="primary"
+              variant="gradient"
               size="lg"
               fullWidth
               loading={isLoading}
-              variant="gradient"
             >
               {isLoading ? 'Signing in...' : 'Log in'}
             </Button>

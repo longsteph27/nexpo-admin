@@ -298,9 +298,8 @@ export default function FormBuilderPage() {
           <div className="flex gap-2">
             <Button variant="outline" icon="lucide:arrow-left" onClick={() => router.push(`/events/${eventId}`)}>Back</Button>
             <Button 
-              variant="primary" 
-              icon="lucide:save" 
               variant="gradient" 
+              icon="lucide:save"
               onClick={handleSave}
               disabled={isSaving}
             >

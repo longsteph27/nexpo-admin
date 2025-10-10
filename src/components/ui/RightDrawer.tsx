@@ -56,7 +56,7 @@ export function RightDrawer({ open, title, widthClassName = 'w-[420px]', level =
         {/* Footer buttons */}
         <div className="absolute left-0 right-0 bottom-0 flex items-center justify-end gap-3 px-5 py-3 border-t bg-white/95 backdrop-blur">
           <Button variant="outline" onClick={onSecondary || onClose}>{secondaryLabel}</Button>
-          <Button variant="primary" onClick={onPrimary || onClose}>{primaryLabel}</Button>
+          <Button variant="default" onClick={onPrimary || onClose}>{primaryLabel}</Button>
         </div>
       </aside>
     </>
