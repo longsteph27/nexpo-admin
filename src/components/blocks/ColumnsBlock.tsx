@@ -55,10 +55,10 @@ function ColumnsBlock({ data, lang }: ColumnsBlockProps) {
   return (
     <BlockContainer className='relative mx-auto w-full max-w-7xl items-center px-5 py-24  md:px-12 lg:px-16'>
       {title && <TypographyTitle
-        className='text-[var(--color-gray)] font-[var(--font-display) ] font-semibold'
+        className='text-gray font-font-display font-semibold'
       >{title}</TypographyTitle>}
       {headline && <TypographyHeadline 
-        className='text-[var(--color-primary)] font-[var(--font-display) ] font-semibold'
+        className='text-primary font-font-display font-semibold'
         size='xl'
         content={headline} />}
       {data.rows &&
@@ -79,12 +79,12 @@ function ColumnsBlock({ data, lang }: ColumnsBlockProps) {
                     <div>
                       {rowTitle && (
                         <TypographyTitle
-                          className='text-[var(--color-gray)] font-[var(--font-display) ] font-semibold'
+                          className='text-gray font-font-display font-semibold'
                         >{rowTitle}</TypographyTitle>
                       )}
                       {rowHeadline && (
                         <TypographyHeadline 
-                        className='text-[var(--color-primary)] font-[var(--font-display) ] font-semibold'
+                        className='text-primary font-font-display font-semibold'
                         size='xl'
                         content={rowHeadline} />
                       )}
@@ -92,14 +92,14 @@ function ColumnsBlock({ data, lang }: ColumnsBlockProps) {
                         <TypographyProse
                         
                           content={rowContent}
-                          className='mt-4 font-[var(--font-body)]'
+                          className='mt-4 font-font-body'
                         />
                       )}
                     </div>
                   </div>
                 </div>
                 <div
-                  className={`order-first mt-12 block aspect-square w-full border-2 border-[var(--color-primary)] p-2  lg:mt-0 ${
+                  className={`order-first mt-12 block aspect-square w-full border-2 border-primary p-2  lg:mt-0 ${
                     row.image_position === 'right'
                       ? 'rounded-xl lg:order-last'
                       : 'rounded-xl lg:order-first'

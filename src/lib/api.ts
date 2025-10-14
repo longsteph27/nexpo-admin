@@ -237,6 +237,27 @@ export const siteApi = {
     }
   },
 
+  // Update site
+  updateSite: async (siteId: number, payload: Partial<{
+    slug: string;
+    domain: string;
+    status: string;
+    logo: string | null;
+    favicon: string | null;
+    tenant_id: number;
+    translations: {
+      create?: Array<{ languages_code: { code: string }; title?: string; description?: string }>;
+      update?: Array<{ id: number; title?: string; description?: string }>;
+    };
+  }>): Promise<ApiResponse<unknown>> => {
+    try {
+      const res = await directusHelpers.updateSite(siteId, payload);
+      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to update site') };
+    }
+  },
+
   // Create a page with translations (title) for a site
   createPage: async (payload: { site_id: number; sort?: number; translations?: { create: Array<{ languages_code: { code: string }; title?: string; permalink?: string }> } }): Promise<ApiResponse<unknown>> => {
     try {
@@ -466,6 +487,62 @@ export const navigationApi = {
       return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
     } catch (error: unknown) {
       return { success: false, error: handleAxiosError(error, 'Failed to create navigation item') };
+    }
+  },
+};
+
+// Global Settings API
+export const globalApi = {
+  getGlobal: async (siteId: number): Promise<ApiResponse<unknown>> => {
+    try {
+      const res = await directusHelpers.getGlobal(siteId);
+      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to get global settings') };
+    }
+  },
+
+  updateGlobal: async (globalId: string, payload: Partial<{
+    title: string;
+    tagline: string;
+    description: string;
+    url: string;
+    theme: Record<string, unknown>;
+    logo_on_light_bg: string | null;
+    logo_on_dark_bg: string | null;
+    favicon: string | null;
+    og_image: string | null;
+    street_address: string;
+    address_locality: string;
+    address_region: string;
+    address_country: string;
+    postal_code: string;
+    email: string;
+    phone: string;
+    social_links: Array<{ service: string; url: string }>;
+    build_hook_url: string;
+  }>): Promise<ApiResponse<unknown>> => {
+    try {
+      const res = await directusHelpers.updateGlobal(globalId, payload);
+      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to update global settings') };
+    }
+  },
+
+  createGlobal: async (payload: {
+    site_id: number;
+    title?: string;
+    tagline?: string;
+    description?: string;
+    url?: string;
+    theme?: Record<string, unknown>;
+  }): Promise<ApiResponse<unknown>> => {
+    try {
+      const res = await directusHelpers.createGlobal(payload);
+      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to create global settings') };
     }
   },
 };

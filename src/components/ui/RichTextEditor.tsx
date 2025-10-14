@@ -279,6 +279,7 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
   const toggleStrike = () => editor?.chain().focus().toggleStrike().run();
   const toggleBulletList = () => editor?.chain().focus().toggleBulletList().run();
   const toggleOrderedList = () => editor?.chain().focus().toggleOrderedList().run();
+  const toggleBlockquote = () => editor?.chain().focus().toggleBlockquote().run();
   const setTextAlign = (align: 'left' | 'center' | 'right' | 'justify') => 
     editor?.chain().focus().setTextAlign(align).run();
   const setHeading = (level: 1 | 2 | 3) => 
@@ -293,10 +294,11 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
       const { from, to } = editor.state.selection;
       const text = editor.state.doc.textBetween(from, to, '');
       
-      // Replace link with button HTML
-      const buttonHtml = `<p><a class="btn btn-primary btn-md" href="${href}" target="_self">${text}</a></p>`;
-      
-      editor.chain().focus().insertContent(buttonHtml).run();
+      // Apply button classes to the existing link (from customFormats schema)
+      editor.chain().focus().updateAttributes('link', {
+        class: 'btn_live btn_live-primary btn_live-md',
+        target: '_self'
+      }).run();
     }
     setParagraphDropdownOpen(false);
   };
@@ -401,8 +403,8 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
                 disabled={!editor?.isActive('link')}
                 className={`w-full px-3 py-2 text-left text-sm transition-colors ${
                   editor?.isActive('link') 
-                    ? 'text-content-primary hover:bg-blue-50 hover:text-blue-600' 
-                    : 'text-content-tertiary cursor-not-allowed'
+                    ? 'text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium' 
+                    : 'text-content-tertiary cursor-not-allowed opacity-50'
                 }`}
               >
                 Primary Button
@@ -429,6 +431,15 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
           title="Numbered List"
         >
           <Icon icon="lucide:list-ordered" className="w-4 h-4" />
+        </button>
+
+        <button
+          type="button"
+          onClick={toggleBlockquote}
+          className={`p-2 rounded transition-all duration-200 hover:bg-gray-200 hover:scale-105 ${editor.isActive('blockquote') ? 'bg-green-100 text-green-600 border border-green-200' : 'text-content-secondary'}`}
+          title="Quote"
+        >
+          <Icon icon="lucide:quote" className="w-4 h-4" />
         </button>
 
         <div className="w-px h-6 bg-gray-300 mx-1" />
@@ -560,15 +571,15 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
             list-style-type: disc !important;
           }
           
-          .ProseMirror a {
-            color: #2563eb !important;            /* Blue links */
-            text-decoration: underline !important;
-            cursor: pointer !important;
-          }
+          // .ProseMirror a {
+          //   color: #2563eb !important;            /* Blue links */
+          //   text-decoration: underline !important;
+          //   cursor: pointer !important;
+          // }
           
-          .ProseMirror a:hover {
-            color: #1d4ed8 !important;            /* Darker blue on hover */
-          }
+          // .ProseMirror a:hover {
+          //   color: #1d4ed8 !important;            /* Darker blue on hover */
+          // }
           
           .ProseMirror strong {
             font-weight: 700 !important;          /* Bolder than before */
@@ -588,11 +599,31 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
           }
           
           .ProseMirror blockquote {
-            border-left: 4px solid #e5e7eb !important;
-            padding-left: 1rem !important;
-            margin: 1rem 0 !important;
+            border-left: 4px solid #10b981 !important;
+            padding-left: 1.5rem !important;
+            margin: 1.5rem 0 !important;
             font-style: italic !important;
-            color: #6b7280 !important;
+            color: #374151 !important;
+            background-color: #f0fdf4 !important;
+            padding: 1rem 1.5rem !important;
+            border-radius: 0 0.5rem 0.5rem 0 !important;
+            position: relative !important;
+          }
+          
+          .ProseMirror blockquote::before {
+            content: '"' !important;
+            font-size: 3rem !important;
+            color: #10b981 !important;
+            position: absolute !important;
+            left: 0.5rem !important;
+            top: -0.5rem !important;
+            font-family: serif !important;
+            line-height: 1 !important;
+          }
+          
+          .ProseMirror blockquote p {
+            margin: 0 !important;
+            color: #374151 !important;
           }
           
           /* Button-like text styling */
@@ -602,6 +633,36 @@ export function RichTextEditor({ value, onChange, placeholder }: RichTextEditorP
             cursor: pointer !important;
             font-weight: 500 !important;
           }
+          
+          // /* Primary Button styling */
+          // .ProseMirror a.btn {
+          //   display: inline-block !important;
+          //   padding: 0.5rem 1rem !important;
+          //   border-radius: 0.5rem !important;
+          //   font-weight: 500 !important;
+          //   text-decoration: none !important;
+          //   transition: all 0.2s ease-in-out !important;
+          //   border: 2px solid transparent !important;
+          //   cursor: pointer !important;
+          // }
+          
+          // .ProseMirror a.btn.btn-primary {
+          //   background-color: #3B82F6 !important;
+          //   color: white !important;
+          //   border-color: #3B82F6 !important;
+          // }
+          
+          // .ProseMirror a.btn.btn-primary:hover {
+          //   background-color: #2563EB !important;
+          //   border-color: #2563EB !important;
+          //   transform: translateY(-1px) !important;
+          //   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+          // }
+          
+          // .ProseMirror a.btn.btn-md {
+          //   padding: 0.5rem 1rem !important;
+          //   font-size: 0.875rem !important;
+          // }
           
           /* Ensure proper spacing between elements */
           .ProseMirror > * + * {

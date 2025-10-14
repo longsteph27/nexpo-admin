@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useEvent } from '@/hooks/useEvents';
 import { siteApi } from '@/lib/api';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
 // import NavigationDrawer from '@/components/ui/NavigationDrawer';
 // import { type Navigation } from '@/hooks/useNavigation';
@@ -70,13 +70,13 @@ export default function SiteDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" onClick={() => router.push(`/events/${eventId}/sites/${siteId}/settings`)}>
+            <Icon icon="lucide:settings" className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
           <Button variant="outline">
             <Icon icon="lucide:eye" className="w-4 h-4 mr-2" />
             Preview Site
-          </Button>
-          <Button variant="gradient">
-            <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
-            Save Changes
           </Button>
         </div>
       </div>
@@ -440,11 +440,11 @@ export default function SiteDetailPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <h4 className="text-sm font-semibold text-content-primary truncate">{member.name || 'Unnamed'}</h4>
-                          {member.translations?.[0]?.title && (
-                            <p className="text-xs text-content-secondary truncate">{member.translations[0].title}</p>
+                          {member.translations?.[0]?.job_title && (
+                            <p className="text-xs text-content-secondary truncate">{member.translations[0].job_title}</p>
                           )}
                           {member.translations?.[0]?.bio && (
-                            <p className="text-xs text-content-tertiary line-clamp-2 mt-1">{member.translations[0].bio}</p>
+                            <p className="text-xs text-content-tertiary line-clamp-2 mt-1" dangerouslySetInnerHTML={{ __html: member.translations[0].bio }}></p>
                           )}
                           <div className="mt-2">
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${

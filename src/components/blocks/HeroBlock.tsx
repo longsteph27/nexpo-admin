@@ -69,10 +69,10 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
       className='md:col-span-2 md:pt-12 transition-all duration-700 ease-out'
     >
       <h1
-        className="text-[var(--color-primary)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-[var(--font-display)] font-bold leading-tight mb-4"
+        className="text-primary text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-font-display font-bold leading-tight mb-4"
         dangerouslySetInnerHTML={headline ? { __html: headline } : undefined}
       />
-      <p className="w-full py-4 font-[var(--font-body)] text-sm sm:text-base md:text-lg leading-relaxed text-[var(--color-gray)]">
+      <p className="w-full py-4 font-font-body text-sm sm:text-base md:text-lg leading-relaxed text-gray">
         {content}
       </p>
       <div className='flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0'>

@@ -1,0 +1,1356 @@
+{
+    "collections": [
+        {
+            "collection": "globals",
+            "meta": {
+                "collection": "globals",
+                "icon": "south_america",
+                "note": null,
+                "display_template": null,
+                "hidden": false,
+                "singleton": false,
+                "translations": null,
+                "archive_field": null,
+                "archive_app_filter": true,
+                "archive_value": null,
+                "unarchive_value": null,
+                "sort_field": null,
+                "accountability": "all",
+                "color": "#18222F",
+                "item_duplication_fields": null,
+                "sort": 8,
+                "group": "sites",
+                "collapse": "open",
+                "preview_url": null,
+                "versioning": false
+            },
+            "schema": {}
+        }
+    ],
+    "fields": [
+        {
+            "collection": "globals",
+            "field": "id",
+            "type": "uuid",
+            "schema": {
+                "name": "id",
+                "table": "globals",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "id",
+                "special": [
+                    "uuid"
+                ],
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": true,
+                "hidden": true,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "og_image",
+            "type": "uuid",
+            "schema": {
+                "name": "og_image",
+                "table": "globals",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "og_image",
+                "special": [
+                    "file"
+                ],
+                "interface": "file-image",
+                "options": {
+                    "folder": "38637388-36d5-46df-b8a0-ca6ffd6525ef"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "social",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "street_address",
+            "type": "string",
+            "schema": {
+                "name": "street_address",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "street_address",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "url",
+            "type": "string",
+            "schema": {
+                "name": "url",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "url",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": "What's is the base url for the site?",
+                "conditions": null,
+                "required": false,
+                "group": "seo",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "logo_on_dark_bg",
+            "type": "uuid",
+            "schema": {
+                "name": "logo_on_dark_bg",
+                "table": "globals",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "logo_on_dark_bg",
+                "special": [
+                    "file"
+                ],
+                "interface": "file-image",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 1,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "theming",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "notice_deployment",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "globals",
+                "field": "notice_deployment",
+                "special": [
+                    "alias",
+                    "no-data"
+                ],
+                "interface": "presentation-notice",
+                "options": {
+                    "color": "warning",
+                    "icon": "warning",
+                    "text": "Please do not adjust these settings unless you are 💯 confident."
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 1,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "deployment",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "address_locality",
+            "type": "string",
+            "schema": {
+                "name": "address_locality",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "address_locality",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "build_hook_url",
+            "type": "string",
+            "schema": {
+                "name": "build_hook_url",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "build_hook_url",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": "URL for the build / deploy hook that starts a new build",
+                "conditions": null,
+                "required": false,
+                "group": "deployment",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "title",
+            "type": "string",
+            "schema": {
+                "name": "title",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "title",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": "What's the website title?",
+                "conditions": null,
+                "required": false,
+                "group": "seo",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "logo_on_light_bg",
+            "type": "uuid",
+            "schema": {
+                "name": "logo_on_light_bg",
+                "table": "globals",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "logo_on_light_bg",
+                "special": [
+                    "file"
+                ],
+                "interface": "file-image",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "theming",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "theming",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "globals",
+                "field": "theming",
+                "special": [
+                    "alias",
+                    "no-data",
+                    "group"
+                ],
+                "interface": "group-detail",
+                "options": {
+                    "headerIcon": "format_paint"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "address_region",
+            "type": "string",
+            "schema": {
+                "name": "address_region",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "address_region",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "social_links",
+            "type": "json",
+            "schema": {
+                "name": "social_links",
+                "table": "globals",
+                "data_type": "json",
+                "default_value": [],
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "social_links",
+                "special": [
+                    "cast-json"
+                ],
+                "interface": "list",
+                "options": {
+                    "fields": [
+                        {
+                            "field": "service",
+                            "name": "service",
+                            "type": "string",
+                            "meta": {
+                                "field": "service",
+                                "width": "half",
+                                "type": "string",
+                                "interface": "select-dropdown",
+                                "options": {
+                                    "choices": [
+                                        {
+                                            "text": "Facebook",
+                                            "value": "facebook"
+                                        },
+                                        {
+                                            "text": "Instagram",
+                                            "value": "instagram"
+                                        },
+                                        {
+                                            "text": "LinkedIn",
+                                            "value": "linkedin"
+                                        },
+                                        {
+                                            "text": "Twitter",
+                                            "value": "twitter"
+                                        },
+                                        {
+                                            "text": "Vimeo",
+                                            "value": "vimeo"
+                                        },
+                                        {
+                                            "text": "YouTube",
+                                            "value": "youtube"
+                                        },
+                                        {
+                                            "text": "GitHub",
+                                            "value": "github"
+                                        },
+                                        {
+                                            "text": "Discord",
+                                            "value": "discord"
+                                        },
+                                        {
+                                            "text": "Docker",
+                                            "value": "docker"
+                                        }
+                                    ],
+                                    "allowOther": true
+                                }
+                            }
+                        },
+                        {
+                            "field": "url",
+                            "name": "url",
+                            "type": "string",
+                            "meta": {
+                                "field": "url",
+                                "width": "half",
+                                "type": "string",
+                                "interface": "input",
+                                "options": {
+                                    "trim": true
+                                }
+                            }
+                        }
+                    ],
+                    "template": "{{ service }}"
+                },
+                "display": "formatted-json-value",
+                "display_options": {
+                    "format": "{{ service }}"
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "social",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "tagline",
+            "type": "string",
+            "schema": {
+                "name": "tagline",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "tagline",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": "What's the website title?",
+                "conditions": null,
+                "required": false,
+                "group": "seo",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "theme",
+            "type": "json",
+            "schema": {
+                "name": "theme",
+                "table": "globals",
+                "data_type": "json",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "theme",
+                "special": [
+                    "cast-json"
+                ],
+                "interface": "input-code",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "theming",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "seo",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "globals",
+                "field": "seo",
+                "special": [
+                    "alias",
+                    "group",
+                    "no-data"
+                ],
+                "interface": "group-detail",
+                "options": {
+                    "headerIcon": "anchor"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "width": "full",
+                "translations": null,
+                "note": "This will be the default metadata used for SEO",
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "description",
+            "type": "text",
+            "schema": {
+                "name": "description",
+                "table": "globals",
+                "data_type": "text",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "description",
+                "special": null,
+                "interface": "input-multiline",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "seo",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "postal_code",
+            "type": "string",
+            "schema": {
+                "name": "postal_code",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "postal_code",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "social",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "globals",
+                "field": "social",
+                "special": [
+                    "alias",
+                    "group",
+                    "no-data"
+                ],
+                "interface": "group-detail",
+                "options": {
+                    "headerIcon": "campaign",
+                    "start": "closed"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 4,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "address_country",
+            "type": "string",
+            "schema": {
+                "name": "address_country",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "address_country",
+                "special": null,
+                "interface": "input",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
+                "width": "half",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "contact",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "globals",
+                "field": "contact",
+                "special": [
+                    "alias",
+                    "group",
+                    "no-data"
+                ],
+                "interface": "group-detail",
+                "options": {
+                    "headerIcon": "info",
+                    "start": "closed"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 5,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "email",
+            "type": "string",
+            "schema": {
+                "name": "email",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "email",
+                "special": null,
+                "interface": "input",
+                "options": {
+                    "iconLeft": "alternate_email"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "deployment",
+            "type": "alias",
+            "schema": null,
+            "meta": {
+                "collection": "globals",
+                "field": "deployment",
+                "special": [
+                    "alias",
+                    "group",
+                    "no-data"
+                ],
+                "interface": "group-detail",
+                "options": {
+                    "headerIcon": "send",
+                    "start": "closed"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 6,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "phone",
+            "type": "string",
+            "schema": {
+                "name": "phone",
+                "table": "globals",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "phone",
+                "special": null,
+                "interface": "input",
+                "options": {
+                    "iconLeft": "phone_iphone"
+                },
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 7,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": "contact",
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "site_id",
+            "type": "integer",
+            "schema": {
+                "name": "site_id",
+                "table": "globals",
+                "data_type": "integer",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": 32,
+                "numeric_scale": 0,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "sites",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "site_id",
+                "special": null,
+                "interface": "select-dropdown-m2o",
+                "options": {
+                    "template": "{{event_id.name}} {{slug}}"
+                },
+                "display": "related-values",
+                "display_options": {
+                    "template": "{{event_id.name}} {{slug}}"
+                },
+                "readonly": false,
+                "hidden": false,
+                "sort": 8,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "favicon",
+            "type": "uuid",
+            "schema": {
+                "name": "favicon",
+                "table": "globals",
+                "data_type": "uuid",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": null,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "comment": null
+            },
+            "meta": {
+                "collection": "globals",
+                "field": "favicon",
+                "special": [
+                    "file"
+                ],
+                "interface": "file-image",
+                "options": null,
+                "display": null,
+                "display_options": null,
+                "readonly": false,
+                "hidden": false,
+                "sort": 9,
+                "width": "full",
+                "translations": null,
+                "note": null,
+                "conditions": null,
+                "required": false,
+                "group": null,
+                "validation": null,
+                "validation_message": null
+            }
+        }
+    ],
+    "relations": [
+        {
+            "collection": "globals",
+            "field": "og_image",
+            "related_collection": "directus_files",
+            "schema": {
+                "constraint_name": "globals_og_image_foreign",
+                "table": "globals",
+                "column": "og_image",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "globals",
+                "many_field": "og_image",
+                "one_collection": "directus_files",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "logo_on_dark_bg",
+            "related_collection": "directus_files",
+            "schema": {
+                "constraint_name": "globals_logo_on_dark_bg_foreign",
+                "table": "globals",
+                "column": "logo_on_dark_bg",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "globals",
+                "many_field": "logo_on_dark_bg",
+                "one_collection": "directus_files",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "logo_on_light_bg",
+            "related_collection": "directus_files",
+            "schema": {
+                "constraint_name": "globals_logo_on_light_bg_foreign",
+                "table": "globals",
+                "column": "logo_on_light_bg",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "globals",
+                "many_field": "logo_on_light_bg",
+                "one_collection": "directus_files",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "site_id",
+            "related_collection": "sites",
+            "schema": {
+                "constraint_name": "globals_site_id_foreign",
+                "table": "globals",
+                "column": "site_id",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "sites",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "globals",
+                "many_field": "site_id",
+                "one_collection": "sites",
+                "one_field": "globals",
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        },
+        {
+            "collection": "globals",
+            "field": "favicon",
+            "related_collection": "directus_files",
+            "schema": {
+                "constraint_name": "globals_favicon_foreign",
+                "table": "globals",
+                "column": "favicon",
+                "foreign_key_schema": "public",
+                "foreign_key_table": "directus_files",
+                "foreign_key_column": "id",
+                "on_update": "NO ACTION",
+                "on_delete": "SET NULL"
+            },
+            "meta": {
+                "many_collection": "globals",
+                "many_field": "favicon",
+                "one_collection": "directus_files",
+                "one_field": null,
+                "one_collection_field": null,
+                "one_allowed_collections": null,
+                "junction_field": null,
+                "sort_field": null,
+                "one_deselect_action": "nullify"
+            }
+        }
+    ]
+}

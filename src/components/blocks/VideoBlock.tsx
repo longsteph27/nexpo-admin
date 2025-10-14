@@ -56,7 +56,7 @@ export default function VideoBlock({ data, lang }: VideoBlockProps) {
   return (
     <BlockContainer className='mx-auto max-w-4xl py-12 text-center'>
       {title && (
-        <TypographyTitle className="font-[var(--font-display)] text-[var(--color-gray)]">
+        <TypographyTitle className="font-font-display text-gray">
           {title}
         </TypographyTitle>
       )}
@@ -64,7 +64,7 @@ export default function VideoBlock({ data, lang }: VideoBlockProps) {
         <TypographyHeadline
           content={headline}
           size='xl'
-          className="font-[var(--font-display)] text-[var(--color-primary)]"
+          className="font-font-display text-primary"
         />
       )}
       <div className='relative flex justify-center items-center mt-8'>

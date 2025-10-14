@@ -19,19 +19,19 @@ interface VButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, Va
 // Color and variant classes to maintain backward compatibility with original VButton
 function getButtonColorClass(color: string, variant: string) {
   if (variant === 'solid') {
-    if (color === 'primary' || null) return 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]/90'
+    if (color === 'primary' || null) return 'bg-primary text-white hover:bg-primary/90'
     if (color === 'gray') return 'bg-gray-400 text-white hover:bg-gray-500'
     if (color === 'black') return 'bg-black text-white hover:bg-gray-800'
     if (color === 'white') return 'bg-white text-black hover:bg-gray-100 border border-gray-300'
   }
   if (variant === 'outline') {
-    if (color === 'primary') return 'border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10'
+    if (color === 'primary') return 'border-primary text-primary hover:bg-primary/10'
     if (color === 'gray') return 'border-gray-400 text-content-primary hover:bg-gray-100'
     if (color === 'black') return 'border-black text-black hover:bg-gray-100'
     if (color === 'white') return 'border-white text-white hover:bg-gray-100'
   }
   if (variant === 'link') {
-    if (color === 'primary') return 'text-[var(--color-primary)] hover:text-[var(--color-primary)]/80'
+    if (color === 'primary') return 'text-primary hover:text-primary/80'
     if (color === 'gray') return 'text-content-primary hover:text-content-primary'
     if (color === 'black') return 'text-black hover:text-content-primary'
     if (color === 'white') return 'text-white hover:text-gray-200'

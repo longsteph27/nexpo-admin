@@ -7,7 +7,7 @@ interface TitleProps {
 }
 
 function TypographyTitle({ as = 'h2', className, children }: TitleProps) {
-  const classNames = `font-[var(--font-display)]  font-semibold tracking-wider uppercase ${
+  const classNames = `font-font-display  font-semibold tracking-wider uppercase ${
     className || ''
   }`
 

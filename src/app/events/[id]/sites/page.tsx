@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
 import { siteApi } from "@/lib/api";
-import Button from "@/components/ui/button";
+import { Button } from "@/components/ui/button-base";
 import { Icon } from "@iconify/react";
 
 export default function EventSitesListPage() {
@@ -108,7 +108,7 @@ export default function EventSitesListPage() {
                   onClick={() =>
                     router.push(`/events/${eventId}/sites/${site.id}`)
                   }
-                  className="group cursor-pointer border border-gray-200 rounded-lg p-5 hover:border-blue-500 hover:shadow-lg transition-all duration-200"
+                  className="group border border-gray-200 rounded-lg p-5 hover:border-blue-500 hover:shadow-lg transition-all duration-200 cursor-pointer"
                 >
                   {/* Site Header */}
                   <div className="flex items-start justify-between mb-4">

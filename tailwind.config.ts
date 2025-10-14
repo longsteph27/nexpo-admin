@@ -9,7 +9,7 @@ module.exports = {
         extend: {
             colors: {
                 // Accent color (DaisyUI compatible)
-                accent: '#22C55E',
+                accent: 'hsl(240 4.8% 95.9%)',
                 
                 // Content Text Colors
                 content: {
@@ -17,6 +17,62 @@ module.exports = {
                     secondary: '#404040',   // Secondary text - xám đậm
                     tertiary: '#666666',    // Tertiary text - xám vừa
                 },
+                
+                // CSS Variables from globals.css
+                background: "var(--background)",
+                foreground: "var(--foreground)",
+                
+                // Content Text Colors from CSS Variables
+                'content-primary': "var(--content-primary)",
+                'content-secondary': "var(--content-secondary)", 
+                'content-tertiary': "var(--content-tertiary)",
+                
+                // VNPT Colors from CSS Variables
+                'vnpt-blue': "var(--vnpt-blue)",
+                'vnpt-light-blue': "var(--vnpt-light-blue)",
+                'vnpt-gray': "var(--vnpt-gray)",
+                'vnpt-light-gray': "var(--vnpt-light-gray)",
+                
+                // Hero Block Colors from CSS Variables
+                primary: "var(--color-content-primary)",
+                secondary: "var(--color-content-secondary)",
+                tertiary: "var(--color-content-tertiary)",
+                gray: "var(--color-gray)",
+                'bg-gray-upload': "var(--bg-gray-upload)",
+                
+                // Sidebar Colors from CSS Variables
+                sidebar: "var(--sidebar)",
+                'sidebar-foreground': "var(--sidebar-foreground)",
+                'sidebar-primary': "var(--sidebar-primary)",
+                'sidebar-primary-foreground': "var(--sidebar-primary-foreground)",
+                'sidebar-accent': "var(--sidebar-accent)",
+                'sidebar-accent-foreground': "var(--sidebar-accent-foreground)",
+                'sidebar-border': "var(--sidebar-border)",
+                'sidebar-ring': "var(--sidebar-ring)",
+                
+                // NEXPO Colors from CSS Variables
+                'nexpo-blue': "var(--color-nexpo-blue)",
+                'nexpo-gray': "var(--color-nexpo-gray)",
+                'nexpo-light-gray': "var(--color-nexpo-light-gray)",
+                'nexpo-bg-gray': "var(--color-nexpo-bg-gray)",
+                'nexpo-bg-sidebar': "var(--color-nexpo-bg-sidebar)",
+                
+                // Additional CSS Variables from globals.css
+                'color-primary': "var(--color-primary)",
+                'color-gray': "var(--color-gray)",
+                'color-nexpo-blue': "var(--color-nexpo-blue)",
+                'color-nexpo-gray': "var(--color-nexpo-gray)",
+                'color-nexpo-light-gray': "var(--color-nexpo-light-gray)",
+                'color-nexpo-bg-gray': "var(--color-nexpo-bg-gray)",
+                'color-nexpo-bg-sidebar': "var(--color-nexpo-bg-sidebar)",
+                'color-sidebar': "var(--color-sidebar)",
+                'color-sidebar-foreground': "var(--color-sidebar-foreground)",
+                'color-sidebar-primary': "var(--color-sidebar-primary)",
+                'color-sidebar-primary-foreground': "var(--color-sidebar-primary-foreground)",
+                'color-sidebar-accent': "var(--color-sidebar-accent)",
+                'color-sidebar-accent-foreground': "var(--color-sidebar-accent-foreground)",
+                'color-sidebar-border': "var(--color-sidebar-border)",
+                'color-sidebar-ring': "var(--color-sidebar-ring)",
                 
                 // NEXPO Brand Colors
                 nexpo: {
@@ -48,7 +104,12 @@ module.exports = {
                         800: '#1E293B',
                         900: '#0F172A',
                         950: '#020617',
-                    }
+                    },
+                    'blue': '#0075F4',
+                    'gray': '#374151',
+                    'light-gray': '#D9D9D9',
+                    'bg-gray': '#F7F7F7',
+                    'bg-sidebar': '#06043E'
                 },
 
                 // Sidebar Colors
@@ -198,6 +259,11 @@ module.exports = {
                     'system-ui',
                     'sans-serif'
                 ],
+                // Font families from globals.css
+                'font-poppins': ['Poppins', 'system-ui', 'sans-serif'],
+                'font-body': ['var(--font-body, Inter, sans-serif)'],
+                'font-display': ['var(--font-display, Poppins, serif)'],
+                'font-code': ['var(--font-code, Fira Code, monospace)'],
             },
 
             // Custom gradients
@@ -212,7 +278,21 @@ module.exports = {
                 'nexpo': '0 4px 6px -1px rgba(79, 128, 255, 0.1), 0 2px 4px -1px rgba(79, 128, 255, 0.06)',
                 'nexpo-lg': '0 10px 15px -3px rgba(79, 128, 255, 0.1), 0 4px 6px -2px rgba(79, 128, 255, 0.05)',
                 'sidebar': '4px 0 6px -1px rgba(0, 0, 0, 0.1)',
-            }
+            },
+            
+            // Animation support for globals.css
+            animation: {
+                'fade-in': 'fadeIn 0.6s ease-out',
+            },
+            
+            keyframes: {
+                fadeIn: {
+                    '0%': { opacity: '0', transform: 'translateY(20px)' },
+                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                },
+            },
+            
+            // Additional CSS Variables from globals.css (merged into existing colors above)
         },
     },
     plugins: [
@@ -244,7 +324,7 @@ module.exports = {
                     warning: "#F59E0B",
                     "warning-content": "#FFFFFF",
                     error: "#EF4444",
-                    "error-content": "#FFFFFF",
+                    "error-content": "#FFFFFF"
                 },
             },
             "dark",

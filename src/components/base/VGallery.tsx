@@ -121,7 +121,7 @@ function VGallery({ items }: GalleryProps) {
           <div className="relative flex h-full w-full max-w-5xl flex-col items-center justify-center">
             <button
               onClick={toggle}
-              className="absolute right-4 top-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
+              className="absolute right-4 top-4 z-50 rounded-xl bg-primary p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
             >
               <span className="sr-only">Close</span>
               <VIcon icon="heroicons:x-mark" className="h-6 w-6" />
@@ -129,14 +129,14 @@ function VGallery({ items }: GalleryProps) {
             <div className="flex h-full w-full items-center justify-center">
               <button
                 onClick={prev}
-                className="absolute left-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
+                className="absolute left-4 z-50 rounded-xl bg-primary p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
               >
                 <span className="sr-only">Previous</span>
                 <VIcon icon="heroicons:arrow-left" className="h-6 w-6 animate-bounce-left" />
               </button>
               <button
                 onClick={next}
-                className="absolute right-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
+                className="absolute right-4 z-50 rounded-xl bg-primary p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
               >
                 <span className="sr-only">Next</span>
                 <VIcon icon="heroicons:arrow-right" className="h-6 w-6 animate-bounce-right" />
@@ -146,7 +146,7 @@ function VGallery({ items }: GalleryProps) {
                 <div className="relative w-full h-full flex flex-col items-center justify-center p-8 animate-fade-in">
                   {/* Metadata */}
                   <div className="flex w-full mb-4 items-center gap-2">
-                    <p className="inline-block rounded-xl bg-[var(--color-primary)] px-6 py-2 font-serif font-bold text-white text-xl shadow">
+                    <p className="inline-block rounded-xl bg-primary px-6 py-2 font-serif font-bold text-white text-xl shadow">
                       {currentItem.title}
                     </p>
                     {currentItem.description && (

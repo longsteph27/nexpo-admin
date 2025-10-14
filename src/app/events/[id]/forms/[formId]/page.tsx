@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm, useSaveForm } from '@/hooks/useForms';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
 
@@ -317,7 +317,7 @@ export default function FormBuilderPage() {
               {CATALOG.map((t) => (
                 <motion.button
                   key={t.id}
-                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 text-content-primary cursor-pointer shadow-sm"
+                  className="px-3 py-2 text-sm rounded-lg border border-gray-200 hover:bg-gray-50 text-content-primary shadow-sm"
                   onClick={() => {
                     const id = crypto.randomUUID();
                     setFields((prev) => [...prev, { id, type: t.id, name: t.label, sort: prev.length + 1 }]);
@@ -366,9 +366,9 @@ export default function FormBuilderPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button className="p-1 hover:bg-gray-100 rounded cursor-pointer" onClick={(e) => { e.stopPropagation(); moveField(idx, -1); }}><Icon icon="lucide:chevron-up" className="w-4 h-4" /></button>
-                    <button className="p-1 hover:bg-gray-100 rounded cursor-pointer" onClick={(e) => { e.stopPropagation(); moveField(idx, 1); }}><Icon icon="lucide:chevron-down" className="w-4 h-4" /></button>
-                    <button className="p-1 hover:bg-red-50 rounded text-red-600 cursor-pointer" onClick={(e) => { e.stopPropagation(); removeField(f.id); }}><Icon icon="lucide:trash-2" className="w-4 h-4" /></button>
+                    <button className="p-1 hover:bg-gray-100 rounded" onClick={(e) => { e.stopPropagation(); moveField(idx, -1); }}><Icon icon="lucide:chevron-up" className="w-4 h-4" /></button>
+                    <button className="p-1 hover:bg-gray-100 rounded" onClick={(e) => { e.stopPropagation(); moveField(idx, 1); }}><Icon icon="lucide:chevron-down" className="w-4 h-4" /></button>
+                    <button className="p-1 hover:bg-red-50 rounded text-red-600" onClick={(e) => { e.stopPropagation(); removeField(f.id); }}><Icon icon="lucide:trash-2" className="w-4 h-4" /></button>
                   </div>
                 </motion.div>
               ))}
@@ -505,7 +505,7 @@ export default function FormBuilderPage() {
                       ))}
                       <div className="pt-1">
                         <button
-                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-base-300 hover:bg-base-200 cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded border border-base-300 hover:bg-base-200"
                           onClick={() => setFields((prev) => prev.map((f) => {
                             if (f.id !== selected.id) return f;
                             const translations = { ...(f.translations || {}) } as { 'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] }; 'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] } };

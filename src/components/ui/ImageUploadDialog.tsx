@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
 import { Icon } from '@iconify/react';
 import { directusHelpers } from '@/lib/directus';
@@ -324,7 +324,7 @@ export function ImageUploadDialog({ open, onClose, onImageSelected, folderId }: 
             <div className="py-4">
               <label
                 htmlFor="file-upload"
-                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all group cursor-pointer"
               >
                 <div className="flex flex-col items-center justify-center py-6">
                   <Icon icon="lucide:upload-cloud" className="w-12 h-12 text-content-tertiary group-hover:text-blue-500 mb-3" />

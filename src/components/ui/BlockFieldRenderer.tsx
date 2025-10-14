@@ -235,7 +235,7 @@ export function BlockFieldRenderer({ field, value, onChange }: FieldRendererProp
           <div className="text-xs text-content-tertiary">{note || fieldName}</div>
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors ${
+            className={`border-2 border-dashed rounded-lg p-4 text-center transition-colors cursor-pointer ${
               isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-gray-400'
             }`}
           >

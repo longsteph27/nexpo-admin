@@ -12,6 +12,8 @@ import CtaBlock from '@/components/blocks/CtaBlock';
 import VideoBlock from '@/components/blocks/VideoBlock';
 import GalleryBlock from '@/components/blocks/GalleryBlock';
 import RawHtmlBlock from '@/components/blocks/RawHtmlBlock';
+import FormBlock from '@/components/blocks/FormBlock';
+import ThemeSelector from '@/components/ui/ThemeSelector';
 
 interface Block {
   id: string;
@@ -23,9 +25,10 @@ interface Block {
 interface PagePreviewProps {
   blocks: Block[];
   lang: 'en-US' | 'vi-VN';
+  siteId?: number;
 }
 
-export default function PagePreview({ blocks, lang }: PagePreviewProps) {
+export default function PagePreview({ blocks, lang, siteId }: PagePreviewProps) {
   if (blocks.length === 0) {
     return (
       <div className="min-h-[600px] flex flex-col items-center justify-center text-center p-12">
@@ -43,7 +46,15 @@ export default function PagePreview({ blocks, lang }: PagePreviewProps) {
   }
 
   return (
-    <div className="min-h-[600px] bg-gray-50">
+    <div className="min-h-[600px] bg-gray-50 relative">
+      {/* Theme Selector - Fixed position at top right */}
+      {siteId && (
+        <ThemeSelector 
+          onThemeSelect={() => {}}
+          siteId={siteId}
+        />
+      )}
+      
       {blocks.map((block, index) => (
         <div key={block.id} className="relative group">
           {renderBlockPreview(block, lang)}
@@ -99,6 +110,9 @@ function renderBlockPreview(block: Block, lang: string) {
     
     case 'block_divider':
       return <DividerPreview data={block.item} />;
+    
+    case 'block_form':
+      return <FormBlock key={block.id} data={block.item} lang={shortLang} />;
     
     default:
       return <PlaceholderPreview collection={block.collection} />;

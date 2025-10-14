@@ -6,7 +6,7 @@ import '@/styles/pagebuilder.css';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import { siteApi, navigationApi } from '@/lib/api';
 import BlockSelectorModal from '@/components/pagebuilder/BlockSelectorModal';
 import BlockEditorModal from '@/components/pagebuilder/BlockEditorModal';
@@ -280,6 +280,7 @@ export default function PageBuilderPage() {
     setBlocks(newBlocks.map((b, i) => ({ ...b, sort: i })));
   };
 
+
   // Save page
   const handleSave = async () => {
     setIsSaving(true);
@@ -457,8 +458,9 @@ export default function PageBuilderPage() {
           </Button>
           
           <Button
-            className="bg-neutral-900 hover:bg-neutral-800 text-white"
+            className="text-white"
             size="sm"
+            variant="default"
             onClick={handleSave}
             disabled={isSaving}
           >
@@ -706,7 +708,11 @@ export default function PageBuilderPage() {
                   ))}
                 </div>
               ) : (
-                <PagePreview blocks={blocks} lang={previewLang} />
+                <PagePreview 
+                  blocks={blocks} 
+                  lang={previewLang} 
+                  siteId={siteId}
+                />
               )}
             </div>
           </div>

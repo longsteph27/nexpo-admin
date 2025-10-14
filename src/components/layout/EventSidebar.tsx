@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { directusHelpers } from '@/lib/directus';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Site {
     id: number;
@@ -36,20 +37,21 @@ interface EventSidebarProps {
 export default function EventSidebar({ eventId }: EventSidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
+    const { isAuthenticated } = useAuth();
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
 
-    // Fetch sites for this event
+    // Fetch sites for this event - only when authenticated
     const { data: sites = [], isLoading: sitesLoading } = useQuery({
         queryKey: ['sites', eventId],
         queryFn: async () => {
             const result = await directusHelpers.getSitesByEvent(parseInt(eventId));
             return result.success ? result.data : [];
         },
-        enabled: !!eventId,
+        enabled: !!eventId && isAuthenticated,  // Wait for auth
     });
 
-    // Fetch pages for expanded sites
+    // Fetch pages for expanded sites - only when authenticated
     const { data: pagesData = {}, isLoading: pagesLoading } = useQuery({
         queryKey: ['pages', Array.from(expandedSites)],
         queryFn: async () => {
@@ -64,7 +66,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
 
             return pages;
         },
-        enabled: expandedSites.size > 0,
+        enabled: expandedSites.size > 0 && isAuthenticated,  // Wait for auth
     });
 
     const toggleSite = (siteId: number) => {
@@ -144,7 +146,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     };
 
     return (
-        <div className="w-72 h-full bg-white border-r border-gray-200 flex flex-col shadow-lg">
+        <div className="w-72 h-full bg-white border-r border-slate-200 flex flex-col shadow-lg">
             {/* Navigation */}
             <div className="flex-1 overflow-y-auto">
                 <nav className="py-4 px-0 space-y-4">
@@ -159,7 +161,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                 </div>
                                    <span className="font-sf text-lg font-bold text-content-primary uppercase tracking-wider">ORGANIZER</span>
                             </div>
-                            <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                            <button className="p-1 hover:bg-slate-100 rounded transition-colors">
                                 <Icon icon="lucide:more-horizontal" className="w-4 h-4 text-content-tertiary" />
                             </button>
                         </div>
@@ -213,10 +215,10 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                         <div className="ml-6">
                             <motion.div 
                                 className={cn(
-                                    "flex items-center space-x-3 px-3 py-2 rounded-md transition-all duration-200",
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
                                     isSitesActive 
                                         ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
-                                        : "hover:bg-gray-50"
+                                        : "hover:bg-slate-50"
                                 )}
                                 variants={sidebarItemVariants}
                                 whileHover="hover"
@@ -327,10 +329,10 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                     }}
                                                 >
                                                     {/* Connecting line */}
-                                                    <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300" />
+                                                    <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
 
                                                     <motion.div
-                                                        className="relative flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gradient-to-r hover:from-gray-50 hover:to-gray-100 transition-all duration-200"
+                                                        className="relative flex items-center justify-between px-3 py-2 cursor-pointer hover:bg-gradient-to-r hover:from-slate-100/10 hover:to-slate-100 transition-all duration-200"
                                                         onClick={() => togglePages(site.id)}
                                                         variants={sidebarItemVariants}
                                                         whileHover="hover"
@@ -341,7 +343,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                         }}
                                                     >
                                                     {/* Horizontal connecting line */}
-                                                    <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-300 transform -translate-y-1/2" />
+                                                    <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
 
                                                     <div className="flex items-center space-x-3">
                                                         <Icon icon="lucide:file-text" className="w-4 h-4 text-content-tertiary flex-shrink-0" />
@@ -352,7 +354,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                             e.stopPropagation();
                                                             togglePages(site.id);
                                                         }}
-                                                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                                        className="p-1 hover:bg-nexpo-light-gray rounded transition-colors"
                                                         whileHover={{ scale: 1.1 }}
                                                         whileTap={{ scale: 0.9 }}
                                                     >
@@ -387,7 +389,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                             }}
                                                         >
                                                             {/* Vertical line for pages */}
-                                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-gray-300" />
+                                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
 
                                                         {pagesLoading ? (
                                                             <div className="flex items-center space-x-2 px-4 py-2 text-xs text-content-tertiary">
@@ -404,7 +406,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                                     <motion.div
                                                                         key={page.id}
                                                                         className={cn(
-                                                                            "relative flex items-center space-x-3 px-3 py-2 cursor-pointer transition-all duration-200",
+                                                                            "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
                                                                             "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                                             isPageActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                                         )}
@@ -420,18 +422,18 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                                         }}
                                                                     >
                                                                         {/* Horizontal connecting line */}
-                                                                        <div className="absolute left-0 top-1/2 w-4 h-px bg-gray-300 transform -translate-y-1/2" />
+                                                                        <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
 
                                                                         {/* Vertical line continuation (only if not last page) */}
-                                                                        {!isLastPage && (
-                                                                            <div className="absolute left-0 top-full w-px h-4 bg-gray-300" />
-                                                                        )}
+                                                                        {/* {!isLastPage && (
+                                                                            <div className="absolute left-0 top-full w-px h-4 bg-slate-500" />
+                                                                        )} */}
 
                                                                         <div className={cn(
                                                                             "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                                                                            isPageActive ? "bg-blue-600" : "bg-gray-400"
+                                                                            isPageActive ? "bg-blue-600" : "bg-nexpo-light-gray"
                                                                         )} />
-                                                                        <span className="text-sm font-medium font-sf text-content-primary">{pageTitle}</span>
+                                                                        <span className="text-sm font-medium ml-3 font-sf text-content-primary">{pageTitle}</span>
                                                                     </motion.div>
                                                                 );
                                                             })
@@ -453,7 +455,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-100">
+            <div className="p-4 border-t border-slate-100">
                        <div className="text-center">
                        <Image src="/logo_nexpo.png" alt="NEXPO" width={100} height={100} className="w-20 h-auto mx-auto mb-3" />
                        <div className="text-xs text-content-tertiary mb-2 font-sans">You&apos;re in a team-managed project</div>
@@ -462,7 +464,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                             <Icon icon="lucide:message-circle" className="w-3 h-3" />
                             <span className="font-sans">Give feedback</span>
                         </button>
-                        <span className="text-gray-300">•</span>
+                        <span className="text-nexpo-light-gray">•</span>
                         <button className="flex items-center space-x-1 hover:text-blue-600 transition-colors">
                             <Icon icon="lucide:book-open" className="w-3 h-3" />
                             <span className="font-sans">Learn more</span>

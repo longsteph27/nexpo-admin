@@ -54,7 +54,7 @@ const createAuthenticatedFetch = () => {
       if (typeof window !== 'undefined') {
         // Import auth store dynamically to avoid circular dependency
         import('@/store/auth').then(({ useAuthStore }) => {
-          useAuthStore.getState().clearAuthData();
+          // useAuthStore.getState().clearAuthData();
         });
       }
       return response;
@@ -1169,11 +1169,13 @@ export const directusHelpers = {
         fields: ([
           'id','sort','status','site_id','date_created','date_updated',
           { translations: ['id','languages_code','title','permalink'] },
+          { site: ['id','event_id','tenant_id'] },
           { blocks: [
             'id','collection','sort','hide_block',
             { item: [
               '*',
-              { translations: ['*'] }
+              { translations: ['*'] },
+              { form: ['id','status','on_success','redirect_url', { translations: ['*'] }, { fields: ['*', { translations: ['*'] }] }] }
             ] }
           ] }
         ] as unknown) as never,
@@ -1345,8 +1347,57 @@ export const directusHelpers = {
       return { success: true, data: pages as unknown as Page[] };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch pages' };
+      }
+    },
+
+    // Global settings CRUD operations
+    async getGlobal(siteId: number) {
+      try {
+        const globals = await directus.request(
+          readItems('globals' as never, {
+            filter: { site_id: { _eq: siteId } },
+            limit: 1,
+            fields: ([
+              'id', 'site_id', 'title', 'tagline', 'description', 'url', 'theme',
+              'logo_on_light_bg', 'logo_on_dark_bg', 'favicon', 'og_image',
+              'street_address', 'address_locality', 'address_region', 'address_country',
+              'postal_code', 'email', 'phone', 'social_links', 'build_hook_url'
+            ] as unknown) as never,
+          })
+        );
+        return { success: true, data: globals?.[0] || null };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to get global settings' };
+      }
+    },
+
+    async updateGlobal(globalId: string, payload: Partial<{
+      title: string; tagline: string; description: string; url: string;
+      theme: Record<string, unknown>; logo_on_light_bg: string | null;
+      logo_on_dark_bg: string | null; favicon: string | null; og_image: string | null;
+      street_address: string; address_locality: string; address_region: string;
+      address_country: string; postal_code: string; email: string; phone: string;
+      social_links: Array<{ service: string; url: string }>; build_hook_url: string;
+    }>) {
+      try {
+        const global = await directus.request(updateItem('globals' as never, globalId as never, payload as never));
+        return { success: true, data: global };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to update global settings' };
+      }
+    },
+
+    async createGlobal(payload: {
+      site_id: number; title?: string; tagline?: string; description?: string;
+      url?: string; theme?: Record<string, unknown>;
+    }) {
+      try {
+        const global = await directus.request(createItem('globals' as never, payload as never));
+        return { success: true, data: global };
+      } catch (error) {
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to create global settings' };
+      }
     }
-  },
-};
+  };
 
 export default directus;

@@ -67,7 +67,7 @@ export default function EventLayout({ children, eventId }: EventLayoutProps) {
       </motion.div>
 
       {/* Toggle Button */}
-      <motion.button
+      <motion.div
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         className="fixed z-50 bg-white border border-gray-200 shadow-md hover:shadow-lg transition-shadow rounded-r-lg cursor-pointer"
         animate={{ 
@@ -87,7 +87,7 @@ export default function EventLayout({ children, eventId }: EventLayoutProps) {
           icon={sidebarCollapsed ? 'lucide:chevron-right' : 'lucide:chevron-left'}
           className="w-4 h-4 text-content-secondary"
         />
-      </motion.button>
+      </motion.div>
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto min-w-0 relative">

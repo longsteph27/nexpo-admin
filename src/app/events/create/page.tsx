@@ -4,11 +4,20 @@ import React, { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { CustomTimeField } from "@/components/ui/CustomTimeField";
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { useAuthStore } from '@/store/auth';
 import { directusHelpers } from '@/lib/directus';
+import { CustomDateField } from '@/components/ui/CustomDateField';
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -63,18 +72,16 @@ export default function CreateEventPage() {
                 {/* Category */}
                 <div>
                   <label className="block text-sm font-medium text-content-primary mb-2">Event Category<span className="text-red-500">*</span></label>
-                  <div className="relative">
-                    <select
-                      className="w-full border-b border-gray-300 focus:border-gray-900 outline-none py-2 pr-8"
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                    >
-                      <option value="Design">Design</option>
-                      <option value="Technology">Technology</option>
-                      <option value="Business">Business</option>
-                    </select>
-                    <Icon icon="lucide:chevron-down" className="w-4 h-4 absolute right-1 top-1/2 -translate-y-1/2 text-content-tertiary" />
-                  </div>
+                  <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger className="lg:w-52 w-32 border-b-2 border-gray-300 rounded-sm p-3 focus:border-nexpo-blue">
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Design">Design</SelectItem>
+                      <SelectItem value="Technology">Technology</SelectItem>
+                      <SelectItem value="Business">Business</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Name */}
@@ -121,18 +128,69 @@ export default function CreateEventPage() {
 
                 {/* Dates */}
                 <div className="grid grid-cols-2 gap-6">
+                  {/* Start Date */}
                   <div>
-                    <label className="block text-sm font-medium text-content-primary mb-2">Start day</label>
-                    <div className="flex gap-3">
-                      <input type="date" className="flex-1 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-                      <input type="time" className="w-32 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                    <label className="text-xs font-medium text-content-primary mb-1 block">
+                      Start day<span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 rounded-sm pb-1.5 border-b-2 border-nexpo-light-gray focus:border-b-nexpo-blue space-x-5">
+                          <div className="flex-1">
+                            <CustomDateField
+                              value={startDate}
+                              onChange={setStartDate}
+                              placeholder="Select start date"
+                              className="text-sm"
+                              showClearButton={true}
+                              borderStyle="border-0 outline-none"
+                              underlineColor=""
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <CustomTimeField
+                              value={startTime}
+                              onChange={setStartTime}
+                              placeholder="Select start time"
+                              className="text-sm"
+                              showClearButton={true}
+                              borderStyle="border-0 outline-none"
+                              underlineColor=""
+                            />
+                          </div>
+                        </div>
                     </div>
                   </div>
+
+                  {/* End Date */}
                   <div>
-                    <label className="block text-sm font-medium text-content-primary mb-2">End date</label>
-                    <div className="flex gap-3">
-                      <input type="date" className="flex-1 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
-                      <input type="time" className="w-32 border-b border-gray-300 focus:border-gray-900 outline-none py-2" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                    <label className="text-xs font-medium text-content-primary mb-1 block">
+                      End date<span className="text-red-500 ml-1">*</span>
+                    </label>
+                    <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 rounded-sm pb-1.5 border-b-2 border-nexpo-light-gray focus:border-b-nexpo-blue space-x-5">
+                          <div className="flex-1">
+                            <CustomDateField
+                              value={endDate}
+                              onChange={setEndDate}
+                              placeholder="Select end date"
+                              className="text-sm"
+                              showClearButton={true}
+                              borderStyle="border-0 outline-none"
+                              underlineColor=""
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <CustomTimeField
+                              value={endTime}
+                              onChange={setEndTime}
+                              placeholder="Select end time"
+                              className="text-sm"
+                              showClearButton={true}
+                              borderStyle="border-0 outline-none"
+                              underlineColor=""
+                            />
+                          </div>
+                        </div>
                     </div>
                   </div>
                 </div>

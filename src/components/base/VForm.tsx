@@ -105,7 +105,7 @@ function VForm(props: FormProps) {
   return (
     <div className={cn(
       props.className,
-      'max-w-4xl mx-auto bg-white border-2 border-[var(--color-primary)] rounded-[12px] shadow-md p-8'
+      'max-w-4xl mx-auto bg-white border-2 border-primary rounded-[12px] shadow-md p-8'
     )}>
       <div className='mb-4'>
         {error && <VAlert type='error'>{(error as any)?.message || String(error)}</VAlert>}
@@ -146,7 +146,7 @@ function VForm(props: FormProps) {
           </div>
           <div className='col-span-6 mx-auto'>
             <div className='form-control mt-6'>
-              <button className='bg-[var(--color-primary)] text-white px-4 py-2 rounded-md'>
+              <button className='bg-primary text-white px-4 py-2 rounded-md'>
                 {loading && <span className='loading loading-spinner'></span>}
                 {!loading && props.form.submit_label}
               </button>

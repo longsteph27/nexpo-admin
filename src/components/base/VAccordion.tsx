@@ -26,10 +26,10 @@ export function VAccordion({ title, children, defaultOpen = false }: Props) {
         value="item-1"
         className="rounded-2xl border border-gray-200 bg-white/80 shadow transition duration-200 px-6"
       >
-        <AccordionTrigger className="font-[var(--font-display)] text-lg text-[var(--color-primary)] font-semibold hover:no-underline">
+        <AccordionTrigger className="font-font-display text-lg text-primary font-semibold hover:no-underline">
           {title}
         </AccordionTrigger>
-        <AccordionContent className="prose text-left font-[var(--font-body)] text-[var(--color-gray)] pt-2">
+        <AccordionContent className="prose text-left font-font-body text-gray pt-2">
           {children}
         </AccordionContent>
       </AccordionItem>

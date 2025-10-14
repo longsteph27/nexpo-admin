@@ -40,28 +40,7 @@ function Prose({ content, className }: ProseProps) {
     <div
       ref={contentEl}
       className={twMerge(
-        // Base styling giữ nguyên
-        'rich-text whitespace-pre-line',
-        
-        // TypographyProse styling từ docs
-        'prose prose-sm max-w-none md:prose-base lg:prose-lg',
-        'prose-headings:font-serif',
-        'prose-p:text-[var(--color-gray)] prose-h1:text-[var(--color-gray)] prose-h2:text-[var(--color-gray)] prose-h3:text-[var(--color-gray)]',
-        'prose-h4:text-[var(--color-gray)] prose-h5:text-[var(--color-gray)] prose-h6:text-[var(--color-gray)]',
-        'prose-li:text-[var(--color-gray)] prose-li:marker:text-[var(--color-gray)]',
-        'prose-a:text-[var(--color-primary)] prose-a:no-underline hover:prose-a:underline',
-        'prose-img:rounded-br-3xl prose-img:rounded-tl-3xl prose-img:border-2 prose-img:border-accent',
-        
-        // Your existing custom element styling (giữ nguyên structure)
-        '[&_p]:mb-4 [&_p]:min-h-[1em]',
-        '[&_h1]:text-3xl [&_h1]:font-bold [&_h1]:mb-4 [&_h1]:mt-8',
-        '[&_h2]:text-2xl [&_h2]:font-bold [&_h2]:mb-3 [&_h2]:mt-6', 
-        '[&_h3]:text-xl [&_h3]:font-bold [&_h3]:mb-2 [&_h3]:mt-4',
-        '[&_ol]:list-decimal [&_ol]:mb-4 [&_ol]:pl-6',
-        '[&_ul]:list-disc [&_ul]:mb-4 [&_ul]:pl-6',
-        '[&_li]:mb-1',
-        '[&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-4',
-        '[&_p:empty]:min-h-[1em] [&_p:empty]:block',
+        'prose prose-sm max-w-none md:prose-base lg:prose-lg prose-headings:font-serif prose-p:[--font-display:var(--font-display) ] prose-p:text-gray prose-h1:text-gray prose-h2:text-gray prose-h3:text-gray prose-h4:text-gray prose-h5:text-gray prose-h6:text-gray prose-li:text-gray prose-li:marker:text-gray prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-br-3xl prose-img:rounded-tl-3xl prose-img:border-2 prose-img:border-accent',
         className
       )}
       style={{ whiteSpace: 'pre-line' }}

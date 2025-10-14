@@ -5,10 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import Button from '@/components/ui/button';
-import { getPageInfo, getDirectusAssetUrl } from '@/util/static';
+import EventCardSkeleton from '@/components/loading/EventCardSkeleton';
+import { getPageInfo, getDirectusAssetUrl, getRandomPastelStyle } from '@/util/static';
 import Image from 'next/image';
 import { useEvents } from '@/hooks/useEvents';
+import { Button } from '@/components/ui/button-base';
 
 const filterTabs = [
   { id: 'all', label: 'All Events', count: 0 },
@@ -43,6 +44,53 @@ export default function EventsPage() {
   const handleCreateEvent = () => {
     router.push('/events/create?step=1');
   };
+
+  // Show skeleton loading state
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="space-y-6">
+          {/* Header - Keep static content */}
+          <div className="flex items-start justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-content-primary">{pageInfo.title}</h1>
+              <p className="text-content-secondary mt-1">{pageInfo.subtitle}</p>
+            </div>
+            <Button onClick={handleCreateEvent} variant="gradient">
+              <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
+              Create Event
+            </Button>
+          </div>
+
+          {/* Filter Tabs - Keep static, show skeleton for counts only */}
+          <div className="mb-2">
+            <div className="border-b border-gray-200">
+              <nav className="-mb-px flex space-x-8">
+                {filterTabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className="py-4 px-1 border-b-2 border-transparent flex items-center space-x-2"
+                  >
+                    <span className="text-sm font-medium text-content-tertiary">
+                      {tab.label}
+                    </span>
+                    <div className="h-5 w-8 bg-gray-200 rounded-full animate-pulse" />
+                  </div>
+                ))}
+              </nav>
+            </div>
+          </div>
+
+          {/* Events Grid Skeleton - Only skeleton for API data */}
+          <div className="space-y-6">
+            {[...Array(5)].map((_, index) => (
+              <EventCardSkeleton key={index} index={index} />
+            ))}
+          </div>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   if (!loading && events.length === 0) {
     return (
@@ -94,11 +142,12 @@ export default function EventsPage() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {filterTabs.map((tab) => (
-                <button
+                <Button
                   key={tab.id}
+                  variant="ghost"
                   onClick={() => { setActiveFilter(tab.id); setCurrentPage(1); }}
                   className={`
-                    py-4 px-1 border-b-2 font-medium text-sm transition-colors cursor-pointer
+                    py-4 px-1 border-b-2 font-medium text-sm transition-colors
                     ${activeFilter === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-content-tertiary hover:text-content-secondary hover:border-gray-300'}
                   `}
                 >
@@ -106,7 +155,7 @@ export default function EventsPage() {
                   <span className="ml-2 bg-gray-100 text-content-primary py-0.5 px-2 rounded-full text-xs">
                     {filterCounts[tab.id as keyof typeof filterCounts]}
                   </span>
-                </button>
+                </Button>
               ))}
             </nav>
           </div>
@@ -138,7 +187,9 @@ export default function EventsPage() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <div className={`w-full h-full bg-gradient-to-br ${['from-indigo-200 to-purple-200','from-pink-200 to-rose-200','from-emerald-200 to-teal-200','from-sky-200 to-cyan-200','from-amber-200 to-orange-200'][Math.abs((event.id || 0) % 5)]}`} />
+                        <div className='w-full h-full'
+                          style={getRandomPastelStyle()}
+                        />
                       )}
                     </div>
                   </div>
@@ -163,25 +214,29 @@ export default function EventsPage() {
                         </div>
                       </div>
                       <div className="relative">
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="icon"
                           onClick={(e) => {
                             e.stopPropagation();
                             const el = (e.currentTarget as HTMLButtonElement).nextElementSibling as HTMLDivElement;
                             if (el) el.classList.toggle('hidden');
                           }}
-                          className="p-2 text-content-tertiary hover:text-content-secondary hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                          className="p-2 text-content-tertiary hover:text-content-secondary hover:bg-gray-100 rounded-lg transition-colors"
                         >
                           <Icon icon="lucide:more-horizontal" className="w-5 h-5" />
-                        </button>
+                        </Button>
                         <div className="hidden absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded-lg shadow-md z-10">
-                          <button
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors"
+                          <Button
+                            variant="ghost"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors justify-start"
                             onClick={(e) => { e.stopPropagation(); router.push(`/events/${event.id}`); }}
                           >
                             View Details
-                          </button>
-                          <button
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 cursor-pointer transition-colors"
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 transition-colors justify-start"
                             onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                               e.stopPropagation();
                               const formId = (event as unknown as { forms?: { id: string }[] }).forms?.[0]?.id || event.id;
@@ -189,7 +244,7 @@ export default function EventsPage() {
                             }}
                           >
                             Open Form Builder
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     </div>

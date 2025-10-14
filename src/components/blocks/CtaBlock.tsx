@@ -52,18 +52,18 @@ export default function CtaBlock({ data, lang }: CtaBlockProps) {
 
   return (
     <BlockContainer className='glass-card-blue mx-auto w-full max-w-8xl'>
-      <div className='relative overflow-hidden rounded-xl border-2 border-[var(--color-primary)] bg-transparent  p-2 '>
+      <div className='relative overflow-hidden rounded-xl border-2 border-primary bg-transparent  p-2 '>
         <div className='relative overflow-hidden rounded-xl px-6 py-8'>
           <div className='absolute inset-0 ' />
           <div className='absolute inset-0 ' />
           <div className='relative md:flex md:items-center md:justify-between md:space-x-4'>
             <div>
               {title && <TypographyTitle
-                className='text-[var(--color-gray)] font-[var(--font-display) ] font-semibold'
+                className='text-gray font-font-display font-semibold'
               >{title}</TypographyTitle>}
               {headline && (
                 <TypographyHeadline
-                  className='text-[var(--color-primary)] font-[var(--font-display) ] font-semibold'
+                  className='text-primary font-font-display font-semibold'
                   size='xl'
                   content={headline}
                   
@@ -72,7 +72,7 @@ export default function CtaBlock({ data, lang }: CtaBlockProps) {
               {content && (
                 <TypographyProse
                   content={content}
-                  className='mt-2 font-[var(--font-body)]'
+                  className='mt-2 font-font-body'
                 />
               )}
             </div>

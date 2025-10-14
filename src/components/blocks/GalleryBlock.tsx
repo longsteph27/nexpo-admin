@@ -60,14 +60,14 @@ function GalleryBlock({ data, lang, className }: GalleryBlockProps) {
         {/* Title */}
         {title && 
         <TypographyTitle
-          className="font-[var(--font-display)] text-[var(--color-gray)]"
+          className="font-font-display text-gray"
         >{title}
         </TypographyTitle>}
         {headline && 
         <TypographyHeadline 
           content={headline}
           size='xl'
-          className="font-[var(--font-display) ] font-semibold  text-[var(--color-primary)]"
+          className="font-font-display font-semibold  text-primary"
         />}
         {data.gallery_items.length > 0 && (
           <VGallery

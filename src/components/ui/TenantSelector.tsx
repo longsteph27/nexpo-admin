@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { Icon } from '@iconify/react';
+import { Button } from './button';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Tenant } from '@/lib/directus';
 
@@ -29,9 +30,9 @@ export default function TenantSelector() {
 
   return (
     <div className="relative">
-      <button
+      <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-3 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg transition-all duration-200 cursor-pointer group"
+        className="flex items-center space-x-3 px-4 py-2 bg-transparent cursor-pointer hover:bg-gray-100rounded-lg transition-all duration-200 group"
       >
         <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
           {selectedTenant?.logo ? (
@@ -58,7 +59,7 @@ export default function TenantSelector() {
           icon={isOpen ? "lucide:chevron-up" : "lucide:chevron-down"} 
           className="w-4 h-4 text-content-secondary transition-all duration-200 flex-shrink-0 group-hover:text-content-primary"
         />
-      </button>
+      </div>
 
       <AnimatePresence>
         {isOpen && (

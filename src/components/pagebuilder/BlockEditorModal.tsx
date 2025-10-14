@@ -3,11 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Button from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { ImageUpload } from '@/components/ui/ImageUpload';
 import { assetsApi } from '@/lib/api';
+import { useFormsByEvent } from '@/hooks/useForms';
 import RichtextBlockEditor from './RichtextBlockEditor';
 
 interface Block {
@@ -156,7 +158,7 @@ export default function BlockEditorModal({
                       key={lang}
                       className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
                         activeLang === lang
-                          ? 'bg-neutral-900 text-white'
+                          ? 'bg-nexpo-gray text-white'
                           : 'text-neutral-600 hover:bg-neutral-200'
                       }`}
                       onClick={() => setActiveLang(lang)}
@@ -236,6 +238,9 @@ function renderBlockEditor(
     
     case 'block_divider':
       return <DividerBlockEditor formData={formData} updateField={updateField} />;
+    
+    case 'block_form':
+      return <FormBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} eventId={eventId} />;
     
     default:
       return <GenericBlockEditor collection={collection} />;
@@ -472,35 +477,33 @@ function QuoteBlockEditor({ formData, updateTranslation, currentTranslation }: a
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Quote Text <span className="text-red-500">*</span>
+          Quote Content <span className="text-red-500">*</span>
         </label>
-        <textarea
-          className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-          rows={4}
-          value={currentTranslation.quote || ''}
-          onChange={(e) => updateTranslation('quote', e.target.value)}
-          placeholder="Enter the quote..."
+        <RichTextEditor
+          value={currentTranslation.content || ''}
+          onChange={(value) => updateTranslation('content', value)}
+          placeholder="Enter the quote content..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Author
+          Author Name
         </label>
         <Input
-          value={currentTranslation.author || ''}
-          onChange={(e) => updateTranslation('author', e.target.value)}
+          value={currentTranslation.title || ''}
+          onChange={(e) => updateTranslation('title', e.target.value)}
           placeholder="Quote author name..."
         />
       </div>
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Author Title
+          Author Title / Position
         </label>
         <Input
-          value={currentTranslation.author_title || ''}
-          onChange={(e) => updateTranslation('author_title', e.target.value)}
+          value={currentTranslation.subtitle || ''}
+          onChange={(e) => updateTranslation('subtitle', e.target.value)}
           placeholder="e.g., CEO, Product Manager..."
         />
       </div>
@@ -982,6 +985,189 @@ function DividerBlockEditor({ formData, updateField }: any) {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// Form Block Editor
+function FormBlockEditor({ formData, updateTranslation, updateField, currentTranslation, eventId }: any) {
+  const [selectedForm, setSelectedForm] = useState<any>(null);
+  const router = useRouter();
+
+  // Load available forms for the current event using React Query
+  const { data: availableForms = [], isLoading, error } = useFormsByEvent(eventId || '');
+
+  // Set selected form when formData changes
+  useEffect(() => {
+    if (formData.form && availableForms.length > 0) {
+      const form = availableForms.find((f: any) => f.id === formData.form);
+      setSelectedForm(form || null);
+    }
+  }, [formData.form, availableForms]);
+
+  const handleFormSelect = (formId: string) => {
+    updateField('form', formId);
+    const form = availableForms.find((f: any) => f.id === formId);
+    setSelectedForm(form || null);
+  };
+
+  const handleCreateNewForm = () => {
+    // Navigate to form builder
+    router.push(`/events/${eventId}/forms/new`);
+  };
+
+  const handleEditForm = () => {
+    if (selectedForm?.id) {
+      router.push(`/events/${eventId}/forms/${selectedForm.id}`);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Section Title */}
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">
+          Section Title
+        </label>
+        <Input
+          value={currentTranslation.title || ''}
+          onChange={(e) => updateTranslation('title', e.target.value)}
+          placeholder="Contact Us / Registration Form..."
+        />
+      </div>
+
+      {/* Section Headline */}
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">
+          Section Headline
+        </label>
+        <Input
+          value={currentTranslation.headline || ''}
+          onChange={(e) => updateTranslation('headline', e.target.value)}
+          placeholder="Get in touch with us..."
+        />
+      </div>
+
+      {/* Form Selection */}
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">
+          Select Form <span className="text-red-500">*</span>
+        </label>
+        
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin text-neutral-400 mr-2" />
+            <span className="text-sm text-neutral-500">Loading forms...</span>
+          </div>
+        ) : error ? (
+          <div className="flex items-center justify-center py-8">
+            <Icon icon="lucide:alert-circle" className="w-5 h-5 text-red-400 mr-2" />
+            <span className="text-sm text-red-500">Failed to load forms</span>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {/* Form Dropdown */}
+            <div className="relative">
+              <select
+                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                value={formData.form || ''}
+                onChange={(e) => handleFormSelect(e.target.value)}
+              >
+                <option value="">Choose an existing form...</option>
+                {availableForms.map((form: any) => (
+                  <option key={form.id} value={form.id}>
+                    {form.translations?.[0]?.title || form.name || `Form ${form.id.slice(0, 8)}`}
+                    {form.status === 'draft' && ' (Draft)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Selected Form Info */}
+            {selectedForm && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      {selectedForm.translations?.[0]?.title || 'Untitled Form'}
+                    </h4>
+                    <p className="text-xs text-blue-700 mb-2">
+                      Status: <span className="capitalize font-medium">{selectedForm.status}</span>
+                      {selectedForm.fields && (
+                        <span className="ml-2">• {selectedForm.fields.length} fields</span>
+                      )}
+                    </p>
+                    {selectedForm.translations?.[0]?.submit_label && (
+                      <p className="text-xs text-blue-600">
+                        Submit button: &quot;{selectedForm.translations[0].submit_label}&quot;
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                    onClick={handleEditForm}
+                  >
+                    <Icon icon="lucide:edit" className="w-3 h-3 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Create New Form Button */}
+            <div className="pt-3 border-t border-neutral-200">
+              <Button
+                variant="outline"
+                className="w-full text-green-600 border-green-300 hover:bg-green-50"
+                onClick={handleCreateNewForm}
+              >
+                <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
+                Create New Form
+              </Button>
+              <p className="text-xs text-neutral-500 mt-2 text-center">
+                This will open the form builder where you can design your form
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Form Preview */}
+      {selectedForm && (
+        <div>
+          <label className="block text-sm font-medium text-neutral-700 mb-2">
+            Form Preview
+          </label>
+          <div className="p-4 bg-neutral-50 border border-neutral-200 rounded-lg">
+            <div className="space-y-3">
+              {selectedForm.fields?.slice(0, 3).map((field: any, index: number) => (
+                <div key={field.id || index} className="space-y-1">
+                  <label className="text-xs font-medium text-neutral-600">
+                    {field.translations?.[0]?.label || field.name || `Field ${index + 1}`}
+                    {field.is_required && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  <div className="h-8 bg-white border border-neutral-200 rounded px-2 flex items-center">
+                    <span className="text-xs text-neutral-400">
+                      {field.type === 'textarea' ? 'Multi-line text input' : 
+                       field.type === 'email' ? 'Email input' :
+                       field.type === 'select' ? 'Dropdown selection' :
+                       field.type === 'file' ? 'File upload' :
+                       'Text input'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {selectedForm.fields?.length > 3 && (
+                <p className="text-xs text-neutral-500 text-center">
+                  ... and {selectedForm.fields.length - 3} more fields
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

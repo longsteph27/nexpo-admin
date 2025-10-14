@@ -381,6 +381,136 @@ export const BLOCK_SCHEMAS = {
         }
       }
     ]
+  },
+  block_quote: {
+    name: 'Quote',
+    icon: 'lucide:quote',
+    description: 'Inspirational quote with author attribution',
+    color: 'bg-gradient-to-br from-purple-50 to-indigo-100',
+    borderColor: 'border-purple-200',
+    iconColor: 'text-purple-600',
+    fields: [
+      {
+        field: 'translations',
+        type: 'alias',
+        meta: {
+          interface: 'translations',
+          options: { languageField: 'code' },
+          required: false,
+          note: 'Quote content translations',
+          fields: [
+            { field: 'title', type: 'string', interface: 'input', note: 'Quote title/author name' },
+            { field: 'subtitle', type: 'string', interface: 'input', note: 'Quote subtitle/author title' },
+            { field: 'content', type: 'text', interface: 'input-rich-text-html', note: 'Quote content (rich text)' }
+          ]
+        }
+      },
+      {
+        field: 'tenant_id',
+        type: 'integer',
+        meta: {
+          interface: 'select-dropdown-m2o',
+          options: {
+            template: '{{name}}'
+          },
+          required: true,
+          note: 'Tenant',
+          relatedCollection: 'tenants',
+          allowCreate: false,
+          allowDelete: false
+        }
+      },
+      {
+        field: 'event_id',
+        type: 'integer',
+        meta: {
+          interface: 'select-dropdown-m2o',
+          options: {
+            template: '{{name}}',
+            enableLink: true
+          },
+          required: true,
+          note: 'Event',
+          relatedCollection: 'events',
+          allowCreate: false,
+          allowDelete: false
+        }
+      }
+    ]
+  },
+  block_form: {
+    name: 'Form',
+    icon: 'lucide:form-input',
+    description: 'Contact or registration form section',
+    color: 'bg-gradient-to-br from-green-50 to-emerald-100',
+    borderColor: 'border-green-200',
+    iconColor: 'text-green-600',
+    fields: [
+      {
+        field: 'form',
+        type: 'uuid',
+        meta: {
+          interface: 'select-dropdown-m2o',
+          options: {
+            template: '{{translations.title}}'
+          },
+          display: 'related-values',
+          display_options: {
+            template: '{{translations.title}}'
+          },
+          required: false,
+          note: 'Select form to display',
+          relatedCollection: 'forms',
+          allowCreate: false,
+          allowDelete: false
+        }
+      },
+      {
+        field: 'translations',
+        type: 'alias',
+        meta: {
+          interface: 'translations',
+          options: { languageField: 'code' },
+          required: false,
+          note: 'Form section translations',
+          fields: [
+            { field: 'title', type: 'string', interface: 'input', note: 'Form section title' },
+            { field: 'headline', type: 'string', interface: 'input', note: 'Form section headline/description' }
+          ]
+        }
+      },
+      {
+        field: 'tenant_id',
+        type: 'integer',
+        meta: {
+          interface: 'select-dropdown-m2o',
+          options: {
+            template: '{{name}}'
+          },
+          required: true,
+          note: 'Tenant',
+          relatedCollection: 'tenants',
+          allowCreate: false,
+          allowDelete: false
+        }
+      },
+      {
+        field: 'event_id',
+        type: 'integer',
+        meta: {
+          interface: 'select-dropdown-m2o',
+          options: {
+            template: '{{name}}',
+            enableLink: true
+          },
+          required: true,
+          note: 'Event',
+          relatedCollection: 'events',
+          allowCreate: false,
+          allowDelete: false
+        }
+      }
+    ]
   }
 };
 

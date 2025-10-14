@@ -53,7 +53,7 @@ export default function FaqsBlock({ data, lang }: Props) {
     <BlockContainer className='mx-auto max-w-screen-xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8'>
       <div className='mx-auto max-w-4xl text-center'>
         {title && (
-          <TypographyTitle className="font-[var(--font-display)] text-[var(--color-gray)]">
+          <TypographyTitle className="font-font-display text-gray">
             {title}
           </TypographyTitle>
         )}
@@ -61,7 +61,7 @@ export default function FaqsBlock({ data, lang }: Props) {
           <TypographyHeadline
             content={headline}
             size='xl'
-            className="font-[var(--font-display) ] font-semibold  text-[var(--color-primary)]"
+            className="font-font-display font-semibold  text-primary"
           />
         )}
         <div className='mt-6 pt-6'>

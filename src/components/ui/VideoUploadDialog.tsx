@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
-import Button from './button';
+import { Button } from './button-base';
 import Input from './input';
 import { toast } from 'sonner';
 import { directusHelpers } from '@/lib/directus';
@@ -267,7 +267,7 @@ export function VideoUploadDialog({ open, onClose, onVideoSelected, folderId }: 
                         onClose();
                         toast.success('Video selected from library!');
                       }}
-                      className="cursor-pointer group border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                      className="group border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:bg-blue-50 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center space-x-3">
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">

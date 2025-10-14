@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 

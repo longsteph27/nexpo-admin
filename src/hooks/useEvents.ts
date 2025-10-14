@@ -37,10 +37,12 @@ export function useEvents(status?: string) {
 
 // Get single event hook
 export function useEvent(eventId: string) {
+  const { isAuthenticated } = useAuth();
+  
   return useQuery({
     queryKey: eventKeys.detail(eventId),
     queryFn: () => eventsApi.getEvent(eventId),
-    enabled: !!eventId,
+    enabled: !!eventId && isAuthenticated,  // Only fetch when authenticated
     select: (data) => data.data,
   });
 }

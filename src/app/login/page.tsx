@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '@/store/auth';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
 
 const loginSchema = z.object({
@@ -163,7 +163,7 @@ export default function LoginPage() {
               type="submit"
               variant="gradient"
               size="lg"
-              fullWidth
+              className='w-full'
               loading={isLoading}
             >
               {isLoading ? 'Signing in...' : 'Log in'}

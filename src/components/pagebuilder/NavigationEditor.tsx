@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import { Input } from '@/components/ui/input';
 
 interface NavigationItem {

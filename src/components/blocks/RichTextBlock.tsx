@@ -41,7 +41,7 @@ export default function RichTextBlock({ data, lang }: RichTextBlockProps) {
       <div className='text-center'>
         {title && (
           <TypographyTitle
-            className="font-[var(--font-display)] text-[var(--color-gray)]"
+            className="font-font-display text-gray"
           >
             {title}
           </TypographyTitle>
@@ -50,13 +50,13 @@ export default function RichTextBlock({ data, lang }: RichTextBlockProps) {
           <TypographyHeadline
             content={headline}
             size='xl'
-            className="font-[var(--font-display) ] font-semibold  text-[var(--color-primary)]"
+            className="font-font-display font-semibold  text-vnpt-blue"
           />
         )}
       </div>
       <TypographyProse
         content={content}
-        className='font-[var(--font-body)] mx-auto mt-8 text-content-primary'
+        className='font-font-body mx-auto mt-8 text-content-primary'
       />
     </BlockContainer>
   )

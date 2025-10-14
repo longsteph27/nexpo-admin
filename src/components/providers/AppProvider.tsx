@@ -15,11 +15,12 @@ interface AppProviderProps {
 export function AppProvider({ children }: AppProviderProps) {
   const pathname = usePathname();
 
-  // Check if the current route should use the app layout (dashboard routes)
-  const shouldUseAppLayout = pathname.startsWith('/dashboard') || 
-                            pathname.startsWith('/events') ||
-                            pathname.startsWith('/workspace') || 
-                            pathname.startsWith('/matching');
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login'];
+  const isPublicRoute = publicRoutes.includes(pathname);
+
+  // Check if the current route should use the app layout (all protected routes)
+  const shouldUseAppLayout = !isPublicRoute;
 
   return (
     <QueryClientProvider client={queryClient}>

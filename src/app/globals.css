@@ -1,7 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* SF Pro Font Family */
 /* 
@@ -65,6 +67,7 @@
   /* Hero Block CSS Variables - Synced with docs version */
   --color-primary: #1E40AF;
   --color-gray: #374151;
+  --bg-gray-upload: #F7F7F7;
   --font-display: Be Vietnam Pro, serif;
   --font-body: Be Vietnam Pro, sans-serif;
   --font-code: Fira Code, monospace;
@@ -183,9 +186,43 @@ select:focus-visible {
 
 @layer base {
   * {
-    @apply border-gray-200 outline-blue-500/50;
+    border-color: #e5e7eb;
+    outline-color: rgb(59 130 246 / 0.5);
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: var(--background);
+    color: var(--foreground);
   }
+}
+
+.btn_live {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  border: 2px solid var(--color-primary) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+.btn_live:hover, .btn_live:focus {
+  background-color: white !important;
+  color: var(--color-primary) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: 0 2px 8px 0 rgba(0,0,0,0.08);
+}
+
+.btn_live.btn_live-primary.btn_live-md.my-btn_live-primary {
+  background-color: var(--color-primary) !important;
+  color: white !important;
+  padding: 0.5rem 1rem !important;
+  border-radius: 0.5rem !important;
+  font-weight: 500 !important;
+  border: 2px solid var(--color-primary) !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.btn_live.btn_live-primary.btn_live-md.my-btn_live-primary:hover {
+  background-color: white !important;
+  color: var(--color-primary) !important;
+  border: 2px solid var(--color-primary) !important;
 }

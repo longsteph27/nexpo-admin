@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { siteApi } from "@/lib/api";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button-base";
 import { Icon } from "@iconify/react";
 import { motion } from "framer-motion";
 

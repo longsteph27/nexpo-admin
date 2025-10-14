@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Icon } from '@iconify/react';
-import Button from '@/components/ui/button';
+import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
 import { siteApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';

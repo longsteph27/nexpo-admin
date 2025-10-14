@@ -53,10 +53,10 @@ export default function StepsBlock({ data, lang }: StepsBlockProps) {
   return (
     <BlockContainer className='mx-auto max-w-4xl text-center'>
       {title && <TypographyTitle
-        className='text-[var(--color-gray)] font-[var(--font-display) ] font-semibold'
+        className='text-gray font-font-display font-semibold'
       >{title}</TypographyTitle>}
       {headline && <TypographyHeadline 
-      className='text-[var(--color-primary)] font-[var(--font-display) ] font-semibold'
+      className='text-primary font-font-display font-semibold'
       size='xl'
       content={headline} />}
       {data.steps && (
@@ -69,7 +69,7 @@ export default function StepsBlock({ data, lang }: StepsBlockProps) {
             return (
               <div key={step.id}>
                 <div
-                  className={`relative p-6 border-2 border-[var(--color-primary)] md:flex md:space-x-8 ${
+                  className={`relative p-6 border-2 border-primary md:flex md:space-x-8 ${
                     isEven(stepIdx)
                       ? 'mr-8 rounded-xl'
                       : 'ml-8 rounded-xl'
@@ -94,16 +94,16 @@ export default function StepsBlock({ data, lang }: StepsBlockProps) {
 
                   <div className='mt-4 w-full text-left md:mt-0'>
                     {data.show_step_numbers && (
-                      <div className='font-[var(--font-body) ] text-[var(--color-gray)] font-semibold uppercase tracking-wide'>
+                      <div className='font-font-body text-gray font-semibold uppercase tracking-wide'>
                          {stepIdx + 1}
                       </div>
                     )}
-                    <h3 className='mt-2 font-[var(--font-display) ] text-[var(--color-primary)] text-3xl font-semibold '>
+                    <h3 className='mt-2 font-font-display text-primary text-3xl font-semibold '>
                       {stepTitle}
                     </h3>
                     <TypographyProse
                       content={stepContent}
-                      className='mt-4 font-[var(--font-body)]'
+                      className='mt-4 font-font-body'
                     />
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export default function StepsBlock({ data, lang }: StepsBlockProps) {
                 {/* <!-- Animation Timeline --> */}
                 {data.steps && stepIdx !== data.steps.length - 1 && (
                   <svg
-                    className='steps-animation m-0 mx-auto h-16 stroke-current text-[var(--color-primary)] md:h-20'
+                    className='steps-animation m-0 mx-auto h-16 stroke-current text-primary md:h-20'
                     viewBox='0 0 60 200'
                   >
                     <line

@@ -1,20 +1,16 @@
 'use client'
 import { motion } from 'framer-motion'
-import { getDirectusMedia } from '@/lib/utils/directus-helpers'
 import BlockContainer from '@/components/BlockContainer'
-import { useEffect } from 'react'
-import Image from 'next/image'
+import { Icon } from '@iconify/react'
 
 interface Quote {
   id: string
-  headline?: string
   title?: string
   subtitle?: string
   content?: string
-  image?: string
-  background_color?: string
+  tenant_id?: number
+  event_id?: number
   translations?: Array<{
-    headline?: string
     title?: string
     subtitle?: string
     content?: string
@@ -35,31 +31,76 @@ export default function QuoteBlock({ data, lang }: QuoteBlockProps) {
   const subtitle = translation?.subtitle || data.subtitle || ''
   const content = translation?.content || data.content || ''
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const bodyStyles = window.getComputedStyle(document.body)
-    }
-  }, [])
+  // Debug logging
+  console.log('[QuoteBlock] Rendering:', { 
+    data, 
+    lang, 
+    directusLang, 
+    translations, 
+    translation, 
+    title, 
+    subtitle, 
+    content 
+  })
+
+  // Show placeholder if no content
+  if (!content) {
+    return (
+      <BlockContainer className="py-16 px-4">
+        <div className="relative max-w-4xl mx-auto">
+          <div className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-2xl p-8 md:p-12 shadow-lg border-l-8 border-purple-500 border-2 border-dashed">
+            <div className="text-center text-content-tertiary">
+              <Icon icon="lucide:quote" className="w-12 h-12 mx-auto mb-4 text-purple-400" />
+              <p className="text-sm">Quote content will appear here</p>
+              <p className="text-xs mt-2">Add content in the editor to see the quote</p>
+            </div>
+          </div>
+        </div>
+      </BlockContainer>
+    )
+  }
 
   return (
     <BlockContainer className="py-16 px-4">
-      <div
-        className="relative max-w-3xl mx-auto bg-white/80 shadow-xl rounded-2xl border-l-8 border-[var(--color-primary)] p-8 opacity-0 translate-y-5 animate-fade-in"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
+        className="relative max-w-4xl mx-auto"
       >
-        <div className="flex items-start space-x-4">
-          <span className="text-6xl font-bold text-[var(--color-primary)] leading-none select-none -mt-2">“</span>
-          <div
-            className="italic text-2xl font-[var(--font-display)] text-[var(--color-gray)]"
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        </div>
-        {(title || subtitle) && (
-          <div className="mt-6 pl-12">
-            {title && <div className="text-lg text-[var(--color-gray)] font-[var(--font-display) ] font-semibold">{title}</div>}
-            {subtitle && <div className="text-base text-[var(--color-primary)]">{subtitle}</div>}
+        <div className="bg-gradient-to-br from-purple-50 to-indigo-100 rounded-2xl p-8 md:p-12 shadow-lg border-l-8 border-purple-500 relative overflow-hidden">
+          {/* Background decoration */}
+          <div className="absolute top-0 right-0 w-32 h-32 bg-purple-200/30 rounded-full -translate-y-16 translate-x-16"></div>
+          <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-200/30 rounded-full translate-y-12 -translate-x-12"></div>
+          
+          {/* Quote content */}
+          <div className="relative z-10">
+            <div className="flex items-start space-x-4 mb-6">
+              <span className="text-6xl font-bold text-purple-600 leading-none select-none -mt-2 font-serif">"</span>
+              <div
+                className="italic text-xl md:text-2xl text-gray-700 leading-relaxed font-medium prose prose-lg max-w-none"
+                dangerouslySetInnerHTML={{ __html: content }}
+              />
+            </div>
+            
+            {/* Author attribution */}
+            {(title || subtitle) && (
+              <div className="mt-8 pl-16 border-l-4 border-purple-300 pl-8">
+                {title && (
+                  <div className="text-lg font-semibold text-gray-800 mb-1">
+                    {title}
+                  </div>
+                )}
+                {subtitle && (
+                  <div className="text-base text-purple-600 font-medium">
+                    {subtitle}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      </motion.div>
     </BlockContainer>
   )
 }

@@ -322,7 +322,7 @@ export const useAuthStore = create<AuthState>()(
 
         // JSON mode: refresh token and get user
         if (!refreshToken) {
-          console.log('[Auth Store] No refresh token, clearing auth data');
+          console.log('[Auth Store] No refresh token available - clearing auth');
           get().clearAuthData();
           return;
         }
@@ -332,19 +332,22 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, isRefreshing: true });
         
         try {
-          // Refresh token
+          // Step 1: Refresh the access token
           const refreshResult = await refreshWithToken(refreshToken);
           const refreshData = refreshResult as DirectusAuthResponse;
           const newAccessToken = refreshData.access_token || null;
           const newRefreshToken = refreshData.refresh_token || null;
           
+          console.log('[Auth Store] Token refreshed successfully');
+          
+          // Step 2: Update tokens in store and directus client
           get().setTokens(newAccessToken, newRefreshToken);
           
           if (newAccessToken) {
             await directus.setToken(newAccessToken);
           }
           
-          // Get user info
+          // Step 3: Fetch user info with new token
           const userResult = await directusHelpers.getCurrentUser();
           
           if (userResult.success && userResult.data) {
@@ -352,6 +355,8 @@ export const useAuthStore = create<AuthState>()(
             const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
             const { selectedTenant } = get();
             const validTenant = tenants.find(t => t.id === selectedTenant?.id) || tenants[0] || null;
+            
+            console.log('[Auth Store] Auth restored - user:', user.email, 'tenants:', tenants.length);
             
             set({
               user: user as User,
@@ -362,9 +367,11 @@ export const useAuthStore = create<AuthState>()(
               isRefreshing: false,
             });
           } else {
+            console.log('[Auth Store] Failed to get user info after refresh');
             get().clearAuthData();
           }
-        } catch {
+        } catch (error) {
+          console.error('[Auth Store] Token refresh failed:', error);
           get().clearAuthData();
         }
       },

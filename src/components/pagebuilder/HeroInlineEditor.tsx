@@ -118,7 +118,7 @@ export default function HeroInlineEditor({
       <div className="relative group">
         {/* Always show the text element */}
         <h1
-          className="text-[var(--color-primary)] text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-[var(--font-display)] font-bold leading-tight mb-4"
+          className="text-primary text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-font-display font-bold leading-tight mb-4"
           dangerouslySetInnerHTML={{ __html: formData.headline || '' }}
         />
         
@@ -154,7 +154,7 @@ export default function HeroInlineEditor({
       {/* Content */}
       <div className="relative group">
         {/* Always show the text element */}
-        <p className="w-full py-4 font-[var(--font-body)] text-sm sm:text-base md:text-lg leading-relaxed text-[var(--color-gray)]">
+        <p className="w-full py-4 font-font-body text-sm sm:text-base md:text-lg leading-relaxed text-gray">
           {formData.content || ''}
         </p>
         
