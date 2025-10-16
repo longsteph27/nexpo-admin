@@ -410,10 +410,10 @@ export const directusHelpers = {
         limit: 1,
         fields: ([
           'id', 'status', 'on_success', 'redirect_url', 'event_id',
-          { translations: ['languages_code','title','submit_label','success_message'] },
+          { translations: ['id','languages_code','title','submit_label','success_message'] },
           { fields: [
-            'id','name','type','width','sort','is_required','validation',
-            { translations: ['languages_code','label','placeholder','help','options'] }
+            'id','name','type','width','sort','is_required','validation','conditions',
+            { translations: ['id','languages_code','label','placeholder','help','options'] }
           ]}
         ]) as unknown as never,
       }));
@@ -429,8 +429,8 @@ export const directusHelpers = {
         filter: { form_id: { _eq: formId } },
         sort: ['sort'],
         fields: ([
-          'id','name','type','width','sort','is_required','validation','form_id',
-          { translations: ['languages_code','label','placeholder','help','options'] }
+          'id','name','type','width','sort','is_required','validation','conditions','form_id',
+          { translations: ['id','languages_code','label','placeholder','help','options'] }
         ]) as unknown as never,
       }));
       return { success: true, data: fields };
@@ -446,12 +446,59 @@ export const directusHelpers = {
         limit: 1,
         fields: ([
           'id','event_id','status','on_success','redirect_url',
-          { translations: ['languages_code','title','submit_label','success_message'] },
+          { translations: ['id','languages_code','title','submit_label','success_message'] },
         ]) as unknown as never,
       }));
       return { success: true, data: forms?.[0] };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get form by event' };
+    }
+  },
+
+  async getRegistrationForms(eventId: number, tenantId: number) {
+    try {
+      const forms = await directus.request(readItems('forms' as never, {
+        filter: { 
+          event_id: { _eq: eventId },
+          tenant_id: { _eq: tenantId },
+          is_registration: { _eq: true }
+        },
+        sort: (['-date_created'] as unknown) as never,
+        fields: ([
+          'id','status','is_registration','date_created','date_updated',
+          { translations: ['languages_code','title','submit_label'] },
+          { fields: ['id'] },
+          { submissions: ['id'] }
+        ] as unknown) as never,
+      }));
+      return { success: true, data: forms };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get registration forms' };
+    }
+  },
+
+  async getOtherForms(eventId: number, tenantId: number) {
+    try {
+      const forms = await directus.request(readItems('forms' as never, {
+        filter: { 
+          event_id: { _eq: eventId },
+          tenant_id: { _eq: tenantId },
+          _or: [
+            { is_registration: { _eq: false } },
+            { is_registration: { _null: true } }
+          ]
+        },
+        sort: (['-date_created'] as unknown) as never,
+        fields: ([
+          'id','status','is_registration','date_created','date_updated',
+          { translations: ['languages_code','title','submit_label'] },
+          { fields: ['id'] },
+          { submissions: ['id'] }
+        ] as unknown) as never,
+      }));
+      return { success: true, data: forms };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get other forms' };
     }
   },
 
@@ -535,6 +582,24 @@ export const directusHelpers = {
       return { success: true, data: translation };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to update form field translation' };
+    }
+  },
+
+  async deleteFormTranslation(translationId: string) {
+    try {
+      await directus.request(deleteItem('forms_translations' as never, translationId));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to delete form translation' };
+    }
+  },
+
+  async deleteFormFieldTranslation(translationId: string) {
+    try {
+      await directus.request(deleteItem('form_fields_translations' as never, translationId));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to delete form field translation' };
     }
   },
 
@@ -697,6 +762,144 @@ export const directusHelpers = {
 
       return { success: true, data: { formId, eventId } };
     } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to save form' };
+    }
+  },
+
+  // Single API call form save operation with deep query create/update/delete mechanism
+  async saveFormWithFields(formId: string, eventId: string, tenantId: number, formData: {
+    // Form metadata
+    status: 'draft' | 'published' | 'archived';
+    on_success: 'redirect' | 'message';
+    redirect_url?: string;
+    event_id: number;
+    tenant_id: number;
+    
+    // Form translations with create/update/delete structure
+    translations?: {
+      create: Array<{
+        languages_code: string;
+        title: string;
+        submit_label: string;
+        success_message: string;
+      }>;
+      update: Array<{
+        id: string;
+        languages_code: string;
+        title: string;
+        submit_label: string;
+        success_message: string;
+      }>;
+      delete: string[];
+    };
+    
+    // Form fields with create/update/delete structure
+    fields: {
+      create: Array<{
+        name: string;
+        type: string;
+        width?: string;
+        validation?: string;
+        is_required?: boolean;
+        sort: number;
+        event_id: number;
+        tenant_id: number;
+        translations: {
+          create: Array<{
+            languages_code: { code: string };
+            label: string;
+            placeholder?: string;
+            help?: string;
+            options?: Array<{ label: string; value: string }>;
+          }>;
+          update: Array<{
+            id: string;
+            languages_code: { code: string };
+            label: string;
+            placeholder?: string;
+            help?: string;
+            options?: Array<{ label: string; value: string }>;
+          }>;
+          delete: string[];
+        };
+      }>;
+      update: Array<{
+        id: string;
+        name: string;
+        type: string;
+        width?: string;
+        validation?: string;
+        is_required?: boolean;
+        sort: number;
+        event_id: number;
+        tenant_id: number;
+        translations: {
+          create: Array<{
+            languages_code: { code: string };
+            label: string;
+            placeholder?: string;
+            help?: string;
+            options?: Array<{ label: string; value: string }>;
+          }>;
+          update: Array<{
+            id: string;
+            languages_code: { code: string };
+            label: string;
+            placeholder?: string;
+            help?: string;
+            options?: Array<{ label: string; value: string }>;
+          }>;
+          delete: string[];
+        };
+      }>;
+      delete: string[];
+    };
+  }) {
+    try {
+      console.log('[saveFormWithFields] Starting single API call with payload:', {
+        formId,
+        eventId,
+        tenantId,
+        formData
+      });
+
+      // Build the complete payload for single API call with deep query
+      const payload: any = {
+        status: formData.status,
+        on_success: formData.on_success,
+        redirect_url: formData.redirect_url,
+        event_id: formData.event_id,
+        tenant_id: formData.tenant_id,
+        
+        // Form translations with deep query structure
+        ...(formData.translations && {
+          translations: {
+            create: formData.translations.create,
+            update: formData.translations.update,
+            delete: formData.translations.delete,
+          },
+        }),
+        
+        // Form fields with deep query structure
+        fields: {
+          create: formData.fields.create,
+          update: formData.fields.update,
+          delete: formData.fields.delete,
+        },
+      };
+
+      console.log('[saveFormWithFields] Final payload for single API call:', payload);
+
+      // Single API call to update form with deep query
+      const result = await directus.request(
+        updateItem('forms', formId, payload)
+      );
+
+      console.log('[saveFormWithFields] Single API call result:', result);
+
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('[saveFormWithFields] Single API call failed:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to save form' };
     }
   },

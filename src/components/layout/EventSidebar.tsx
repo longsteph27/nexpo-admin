@@ -40,6 +40,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     const { isAuthenticated } = useAuth();
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
+    const [expandedForms, setExpandedForms] = useState(false);
 
     // Fetch sites for this event - only when authenticated
     const { data: sites = [], isLoading: sitesLoading } = useQuery({
@@ -108,10 +109,13 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     };
 
     // Check if Event Information is active (on main event page)
-    const isEventInformationActive = pathname === `/events/${eventId}` || pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/');
+    const isEventInformationActive = pathname === `/events/${eventId}` || pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/') && !pathname?.includes('/forms');
     
     // Check if Sites section is active (any site or page is selected)
     const isSitesActive = pathname?.includes('/sites/');
+    
+    // Check if Forms section is active
+    const isFormsActive = pathname?.includes('/forms');
 
     // Animation variants for sidebar items
     const sidebarItemVariants = {
@@ -210,6 +214,130 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                 <span className="font-sf text-sm font-medium text-content-primary">Event Information</span>
                             </div>
                         </motion.div>
+
+                        {/* Forms Item with Sub-items */}
+                        <div className="ml-6">
+                            <motion.div 
+                                className="cursor-pointer"
+                                onClick={() => setExpandedForms(!expandedForms)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{
+                                    duration: 0.2,
+                                    ease: "easeOut",
+                                }}
+                            >
+                                <div className={cn(
+                                    "flex items-center justify-between px-3 py-2 transition-all duration-200",
+                                    isFormsActive 
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <div className="flex items-center space-x-3">
+                                        <motion.div
+                                            animate={isFormsActive ? { scale: 1.1 } : { scale: 1 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <Icon 
+                                                icon="lucide:form-input" 
+                                                className={cn(
+                                                    "w-4 h-4",
+                                                    isFormsActive ? "text-blue-600" : "text-content-tertiary"
+                                                )} 
+                                            />
+                                        </motion.div>
+                                        <span className="font-sf text-sm font-medium text-content-primary">Forms</span>
+                                    </div>
+                                    <motion.button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setExpandedForms(!expandedForms);
+                                        }}
+                                        className="p-1 hover:bg-blue-200 rounded transition-colors"
+                                        whileHover={{ scale: 1.1 }}
+                                        whileTap={{ scale: 0.9 }}
+                                    >
+                                        <motion.div
+                                            animate={{ 
+                                                rotate: expandedForms ? 90 : 0,
+                                                scale: expandedForms ? 1.1 : 1 
+                                            }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <Icon
+                                                icon="lucide:chevron-right"
+                                                className="w-4 h-4 text-content-tertiary"
+                                            />
+                                        </motion.div>
+                                    </motion.button>
+                                </div>
+                            </motion.div>
+
+                            {/* Forms Sub-items */}
+                            <AnimatePresence>
+                                {expandedForms && (
+                                    <motion.div 
+                                        className="relative ml-8 space-y-1 mt-2"
+                                        variants={expandVariants}
+                                        initial="hidden"
+                                        animate="visible"
+                                        exit="hidden"
+                                        transition={{
+                                            duration: 0.3,
+                                            ease: "easeOut",
+                                        }}
+                                    >
+                                        {/* Connecting line */}
+                                        <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
+
+                                        {/* Forms Registration */}
+                                        <motion.div
+                                            className={cn(
+                                                "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                pathname === `/events/${eventId}/forms/registration` && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                            )}
+                                            onClick={() => router.push(`/events/${eventId}/forms/registration`)}
+                                            variants={sidebarItemVariants}
+                                            whileHover="hover"
+                                            whileTap="tap"
+                                        >
+                                            {/* Horizontal connecting line */}
+                                            <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+
+                                            <div className={cn(
+                                                "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                                                pathname === `/events/${eventId}/forms/registration` ? "bg-blue-600" : "bg-nexpo-light-gray"
+                                            )} />
+                                            <span className="text-sm font-medium ml-3 font-sf text-content-primary">Forms Registration</span>
+                                        </motion.div>
+
+                                        {/* Other Forms */}
+                                        <motion.div
+                                            className={cn(
+                                                "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                pathname === `/events/${eventId}/forms` && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                            )}
+                                            onClick={() => router.push(`/events/${eventId}/forms`)}
+                                            variants={sidebarItemVariants}
+                                            whileHover="hover"
+                                            whileTap="tap"
+                                        >
+                                            {/* Horizontal connecting line */}
+                                            <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+
+                                            <div className={cn(
+                                                "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                                                pathname === `/events/${eventId}/forms` ? "bg-blue-600" : "bg-nexpo-light-gray"
+                                            )} />
+                                            <span className="text-sm font-medium ml-3 font-sf text-content-primary">Other Forms</span>
+                                        </motion.div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
 
                         {/* Sites Item with Sub-items */}
                         <div className="ml-6">

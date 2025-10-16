@@ -46,13 +46,29 @@ export function useSaveForm() {
   });
 }
 
+// Save form with fields mutation (new create/update/delete mechanism)
+export function useSaveFormWithFields() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ formId, eventId, tenantId, formData }: { formId: string; eventId: string; tenantId: number; formData: unknown }) => 
+      formsApi.saveFormWithFields(formId, eventId, tenantId, formData),
+    onSuccess: (data, variables) => {
+      // Update the specific form in cache
+      queryClient.setQueryData(formKeys.detail(variables.formId), data);
+      // Invalidate forms list for the event
+      queryClient.invalidateQueries({ queryKey: formKeys.list(variables.eventId) });
+    },
+  });
+}
+
 // Create form mutation
 export function useCreateForm() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ eventId, formData }: { eventId: string; formData: unknown }) => 
-      formsApi.createForm(eventId, formData),
+    mutationFn: ({ eventId, tenantId, formData }: { eventId: string; tenantId: number; formData: unknown }) => 
+      formsApi.createForm(eventId, tenantId, formData),
     onSuccess: (data, variables) => {
       // Invalidate forms list for the event
       queryClient.invalidateQueries({ queryKey: formKeys.list(variables.eventId) });

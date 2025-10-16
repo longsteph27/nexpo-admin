@@ -113,18 +113,18 @@ module.exports = {
                 },
 
                 // Sidebar Colors
-                sidebar: {
-                    bg: '#06043E',        // Custom dark blue background
-                    from: '#312E81',      // indigo-900
-                    via: '#1E40AF',       // blue-900  
-                    to: '#1E3A8A',        // blue-800
-                    border: '#3B82F6',    // blue-500 with opacity
-                    text: {
-                        primary: '#FFFFFF',
-                        secondary: '#DBEAFE', // blue-100
-                        muted: '#BFDBFE',     // blue-200
-                    }
-                },
+                // sidebar: {
+                //     bg: '#06043E',        // Custom dark blue background
+                //     from: '#312E81',      // indigo-900
+                //     via: '#1E40AF',       // blue-900  
+                //     to: '#1E3A8A',        // blue-800
+                //     border: '#3B82F6',    // blue-500 with opacity
+                //     text: {
+                //         primary: '#FFFFFF',
+                //         secondary: '#DBEAFE', // blue-100
+                //         muted: '#BFDBFE',     // blue-200
+                //     }
+                // },
 
                 // Status Colors
                 status: {
@@ -231,11 +231,7 @@ module.exports = {
                         800: '#1E40AF',
                         900: '#1E3A8A',
                     }
-                },
-
-                // Legacy support
-                background: "var(--background)",
-                foreground: "var(--foreground)",
+                }
             },
             
             fontFamily: {

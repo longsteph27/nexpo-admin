@@ -160,20 +160,31 @@ export default function PageBuilderPage() {
 
   // Select block type
   const handleBlockTypeSelected = (blockType: string) => {
+    console.log('[handleBlockTypeSelected] Creating new block:', {
+      blockType,
+      event_id: page?.site?.event_id,
+      tenant_id: page?.site?.tenant_id,
+      selectedTenant: selectedTenant?.id,
+      site: page?.site
+    });
+
     const newBlock: Block = {
       id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       collection: blockType,
       sort: selectedBlockIndex ?? blocks.length,
       item: {
         // Tự động thêm event_id và tenant_id
-        event_id: page?.site?.event_id,
-        tenant_id: page?.site?.tenant_id,
+        event_id: page?.site?.event_id || Number(eventId),
+        tenant_id: page?.site?.tenant_id || selectedTenant?.id,
         translations: [
           { languages_code: 'en-US' },
           { languages_code: 'vi-VN' },
         ],
       },
     };
+    
+    console.log('[handleBlockTypeSelected] New block created:', newBlock);
+    
     setEditingBlock(newBlock);
     setShowBlockSelector(false);
     setShowBlockEditor(true);
@@ -308,23 +319,112 @@ export default function PageBuilderPage() {
       blocks.forEach((block, index) => {
         const isTemp = String(block.id).startsWith('temp-');
         
-        const blockData = {
-          collection: block.collection,
-          id: block.id,
-          sort: index,
-          item: {
-            ...block.item,
-            tenant_id: page?.site?.tenant_id,
-            event_id: page?.site?.event_id,
-          },
+        // Process translations with create/update structure
+        const processTranslations = (translations: any[], originalTranslations: any[] = []) => {
+          if (!translations || translations.length === 0) {
+            return undefined;
+          }
+
+          const translationsPayload: any = {
+            create: [] as any[],
+            update: [] as any[],
+            delete: [] as number[]
+          };
+
+          // Map of existing translations by language code
+          const originalTransMap = new Map(
+            originalTranslations.map(t => [t.languages_code, t])
+          );
+
+          // Process each translation
+          translations.forEach((trans) => {
+            const original = originalTransMap.get(trans.languages_code);
+            
+            if (original && original.id) {
+              // Existing translation - update
+              translationsPayload.update.push({
+                id: original.id,
+                ...trans,
+                languages_code: undefined, // Don't include in update
+              });
+              originalTransMap.delete(trans.languages_code);
+            } else {
+              // New translation - create
+              translationsPayload.create.push({
+                ...trans,
+                languages_code: { code: trans.languages_code }
+              });
+            }
+          });
+
+          // Remaining translations should be deleted
+          originalTransMap.forEach((trans) => {
+            if (trans.id) {
+              translationsPayload.delete.push(trans.id);
+            }
+          });
+
+          // Only return if there are changes
+          if (translationsPayload.create.length === 0 && 
+              translationsPayload.update.length === 0 && 
+              translationsPayload.delete.length === 0) {
+            return undefined;
+          }
+
+          return translationsPayload;
         };
 
+        // Get original block for comparison
+        const originalBlock = originalBlocks.find((b: any) => b.id === block.id);
+        const originalTranslations = originalBlock?.item?.translations || [];
+
+        // Process item data
+        const itemData = {
+          ...block.item,
+          tenant_id: page?.site?.tenant_id || selectedTenant?.id,
+          event_id: page?.site?.event_id || Number(eventId),
+        };
+
+        console.log(`[handleSave] Processing block ${block.collection} (${isTemp ? 'NEW' : 'UPDATE'}):`, {
+          blockId: block.id,
+          tenant_id: itemData.tenant_id,
+          event_id: itemData.event_id,
+          hasTranslations: !!itemData.translations
+        });
+
+        // Handle translations
+        if (itemData.translations) {
+          const translationsPayload = processTranslations(itemData.translations, originalTranslations);
+          if (translationsPayload) {
+            itemData.translations = translationsPayload;
+            console.log(`[handleSave] Translations payload for ${block.collection}:`, translationsPayload);
+          } else {
+            // No changes - remove translations from payload for updates
+            if (!isTemp) {
+              delete itemData.translations;
+            }
+          }
+        }
+        
         if (isTemp) {
-          // New block - add to create
+          // New block - add to create (NO ID for create)
+          const blockData = {
+            collection: block.collection,
+            sort: index,
+            item: itemData,
+          };
           blocksPayload.create.push(blockData);
+          console.log(`[handleSave] Added to CREATE:`, blockData);
         } else {
-          // Existing block - add to update
+          // Existing block - add to update (WITH ID for update)
+          const blockData = {
+            collection: block.collection,
+            id: block.id,
+            sort: index,
+            item: itemData,
+          };
           blocksPayload.update.push(blockData);
+          console.log(`[handleSave] Added to UPDATE:`, blockData);
         }
       });
 
@@ -332,6 +432,8 @@ export default function PageBuilderPage() {
       console.log('[handleSave] Saving page with payload:', {
         blocks: blocksPayload,
         event_id: page?.site?.event_id,
+        tenant_id: page?.site?.tenant_id,
+        site_data: page?.site,
       });
 
       await siteApi.updatePageBlocks(pageId, {

@@ -1,11 +1,9 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
-import { flushSync } from 'react-dom';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
 import { useForm, useSaveForm, useSaveFormWithFields } from '@/hooks/useForms';
-import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button-base';
 import { Input } from '@/components/ui/input';
@@ -543,451 +541,13 @@ export default function FormBuilderPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [dropPosition, setDropPosition] = useState<number | null>(null);
   const [activeLang, setActiveLang] = useState<'en-US' | 'vi-VN'>('en-US');
-  const [formLang, setFormLang] = useState<{ 'en-US': { id?: string; title?: string; submit_label?: string; success_message?: string }; 'vi-VN': { id?: string; title?: string; submit_label?: string; success_message?: string } }>({ 'en-US': {}, 'vi-VN': {} });
+  const [formLang, setFormLang] = useState<{ 'en-US': { title?: string; submit_label?: string; success_message?: string }; 'vi-VN': { title?: string; submit_label?: string; success_message?: string } }>({ 'en-US': {}, 'vi-VN': {} });
   const [formSettings, setFormSettings] = useState<{ status?: string; on_success?: string; redirect_url?: string }>({});
 
-  // Optimized field state management
-  const [fieldChanges, setFieldChanges] = useState({
-    create: [] as any[],
-    update: [] as any[],
-    delete: [] as string[],
-  });
-
-  // Store original parsed fields for comparison
-  const [originalParsedFields, setOriginalParsedFields] = useState<any[]>([]);
-
-  // Form translations and settings changes tracking
-  const [formTranslationChanges, setFormTranslationChanges] = useState({
-    create: [] as any[],
-    update: [] as any[],
-    delete: [] as string[],
-  });
-  const [originalFormTranslations, setOriginalFormTranslations] = useState<any[]>([]);
-
-  // Form translation changes tracking
-  const updateFormTranslationChanges = React.useCallback(() => {
-    console.log('[updateFormTranslationChanges] Function called - Calculating form translation changes:', {
-      currentFormLang: formLang,
-      originalFormTranslations: originalFormTranslations,
-      formLangKeys: Object.keys(formLang),
-      originalTranslationsCount: originalFormTranslations.length,
-    });
-
-    const newTranslationChanges = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[],
-    };
-
-    // Process each language
-    const languages = ['en-US', 'vi-VN'] as const;
-    
-    for (const lang of languages) {
-      const currentTranslation = formLang[lang];
-      const originalTranslation = originalFormTranslations.find((t: any) => t.languages_code === lang);
-
-      console.log('[updateFormTranslationChanges] Processing language:', {
-        lang,
-        currentTranslation,
-        originalTranslation,
-        hasCurrentTranslation: !!(currentTranslation && Object.keys(currentTranslation).length > 0),
-        currentTranslationKeys: currentTranslation ? Object.keys(currentTranslation) : [],
-      });
-
-      if (currentTranslation && Object.keys(currentTranslation).length > 0) {
-        if (originalTranslation) {
-          // Check if translation has changes (normalize empty strings and undefined)
-          const normalizeValue = (value: any) => value || '';
-          const hasChanges = (
-            normalizeValue(currentTranslation.title) !== normalizeValue(originalTranslation.title) ||
-            normalizeValue(currentTranslation.submit_label) !== normalizeValue(originalTranslation.submit_label) ||
-            normalizeValue(currentTranslation.success_message) !== normalizeValue(originalTranslation.success_message)
-          );
-
-          console.log('[updateFormTranslationChanges] Checking changes for language:', {
-            lang,
-            currentTitle: currentTranslation.title,
-            originalTitle: originalTranslation.title,
-            currentSubmitLabel: currentTranslation.submit_label,
-            originalSubmitLabel: originalTranslation.submit_label,
-            currentSuccessMessage: currentTranslation.success_message,
-            originalSuccessMessage: originalTranslation.success_message,
-            hasChanges,
-          });
-
-          if (hasChanges) {
-            console.log('[updateFormTranslationChanges] Adding changed translation to update:', {
-              lang,
-              currentTranslation,
-              originalTranslation,
-            });
-
-            newTranslationChanges.update.push({
-              id: currentTranslation.id, // Use existing ID for update
-              languages_code: lang,
-              title: currentTranslation.title || '',
-              submit_label: currentTranslation.submit_label || '',
-              success_message: currentTranslation.success_message || '',
-            });
-          }
-        } else if (currentTranslation.title || currentTranslation.submit_label || currentTranslation.success_message) {
-          // New translation
-          console.log('[updateFormTranslationChanges] Adding new translation to create:', {
-            lang,
-            currentTranslation,
-            hasTitle: !!currentTranslation.title,
-            hasSubmitLabel: !!currentTranslation.submit_label,
-            hasSuccessMessage: !!currentTranslation.success_message,
-          });
-
-          newTranslationChanges.create.push({
-            languages_code: lang,
-            title: currentTranslation.title || '',
-            submit_label: currentTranslation.submit_label || '',
-            success_message: currentTranslation.success_message || '',
-          });
-        }
-      } else if (originalTranslation) {
-        // Translation was deleted
-        console.log('[updateFormTranslationChanges] Adding deleted translation to delete:', {
-          lang,
-          originalTranslation,
-        });
-
-        newTranslationChanges.delete.push(originalTranslation.id);
-      } else {
-        console.log('[updateFormTranslationChanges] No current translation for language:', {
-          lang,
-          currentTranslation,
-          originalTranslation,
-        });
-      }
-    }
-
-    console.log('[updateFormTranslationChanges] Final translation changes:', {
-      newTranslationChanges,
-      createCount: newTranslationChanges.create.length,
-      updateCount: newTranslationChanges.update.length,
-      deleteCount: newTranslationChanges.delete.length,
-    });
-    setFormTranslationChanges(newTranslationChanges);
-    console.log('[updateFormTranslationChanges] State updated with new translation changes');
-  }, [formLang, originalFormTranslations]);
-
-  // Optimized field changes tracking
-  const updateFieldChanges = React.useCallback(() => {
-    console.log('[updateFieldChanges] Calculating field changes:', {
-      currentFieldsCount: fields.length,
-      originalParsedFieldsCount: originalParsedFields.length,
-      currentFields: fields.map(f => ({ 
-        id: f.id, 
-        name: f.name, 
-        type: f.type,
-        width: f.width,
-        is_required: f.is_required,
-        hasPayload: !!(f as any)._payload 
-      })),
-      originalFields: originalParsedFields.map(f => ({ 
-        id: f.id, 
-        name: f.name, 
-        type: f.type,
-        width: f.width,
-        is_required: f.is_required
-      }))
-    });
-
-    const newFieldChanges = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[],
-    };
-
-    // Track processed field IDs to avoid duplicates
-    const processedIds = new Set<string>();
-
-    // 1. Process new fields (have _payload) - these are always creates
-    for (const field of fields) {
-      if ((field as any)._payload) {
-        console.log('[updateFieldChanges] Adding new field to create:', {
-          fieldId: field.id,
-          fieldName: field.name,
-          fieldTranslations: field.translations,
-          payloadTranslations: (field as any)._payload.translations,
-          payload: (field as any)._payload
-        });
-        
-        // ✅ Ensure payload uses current field data (basic fields + translations)
-        let finalPayload = (field as any)._payload;
-        
-        // Check if payload needs to be synced with current field state
-        const payloadNeedsSync = (
-          (field as any)._payload.name !== field.name ||
-          (field as any)._payload.type !== field.type ||
-          (field as any)._payload.width !== field.width ||
-          (field as any)._payload.sort !== field.sort ||
-          (field as any)._payload.is_required !== field.is_required ||
-          (field as any)._payload.validation !== field.validation ||
-          JSON.stringify((field as any)._payload.conditions) !== JSON.stringify(field.conditions)
-        );
-        
-        if (payloadNeedsSync) {
-          console.log('[updateFieldChanges] Payload needs sync with field state:', {
-            fieldId: field.id,
-            fieldName: field.name,
-            fieldIsRequired: field.is_required,
-            payloadIsRequired: (field as any)._payload.is_required,
-            fieldType: field.type,
-            payloadType: (field as any)._payload.type,
-            needsSync: payloadNeedsSync
-          });
-          
-          // Update payload with current field data (basic fields)
-          finalPayload = {
-            ...(field as any)._payload,
-            // ✅ Sync basic fields with current field state
-            name: field.name,
-            type: field.type,
-            width: field.width,
-            sort: field.sort,
-            is_required: field.is_required,
-            validation: field.validation,
-            conditions: field.conditions,
-          };
-        }
-        
-        // If field has translations but payload translations are outdated, update them
-        if (field.translations && (field as any)._payload.translations) {
-          const updatedPayloadTranslations = {
-            ...(field as any)._payload.translations,
-            create: (field as any)._payload.translations.create.map((t: any) => {
-              const langCode = t.languages_code?.code;
-              const currentTranslation = field.translations[langCode];
-              
-              console.log('[updateFieldChanges] Syncing payload translation with field:', {
-                langCode,
-                payloadTranslation: t,
-                currentTranslation,
-                fieldTranslations: field.translations
-              });
-              
-              return {
-                ...t,
-                label: currentTranslation?.label !== undefined ? currentTranslation.label : t.label,
-                placeholder: currentTranslation?.placeholder !== undefined ? currentTranslation.placeholder : t.placeholder,
-                help: currentTranslation?.help !== undefined ? currentTranslation.help : t.help,
-                options: currentTranslation?.options !== undefined ? currentTranslation.options : t.options,
-              };
-            })
-          };
-          
-          finalPayload = {
-            ...finalPayload,
-            translations: updatedPayloadTranslations
-          };
-          
-          console.log('[updateFieldChanges] Updated payload with current translations:', {
-            fieldId: field.id,
-            originalPayload: (field as any)._payload,
-            updatedPayload: finalPayload
-          });
-        }
-        
-        console.log('[updateFieldChanges] Final payload with synced data:', {
-          fieldId: field.id,
-          fieldName: field.name,
-          fieldIsRequired: field.is_required,
-          fieldType: field.type,
-          originalPayloadName: (field as any)._payload.name,
-          originalPayloadIsRequired: (field as any)._payload.is_required,
-          originalPayloadType: (field as any)._payload.type,
-          finalPayloadName: finalPayload.name,
-          finalPayloadIsRequired: finalPayload.is_required,
-          finalPayloadType: finalPayload.type,
-          syncWorked: field.name === finalPayload.name && field.is_required === finalPayload.is_required,
-          finalPayload: finalPayload
-        });
-        
-        newFieldChanges.create.push(finalPayload);
-        processedIds.add(field.id);
-      }
-    }
-
-    // 2. Process existing fields - check for changes
-    const originalFieldIds = new Set(originalParsedFields.map((f: any) => f.id));
-    
-    for (const field of fields) {
-      if (field.id && originalFieldIds.has(field.id) && !processedIds.has(field.id)) {
-        const originalField = originalParsedFields.find((f: any) => f.id === field.id);
-        if (originalField) {
-          // Debug detailed comparison for field changes
-          const fieldHasChanges = !areFieldsEqual(field, originalField);
-          
-          console.log('[updateFieldChanges] Checking field changes for existing field:', {
-            fieldId: field.id,
-            fieldName: field.name,
-            fieldType: field.type,
-            fieldWidth: field.width,
-            fieldIsRequired: field.is_required,
-            fieldValidation: field.validation,
-            originalName: originalField.name,
-            originalType: originalField.type,
-            originalWidth: originalField.width,
-            originalIsRequired: originalField.is_required,
-            originalValidation: originalField.validation,
-            nameChanged: field.name !== originalField.name,
-            typeChanged: field.type !== originalField.type,
-            widthChanged: field.width !== originalField.width,
-            isRequiredChanged: field.is_required !== originalField.is_required,
-            validationChanged: field.validation !== originalField.validation,
-            areFieldsEqualResult: areFieldsEqual(field, originalField),
-            fieldHasChanges
-          });
-          
-          if (fieldHasChanges) {
-            console.log('[updateFieldChanges] Adding changed field to update:', {
-              fieldId: field.id,
-              fieldName: field.name,
-              originalTranslations: originalField.translations,
-              currentTranslations: field.translations
-            });
-            
-            const fieldData = {
-              id: field.id,
-              name: field.name,
-              type: field.type,
-              width: field.width,
-              sort: field.sort,
-              is_required: field.is_required,
-              validation: field.validation,
-              conditions: field.conditions,
-              event_id: Number(eventId),
-              tenant_id: Number(tenantId),
-              translations: processFieldTranslations(field.translations || {}, originalField.translations || {}),
-            };
-            newFieldChanges.update.push(fieldData);
-          } else {
-            console.log('[updateFieldChanges] Field unchanged, skipping:', {
-              fieldId: field.id,
-              fieldName: field.name
-            });
-          }
-          processedIds.add(field.id);
-        }
-      }
-    }
-
-    // 3. Find deleted fields
-    for (const originalField of originalParsedFields) {
-      if (!processedIds.has(originalField.id)) {
-        console.log('[updateFieldChanges] Adding deleted field to delete:', {
-          fieldId: originalField.id,
-          fieldName: originalField.name
-        });
-        newFieldChanges.delete.push(originalField.id);
-      }
-    }
-
-    console.log('[updateFieldChanges] Final field changes:', {
-      createCount: newFieldChanges.create.length,
-      updateCount: newFieldChanges.update.length,
-      deleteCount: newFieldChanges.delete.length,
-      changes: newFieldChanges
-    });
-
-    setFieldChanges(newFieldChanges);
-  }, [fields, originalParsedFields, eventId, tenantId]);
-
-
   // Use React Query hook to fetch form data
-  const { data: formData, refetch: refetchForm } = useForm(formId);
+  const { data: formData } = useForm(formId);
   const saveFormMutation = useSaveForm();
   const saveFormWithFieldsMutation = useSaveFormWithFields();
-  const queryClient = useQueryClient();
-
-  // Reset all state after successful save
-  const resetFormState = () => {
-    console.log('[resetFormState] Resetting all form state after successful save');
-    
-    // Reset fields state
-    setFields([]);
-    
-    // Reset selected field
-    setSelectedId(null);
-    
-    // Reset form language state
-    setFormLang({ 'en-US': {}, 'vi-VN': {} });
-    
-    // Reset form settings
-    setFormSettings({});
-    
-    // Reset field changes
-    setFieldChanges({
-      create: [],
-      update: [],
-      delete: [],
-    });
-    
-    // Reset form translation changes
-    setFormTranslationChanges({
-      create: [],
-      update: [],
-      delete: [],
-    });
-    
-    // Reset original parsed fields
-    setOriginalParsedFields([]);
-    
-    // Reset original form translations
-    setOriginalFormTranslations([]);
-    
-    // Reset active language
-    setActiveLang('en-US');
-    
-    // Reset form meta
-    setFormMeta(null);
-    
-    console.log('[resetFormState] All form state reset successfully');
-  };
-
-  // Auto-update field changes when fields change
-  useEffect(() => {
-    if (fields.length > 0 && originalParsedFields.length > 0) {
-      console.log('[useEffect] Fields changed, auto-updating field changes:', {
-        fieldsCount: fields.length,
-        originalFieldsCount: originalParsedFields.length,
-        fieldsWithPayload: fields.filter(f => (f as any)._payload).length,
-        fields: fields.map(f => ({ id: f.id, name: f.name, hasPayload: !!(f as any)._payload }))
-      });
-      // Add small delay to ensure state is fully updated
-      setTimeout(() => {
-        updateFieldChanges();
-      }, 50);
-    }
-  }, [fields, originalParsedFields, updateFieldChanges]);
-
-  // Auto-update form translation changes when formLang changes
-  useEffect(() => {
-    console.log('[useEffect] Form translation useEffect triggered:', {
-      originalFormTranslationsLength: originalFormTranslations.length,
-      formLang,
-      originalFormTranslations,
-      shouldUpdate: originalFormTranslations.length >= 0,
-    });
-    
-    if (originalFormTranslations.length >= 0) { // Allow empty array for new forms
-      console.log('[useEffect] Form translations changed, auto-updating translation changes:', {
-        formLang,
-        originalFormTranslations,
-      });
-      // Add small delay to ensure state is fully updated
-      setTimeout(() => {
-        console.log('[useEffect] Calling updateFormTranslationChanges after timeout');
-        updateFormTranslationChanges();
-      }, 50);
-    } else {
-      console.log('[useEffect] Skipping updateFormTranslationChanges - originalFormTranslations not ready');
-    }
-  }, [formLang, originalFormTranslations, updateFormTranslationChanges]);
   const isSaving = saveFormMutation.isPending || saveFormWithFieldsMutation.isPending;
 
   // dnd-kit sensors
@@ -1000,9 +560,9 @@ export default function FormBuilderPage() {
 
   // Helper function to parse field translations
   const parseFieldTranslations = (field: unknown) => {
-    const f = field as { id: string; name?: string; type?: string; width?: string; sort?: number; is_required?: boolean; validation?: string; conditions?: any; translations?: Array<{ id?: string; languages_code: string; label?: string; placeholder?: string; help?: string; options?: string | null }> };
+    const f = field as { id: string; name?: string; type?: string; width?: string; sort?: number; is_required?: boolean; validation?: string; translations?: Array<{ languages_code: string; label?: string; placeholder?: string; help?: string; options?: string | null }> };
     const fieldTranslations = f.translations || [];
-    console.log(`Field ${f.name} translations with IDs:`, fieldTranslations);
+    console.log(`Field ${f.name} translations:`, fieldTranslations);
     const enFieldTranslation = fieldTranslations.find((t: { languages_code: string }) => t.languages_code === 'en-US');
     const viFieldTranslation = fieldTranslations.find((t: { languages_code: string }) => t.languages_code === 'vi-VN');
     
@@ -1024,17 +584,14 @@ export default function FormBuilderPage() {
       sort: f.sort,
       is_required: f.is_required,
       validation: f.validation,
-      conditions: f.conditions,
       translations: {
         'en-US': { 
-          id: enFieldTranslation?.id, // ✅ Preserve translation ID
           label: enFieldTranslation?.label || '', 
           placeholder: enFieldTranslation?.placeholder || '', 
           help: enFieldTranslation?.help || '', 
           options: parseOptions(enFieldTranslation?.options || null)
         },
         'vi-VN': { 
-          id: viFieldTranslation?.id, // ✅ Preserve translation ID
           label: viFieldTranslation?.label || '', 
           placeholder: viFieldTranslation?.placeholder || '', 
           help: viFieldTranslation?.help || '', 
@@ -1049,30 +606,18 @@ export default function FormBuilderPage() {
     if (formData) {
       setFormMeta(formData);
       
-      // Properly handle form translations by languages_code with IDs
-      const translations = ((formData as { translations?: Array<{ id?: string; languages_code: string; title?: string; submit_label?: string; success_message?: string }> })?.translations || []);
+      // Properly handle form translations by languages_code
+      const translations = ((formData as { translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> })?.translations || []);
       const enTranslation = translations.find((t) => t.languages_code === 'en-US');
       const viTranslation = translations.find((t) => t.languages_code === 'vi-VN');
       
-      console.log('Form translations with IDs:', translations);
-      
-      // Store original form translations for comparison
-      console.log('[Form Data Processing] Setting original form translations:', {
-        translations,
-        translationsCount: translations.length,
-        translationsWithIds: translations.map(t => ({ id: t.id, languages_code: t.languages_code }))
-      });
-      setOriginalFormTranslations(translations);
-      
       setFormLang({
         'en-US': { 
-          id: enTranslation?.id, // ✅ Preserve translation ID
           title: enTranslation?.title || '', 
           submit_label: enTranslation?.submit_label || '', 
           success_message: enTranslation?.success_message || '' 
         },
         'vi-VN': { 
-          id: viTranslation?.id, // ✅ Preserve translation ID
           title: viTranslation?.title || '', 
           submit_label: viTranslation?.submit_label || '', 
           success_message: viTranslation?.success_message || '' 
@@ -1086,18 +631,7 @@ export default function FormBuilderPage() {
 
       // Process form fields
       const formFields = (formData as { fields?: unknown[] })?.fields || [];
-      const processedFields = formFields.map(parseFieldTranslations);
-      setFields(processedFields);
-      
-      // Store original parsed fields for comparison
-      setOriginalParsedFields(processedFields);
-      
-      // Initialize field changes as empty (will be updated when changes occur)
-      setFieldChanges({
-        create: [],
-        update: [],
-        delete: [],
-      });
+      setFields(formFields.map(parseFieldTranslations));
     }
   }, [formData]);
 
@@ -1140,8 +674,6 @@ export default function FormBuilderPage() {
       if (catalogItem && (over.id === 'form-preview' || fields.some(f => f.id === over.id))) {
         // Add new field from catalog at specified position
         const id = crypto.randomUUID();
-        const fieldName = `${catalogItem.id}_${Date.now()}`;
-        
         setFields((prev) => {
           let insertIndex = prev.length; // Default to end
           
@@ -1153,65 +685,11 @@ export default function FormBuilderPage() {
             }
           }
           
-          // Create payload for the new field
-          const payload = {
-            name: fieldName,
-            type: catalogItem.id,
-            width: 'full',
-            sort: insertIndex + 1,
-            is_required: false,
-            validation: '',
-            conditions: null as any, // ✅ JSON field must be null, not empty string
-            event_id: Number(eventId),
-            tenant_id: Number(tenantId),
-            translations: {
-              create: [
-                {
-                  languages_code: { code: 'en-US' },
-                  label: catalogItem.label,
-                  placeholder: (catalogItem as any).placeholder || '',
-                  help: '',
-                  options: (catalogItem as any).options || []
-                },
-                {
-                  languages_code: { code: 'vi-VN' },
-                  label: catalogItem.label,
-                  placeholder: (catalogItem as any).placeholder || '',
-                  help: '',
-                  options: (catalogItem as any).options || []
-                }
-              ],
-              update: [],
-              delete: [],
-            },
-          };
-          
           const newField = { 
             id, 
-            name: fieldName,
             type: catalogItem.id, 
-            width: 'full',
-            sort: insertIndex + 1,
-            is_required: false,
-            validation: '',
-            conditions: null as any, // ✅ JSON field must be null, not empty string
-            translations: {
-              'en-US': {
-                id: `${id}_en`,
-                label: catalogItem.label,
-                placeholder: catalogItem.placeholder || '',
-                help: '',
-                options: catalogItem.options || []
-              },
-              'vi-VN': {
-                id: `${id}_vi`,
-                label: catalogItem.label,
-                placeholder: catalogItem.placeholder || '',
-                help: '',
-                options: catalogItem.options || []
-              }
-            },
-            _payload: payload,
+            name: catalogItem.label, 
+            sort: insertIndex + 1 
           };
           
           const updated = [...prev];
@@ -1222,16 +700,7 @@ export default function FormBuilderPage() {
             field.sort = index + 1;
           });
           
-          console.log('[handleDragEnd] Added field from catalog with payload:', { 
-            id, 
-            type: catalogItem.id, 
-            label: catalogItem.label, 
-            insertIndex,
-            payload: newField._payload
-          });
-          
-          // Note: useEffect will automatically update persistent payload
-          
+          console.log('[handleDragEnd] Added field from catalog:', { id, type: catalogItem.id, label: catalogItem.label, insertIndex });
           return updated;
         });
         setSelectedId(id);
@@ -1292,14 +761,10 @@ export default function FormBuilderPage() {
 
   const selected = useMemo(() => fields.find((f) => f.id === selectedId) || null, [fields, selectedId]);
 
-  // Helper function to process field translations (object format) with create/update/delete structure
-  const processFieldTranslations = (currentTranslations: any, originalTranslations: any = {}) => {
-    if (!currentTranslations || Object.keys(currentTranslations).length === 0) {
-      return {
-        create: [],
-        update: [],
-        delete: [],
-      };
+  // Helper function to process translations with create/update/delete structure
+  const processTranslations = (translations: any[], originalTranslations: any[] = []) => {
+    if (!translations || translations.length === 0) {
+      return undefined;
     }
 
     const translationsPayload: any = {
@@ -1308,99 +773,125 @@ export default function FormBuilderPage() {
       delete: [] as string[]
     };
 
-    const languages = ['en-US', 'vi-VN'];
-    
-    for (const lang of languages) {
-      const current = currentTranslations[lang];
-      const original = originalTranslations[lang];
-      
-      if (current) {
-        // Convert object format to array format for API
-        const translationData = {
-          languages_code: { code: lang },
-          label: current.label || '',
-          placeholder: current.placeholder || '',
-          help: current.help || '',
-          options: current.options || []
-        };
-        
-        if (original && original.id) {
-          // Update existing translation
-          console.log('[processFieldTranslations] Updating existing translation:', {
-            lang,
-            translationId: original.id,
-            currentData: current,
-            originalData: original
-          });
-          translationsPayload.update.push({
-            id: original.id,
-            ...translationData
-          });
-        } else {
-          // Create new translation
-          console.log('[processFieldTranslations] Creating new translation:', {
-            lang,
-            currentData: current,
-            originalData: original
-          });
-          translationsPayload.create.push(translationData);
-        }
+    const originalTranslationIds = new Set(originalTranslations.map((t: any) => t.id));
+    const currentTranslationIds = new Set(translations.map(t => t.id).filter(id => id));
+
+    // Find translations to delete
+    for (const originalTranslation of originalTranslations) {
+      if (!currentTranslationIds.has(originalTranslation.id)) {
+        translationsPayload.delete.push(originalTranslation.id);
       }
     }
 
-    console.log('[processFieldTranslations] Processed field translations:', {
-      currentTranslations,
-      originalTranslations,
-      translationsPayload
-    });
+    // Categorize current translations
+    for (const translation of translations) {
+      if (translation.id && originalTranslationIds.has(translation.id)) {
+        // Update existing translation
+        translationsPayload.update.push(translation);
+      } else if (!translation.id) {
+        // Create new translation
+        translationsPayload.create.push(translation);
+      }
+    }
 
     return translationsPayload;
   };
-
 
   // Helper function to compare field objects deeply
   const areFieldsEqual = (field1: any, field2: any) => {
     if (!field1 || !field2) return false;
     
-    // Compare basic fields
-    const basicFieldsEqual = (
+    return (
       field1.name === field2.name &&
       field1.type === field2.type &&
       field1.width === field2.width &&
       field1.sort === field2.sort &&
       field1.is_required === field2.is_required &&
       field1.validation === field2.validation &&
-      JSON.stringify(field1.conditions || null) === JSON.stringify(field2.conditions || null)
+      field1.conditions === field2.conditions
     );
-    
-    // Compare translations deeply
-    const translationsEqual = JSON.stringify(field1.translations || {}) === JSON.stringify(field2.translations || {});
-    
-    console.log('[areFieldsEqual] Comparing fields:', {
-      field1Id: field1.id,
-      field2Id: field2.id,
-      field1Name: field1.name,
-      field2Name: field2.name,
-      field1Type: field1.type,
-      field2Type: field2.type,
-      field1Width: field1.width,
-      field2Width: field2.width,
-      field1IsRequired: field1.is_required,
-      field2IsRequired: field2.is_required,
-      field1Validation: field1.validation,
-      field2Validation: field2.validation,
-      field1Conditions: field1.conditions,
-      field2Conditions: field2.conditions,
-      basicFieldsEqual,
-      translationsEqual,
-      field1Translations: field1.translations,
-      field2Translations: field2.translations,
-      result: basicFieldsEqual && translationsEqual
-    });
-    
-    return basicFieldsEqual && translationsEqual;
   };
 
+  // Helper function to process form fields with optimized create/update/delete structure
+  const processFormFields = (currentFields: any[], originalFields: any[] = []) => {
+    console.log('[processFormFields] Processing fields:', {
+      currentFields: currentFields.length,
+      originalFields: originalFields.length,
+      currentFieldsWithPayload: currentFields.filter(f => f._payload).length,
+    });
+
+    const fieldsPayload: any = {
+      create: [] as any[],
+      update: [] as any[],
+      delete: [] as string[]
+    };
+
+    // Track processed field IDs to avoid duplicates
+    const processedIds = new Set<string>();
+
+    // 1. Process new fields (have _payload)
+    for (const field of currentFields) {
+      if (field._payload) {
+        console.log('[processFormFields] Adding new field to create:', field._payload);
+        fieldsPayload.create.push(field._payload);
+        processedIds.add(field.id);
+      }
+    }
+
+    // 2. Process existing fields (check for changes)
+    const originalFieldIds = new Set(originalFields.map((f: any) => f.id));
+    
+    for (const field of currentFields) {
+      if (field.id && originalFieldIds.has(field.id) && !processedIds.has(field.id)) {
+        const originalField = originalFields.find((f: any) => f.id === field.id);
+        if (originalField) {
+          const hasChanges = !areFieldsEqual(field, originalField);
+          
+          if (hasChanges) {
+            console.log('[processFormFields] Field has changes, adding to update:', {
+              fieldId: field.id,
+              original: originalField,
+              current: field,
+            });
+            
+            const fieldData = {
+              id: field.id,
+              name: field.name,
+              type: field.type,
+              width: field.width,
+              sort: field.sort,
+              is_required: field.is_required,
+              validation: field.validation,
+              conditions: field.conditions,
+              event_id: Number(eventId),
+              tenant_id: Number(tenantId),
+      translations: {
+                create: [],
+                update: [],
+                delete: [],
+              },
+            };
+            fieldsPayload.update.push(fieldData);
+          } else {
+            console.log('[processFormFields] Field unchanged, skipping:', field.id);
+          }
+        }
+        processedIds.add(field.id);
+      }
+    }
+
+    // 3. Find fields to delete
+    const currentFieldIds = new Set(currentFields.map(f => f.id).filter(id => id));
+    for (const originalField of originalFields) {
+      if (!currentFieldIds.has(originalField.id)) {
+        console.log('[processFormFields] Field deleted, adding to delete:', originalField.id);
+        fieldsPayload.delete.push(originalField.id);
+      }
+    }
+
+    console.log('[processFormFields] Final payload:', fieldsPayload);
+    return fieldsPayload;
+  };
 
   // Save form
   const handleSave = () => {
@@ -1408,324 +899,61 @@ export default function FormBuilderPage() {
     
     // Get original form data for comparison
     const originalForm = formData as any;
-
-    // Calculate form translation changes directly in handleSave to ensure latest state
-    console.log('[handleSave] Calculating form translation changes directly:', {
-      formLang,
-      originalFormTranslations,
-      formLangKeys: Object.keys(formLang),
-      formLangEnUS: formLang['en-US'],
-      formLangViVN: formLang['vi-VN'],
-      originalFormTranslationsCount: originalFormTranslations.length,
-      originalFormTranslationsData: originalFormTranslations,
-    });
-
-    const directFormTranslationChanges = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[],
-    };
-
-    // Process each language
-    const languages = ['en-US', 'vi-VN'] as const;
-    
-    for (const lang of languages) {
-      const currentTranslation = formLang[lang];
-      // Find original translation by matching both languages_code and id
-      const originalTranslation = originalFormTranslations.find((t: any) => 
-        t.languages_code === lang && t.id === currentTranslation?.id
-      );
-
-      console.log('[handleSave] Processing language for direct calculation:', {
-        lang,
-        currentTranslation,
-        originalTranslation,
-        hasCurrentTranslation: !!(currentTranslation && Object.keys(currentTranslation).length > 0),
-        currentTranslationKeys: currentTranslation ? Object.keys(currentTranslation) : [],
-        currentTranslationValues: currentTranslation ? {
-          title: currentTranslation.title,
-          submit_label: currentTranslation.submit_label,
-          success_message: currentTranslation.success_message,
-        } : null,
-        currentTranslationId: currentTranslation?.id,
-        originalTranslationId: originalTranslation?.id,
-        foundMatchingOriginal: !!originalTranslation,
-      });
-
-      if (currentTranslation && Object.keys(currentTranslation).length > 0) {
-        if (originalTranslation) {
-          // Check if translation has changes (normalize empty strings and undefined)
-          const normalizeValue = (value: any) => value || '';
-          const hasChanges = (
-            normalizeValue(currentTranslation.title) !== normalizeValue(originalTranslation.title) ||
-            normalizeValue(currentTranslation.submit_label) !== normalizeValue(originalTranslation.submit_label) ||
-            normalizeValue(currentTranslation.success_message) !== normalizeValue(originalTranslation.success_message)
-          );
-
-          console.log('[handleSave] Checking changes for language:', {
-            lang,
-            currentTitle: currentTranslation.title,
-            originalTitle: originalTranslation.title,
-            hasChanges,
-          });
-
-          if (hasChanges) {
-            console.log('[handleSave] Adding changed translation to update (direct):', {
-              lang,
-              currentTranslation,
-            });
-
-            directFormTranslationChanges.update.push({
-              id: currentTranslation.id, // Use existing ID for update
-              languages_code: lang,
-              title: currentTranslation.title || '',
-              submit_label: currentTranslation.submit_label || '',
-              success_message: currentTranslation.success_message || '',
-            });
-          }
-        } else if (currentTranslation.title || currentTranslation.submit_label || currentTranslation.success_message) {
-          // New translation
-          console.log('[handleSave] Adding new translation to create (direct):', {
-            lang,
-            currentTranslation,
-          });
-
-          directFormTranslationChanges.create.push({
-            languages_code: lang,
-            title: currentTranslation.title || '',
-            submit_label: currentTranslation.submit_label || '',
-            success_message: currentTranslation.success_message || '',
-          });
-        }
-      } else if (originalTranslation) {
-        // Translation was deleted
-        console.log('[handleSave] Adding deleted translation to delete (direct):', {
-          lang,
-          originalTranslation,
-        });
-
-        directFormTranslationChanges.delete.push(originalTranslation.id);
-      }
-    }
-
-    console.log('[handleSave] Direct form translation changes calculated:', {
-      directFormTranslationChanges,
-      createCount: directFormTranslationChanges.create.length,
-      updateCount: directFormTranslationChanges.update.length,
-      deleteCount: directFormTranslationChanges.delete.length,
-    });
-
-    // Fallback: If direct calculation is empty but state has data, use state
-    console.log('[handleSave] Fallback logic - directFormTranslationChanges:', {
-      directFormTranslationChanges,
-      directCreateCount: directFormTranslationChanges.create.length,
-      directUpdateCount: directFormTranslationChanges.update.length,
-      directDeleteCount: directFormTranslationChanges.delete.length,
-      directHasData: (
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-    });
-
-    console.log('[handleSave] Fallback logic - formTranslationChanges state:', {
-      formTranslationChanges,
-      stateCreateCount: formTranslationChanges.create.length,
-      stateUpdateCount: formTranslationChanges.update.length,
-      stateDeleteCount: formTranslationChanges.delete.length,
-      stateHasData: (
-        formTranslationChanges.create.length > 0 || 
-        formTranslationChanges.update.length > 0 || 
-        formTranslationChanges.delete.length > 0
-      ),
-    });
-
-    const finalFormTranslationChanges = (
-      directFormTranslationChanges.create.length > 0 || 
-      directFormTranslationChanges.update.length > 0 || 
-      directFormTranslationChanges.delete.length > 0
-    ) ? directFormTranslationChanges : formTranslationChanges;
-
-    console.log('[handleSave] Fallback logic - finalFormTranslationChanges assigned:', {
-      finalFormTranslationChanges,
-      finalCreateCount: finalFormTranslationChanges.create.length,
-      finalUpdateCount: finalFormTranslationChanges.update.length,
-      finalDeleteCount: finalFormTranslationChanges.delete.length,
-      usedDirect: (
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-      usedState: !(
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-    });
-
-    console.log('[handleSave] finalFormTranslationChanges validation:', {
-      finalFormTranslationChanges,
-      isUndefined: finalFormTranslationChanges === undefined,
-      isNull: finalFormTranslationChanges === null,
-      hasCreate: !!finalFormTranslationChanges?.create,
-      hasUpdate: !!finalFormTranslationChanges?.update,
-      hasDelete: !!finalFormTranslationChanges?.delete,
-      createLength: finalFormTranslationChanges?.create?.length || 0,
-      updateLength: finalFormTranslationChanges?.update?.length || 0,
-      deleteLength: finalFormTranslationChanges?.delete?.length || 0,
-    });
-
-    // Safety check: Ensure finalFormTranslationChanges has proper structure
-    console.log('[handleSave] Before safety check - finalFormTranslationChanges:', {
-      finalFormTranslationChanges,
-      finalFormTranslationChangesCreate: finalFormTranslationChanges?.create,
-      finalFormTranslationChangesUpdate: finalFormTranslationChanges?.update,
-      finalFormTranslationChangesDelete: finalFormTranslationChanges?.delete,
-      finalFormTranslationChangesCreateCount: finalFormTranslationChanges?.create?.length || 0,
-      finalFormTranslationChangesUpdateCount: finalFormTranslationChanges?.update?.length || 0,
-      finalFormTranslationChangesDeleteCount: finalFormTranslationChanges?.delete?.length || 0,
-    });
-
-    const safeFinalFormTranslationChanges = finalFormTranslationChanges || {
-      create: [],
-      update: [],
-      delete: [],
-    };
-
-    console.log('[handleSave] Safe finalFormTranslationChanges:', {
-      safeFinalFormTranslationChanges,
-      createLength: safeFinalFormTranslationChanges.create.length,
-      updateLength: safeFinalFormTranslationChanges.update.length,
-      deleteLength: safeFinalFormTranslationChanges.delete.length,
-    });
-
-    console.log('[handleSave] Fallback logic result:', {
-      directHasData: (
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-      stateHasData: (
-        formTranslationChanges.create.length > 0 || 
-        formTranslationChanges.update.length > 0 || 
-        formTranslationChanges.delete.length > 0
-      ),
-      usingDirect: (
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-      usingState: !(
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-    });
-
-    console.log('[handleSave] Final form translation changes (with fallback):', {
-      finalFormTranslationChanges,
-      usedDirectCalculation: (
-        directFormTranslationChanges.create.length > 0 || 
-        directFormTranslationChanges.update.length > 0 || 
-        directFormTranslationChanges.delete.length > 0
-      ),
-      usedStateFallback: (
-        directFormTranslationChanges.create.length === 0 && 
-        directFormTranslationChanges.update.length === 0 && 
-        directFormTranslationChanges.delete.length === 0 &&
-        (formTranslationChanges.create.length > 0 || 
-         formTranslationChanges.update.length > 0 || 
-         formTranslationChanges.delete.length > 0)
-      ),
-    });
+    const originalTranslations = originalForm?.translations || [];
+    const originalFields = originalForm?.fields || [];
 
            // No form translations in this payload - only fields
       
-    console.log('[handleSave] Current fields state:', {
-      fieldsCount: fields.length,
-      fieldsWithPayload: fields.filter(f => (f as any)._payload).length,
-      selectedField: selected?.name,
+    // Process form fields with create/update/delete structure
+    const processedFields = fields.map((field, index) => ({
+        id: field.id,
+        name: field.name || `field_${index + 1}`,
+        type: (field.type as 'input' | 'textarea' | 'email' | 'number' | 'select' | 'multiselect' | 'file' | 'image') || 'input',
+        width: (field.width as 'full' | 'half') || 'full',
+        sort: field.sort || index,
+        is_required: field.is_required || false,
+        validation: field.validation || undefined,
+        conditions: field.conditions || undefined,
+        // Preserve _payload for new fields
+        _payload: field._payload,
+    }));
+
+    console.log('[handleSave] Processed fields:', {
+      originalFields: fields,
+      processedFields: processedFields,
+      fieldsWithPayload: processedFields.filter(f => f._payload),
     });
 
-           // Use persistent payload (always up-to-date)
-           console.log('[handleSave] Constructing payload with safeFinalFormTranslationChanges:', {
-             safeFinalFormTranslationChanges,
-             safeFinalFormTranslationChangesCreate: safeFinalFormTranslationChanges.create,
-             safeFinalFormTranslationChangesUpdate: safeFinalFormTranslationChanges.update,
-             safeFinalFormTranslationChangesDelete: safeFinalFormTranslationChanges.delete,
-             safeFinalFormTranslationChangesCreateCount: safeFinalFormTranslationChanges.create.length,
-             safeFinalFormTranslationChangesUpdateCount: safeFinalFormTranslationChanges.update.length,
-             safeFinalFormTranslationChangesDeleteCount: safeFinalFormTranslationChanges.delete.length,
-           });
-
+           // Format form data with create/update/delete structure (only fields)
+           const processedFieldsPayload = processFormFields(processedFields, originalFields);
+           
            const formDataWithFields = {
-      status: (formSettings.status as 'draft' | 'published' | 'archived') || 'draft',
-      on_success: (formSettings.on_success as 'redirect' | 'message') || 'message',
-      redirect_url: formSettings.redirect_url || undefined,
+             status: (formSettings.status as 'draft' | 'published' | 'archived') || 'draft',
+             on_success: (formSettings.on_success as 'redirect' | 'message') || 'message',
+             redirect_url: formSettings.redirect_url || undefined,
              event_id: Number(eventId),
              tenant_id: Number(tenantId),
              
-             translations: safeFinalFormTranslationChanges,
-             fields: fieldChanges,
+             fields: processedFieldsPayload,
            };
-
-           console.log('[handleSave] Payload constructed:', {
-             formDataWithFields,
-             hasTranslations: !!formDataWithFields.translations,
-             translationsCreate: formDataWithFields.translations?.create,
-             translationsUpdate: formDataWithFields.translations?.update,
-             translationsDelete: formDataWithFields.translations?.delete,
-           });
-
-           console.log('[handleSave] safeFinalFormTranslationChanges in payload:', {
-             safeFinalFormTranslationChanges,
-             safeFinalFormTranslationChangesCreate: safeFinalFormTranslationChanges.create,
-             safeFinalFormTranslationChangesUpdate: safeFinalFormTranslationChanges.update,
-             safeFinalFormTranslationChangesDelete: safeFinalFormTranslationChanges.delete,
-             safeFinalFormTranslationChangesCreateCount: safeFinalFormTranslationChanges.create.length,
-             safeFinalFormTranslationChangesUpdateCount: safeFinalFormTranslationChanges.update.length,
-             safeFinalFormTranslationChangesDeleteCount: safeFinalFormTranslationChanges.delete.length,
-           });
-
-           console.log('[handleSave] Using field changes:', {
-             fieldChanges,
-             createCount: fieldChanges.create.length,
-             updateCount: fieldChanges.update.length,
-             deleteCount: fieldChanges.delete.length,
-           });
-
-           console.log('[handleSave] Using final form translation changes:', {
-             finalFormTranslationChanges,
-             createCount: finalFormTranslationChanges.create.length,
-             updateCount: finalFormTranslationChanges.update.length,
-             deleteCount: finalFormTranslationChanges.delete.length,
-             formLang: formLang,
-             originalFormTranslations: originalFormTranslations,
-           });
-
-           console.log('[handleSave] Comparing with state formTranslationChanges:', {
-             formTranslationChanges,
-             stateCreateCount: formTranslationChanges.create.length,
-             stateUpdateCount: formTranslationChanges.update.length,
-             stateDeleteCount: formTranslationChanges.delete.length,
-           });
 
            console.log('[handleSave] Current fields state:', {
              fields: fields,
-             fieldsWithPayload: fields.filter(f => (f as any)._payload),
-             fieldChanges: fieldChanges,
+             fieldsWithPayload: fields.filter(f => f._payload),
+             processedFields: processedFields,
+             processedFieldsPayload: processedFieldsPayload,
            });
 
            // Debug: Check if we have any fields with _payload
-           const fieldsWithPayload = fields.filter(f => (f as any)._payload);
+           const fieldsWithPayload = fields.filter(f => f._payload);
            console.log('[handleSave] Fields with payload:', {
              count: fieldsWithPayload.length,
              fields: fieldsWithPayload.map(f => ({
                id: f.id,
                name: f.name,
                type: f.type,
-               hasPayload: !!(f as any)._payload,
-               payload: (f as any)._payload
+               hasPayload: !!f._payload,
+               payload: f._payload
              }))
            });
 
@@ -1734,25 +962,6 @@ export default function FormBuilderPage() {
       eventId,
       tenantId,
       formData: formDataWithFields,
-    });
-
-    console.log('[handleSave] Final payload translations check:', {
-      payloadTranslations: formDataWithFields.translations,
-      payloadTranslationsCreate: formDataWithFields.translations?.create,
-      payloadTranslationsUpdate: formDataWithFields.translations?.update,
-      payloadTranslationsDelete: formDataWithFields.translations?.delete,
-      payloadTranslationsCreateCount: formDataWithFields.translations?.create?.length || 0,
-      payloadTranslationsUpdateCount: formDataWithFields.translations?.update?.length || 0,
-      payloadTranslationsDeleteCount: formDataWithFields.translations?.delete?.length || 0,
-    });
-
-    console.log('[handleSave] Complete payload being sent to API:', {
-      formDataWithFields,
-      payloadKeys: Object.keys(formDataWithFields),
-      hasTranslationsField: 'translations' in formDataWithFields,
-      hasFieldsField: 'fields' in formDataWithFields,
-      translationsFieldValue: formDataWithFields.translations,
-      fieldsFieldValue: formDataWithFields.fields,
     });
 
            console.log('[handleSave] Calling saveFormWithFieldsMutation with:', {
@@ -1774,34 +983,11 @@ export default function FormBuilderPage() {
                formData: formDataWithFields 
              },
              {
-               onSuccess: async (data) => {
+               onSuccess: (data) => {
                  console.log('[handleSave] Save successful:', data);
-                 
-                 // Show success toast
           toast.success('Form saved successfully!', {
             description: 'All changes have been saved to Directus.',
           });
-                 
-                 // Reset all form state
-                 resetFormState();
-                 
-                 // Refetch form data to get fresh data from API
-                 console.log('[handleSave] Refetching form data after successful save');
-                 try {
-                   const { data: freshFormData } = await refetchForm();
-                   console.log('[handleSave] Fresh form data loaded:', freshFormData);
-                   
-                   // Invalidate related queries to ensure fresh data
-                   queryClient.invalidateQueries({ queryKey: ['forms', 'detail', formId] });
-                   queryClient.invalidateQueries({ queryKey: ['forms', 'list'] });
-                   
-                   console.log('[handleSave] All queries invalidated and fresh data loaded');
-                 } catch (error) {
-                   console.error('[handleSave] Failed to refetch form data:', error);
-                   toast.error('Form saved but failed to reload data', {
-                     description: 'Please refresh the page to see the latest changes.',
-                   });
-                 }
         },
         onError: (error) => {
                  console.error('[handleSave] Save failed:', error);
@@ -1826,8 +1012,8 @@ export default function FormBuilderPage() {
         width: 'full',
         sort: fieldSort,
         is_required: false,
-        validation: '',
-        conditions: null, // ✅ JSON field must be null, not undefined
+        validation: undefined,
+        conditions: undefined,
         event_id: Number(eventId),
         tenant_id: Number(tenantId),
         translations: {
@@ -1888,123 +1074,51 @@ export default function FormBuilderPage() {
           label, 
           payload: newField._payload,
           totalFields: updated.length,
-          fieldsWithPayload: updated.filter(f => (f as any)._payload).length
+          fieldsWithPayload: updated.filter(f => f._payload).length
         });
-        
-      // Force update field changes immediately for new fields
-      const updatedFields = updated;
-      setTimeout(() => {
-        console.log('[addFieldFromCatalog] Triggering updateFieldChanges after field creation');
-        updateFieldChanges();
-      }, 100); // Increased timeout to ensure state is updated
-
-      return updated;
-    });
+        return updated;
+      });
       setSelectedId(id);
   };
 
   // Helper function to update field and its payload
   const updateField = (id: string, updates: any) => {
-      console.log('[updateField] Called with:', {
-        fieldId: id,
-        updates,
-        updateKeys: Object.keys(updates),
-        updateValues: Object.values(updates)
-      });
+    setFields((prev) => prev.map((f) => {
+      if (f.id !== id) return f;
       
-      setFields((prev) => {
-      const updated = prev.map((f) => {
-        if (f.id !== id) return f;
-        
-        const updatedField = { ...f, ...updates };
-        
-        // Always preserve _payload for new fields (fields without real ID from database)
-        if ((f as any)._payload) {
-          (updatedField as any)._payload = {
-            ...(f as any)._payload,
-            // Update basic fields in payload
-            name: updates.name !== undefined ? updates.name : (f as any)._payload.name,
-            type: updates.type !== undefined ? updates.type : (f as any)._payload.type,
-            width: updates.width !== undefined ? updates.width : (f as any)._payload.width,
-            sort: updates.sort !== undefined ? updates.sort : (f as any)._payload.sort,
-            is_required: updates.is_required !== undefined ? updates.is_required : (f as any)._payload.is_required,
-            validation: updates.validation !== undefined ? updates.validation : (f as any)._payload.validation,
-            conditions: updates.conditions !== undefined ? updates.conditions : (f as any)._payload.conditions,
-            // Update translations in payload if they exist
-            translations: (f as any)._payload.translations ? {
-              ...(f as any)._payload.translations,
-              create: (f as any)._payload.translations.create.map((t: any) => {
-                const langCode = t.languages_code?.code;
-                
-                // Handle both object format (from UI) and direct updates
-                let translationUpdate = null;
-                if (updates.translations) {
-                  // If updates.translations is object format { 'en-US': {...}, 'vi-VN': {...} }
-                  if (typeof updates.translations === 'object' && !Array.isArray(updates.translations)) {
-                    translationUpdate = updates.translations[langCode];
-                  }
-                  // If updates.translations is array format (direct update)
-                  else if (Array.isArray(updates.translations)) {
-                    translationUpdate = updates.translations.find((ut: any) => 
-                      ut.languages_code?.code === langCode || ut.languages_code === langCode
-                    );
-                  }
-                }
-                
-                console.log('[updateField] Updating translation in payload:', {
-                  langCode,
-                  translationUpdate,
-                  currentTranslation: t,
-                  updatesTranslations: updates.translations,
-                  updatesTranslationsType: typeof updates.translations,
-                  updatesTranslationsIsArray: Array.isArray(updates.translations)
-                });
-                
-                return {
-                  ...t,
-                  label: translationUpdate?.label !== undefined ? translationUpdate.label : t.label,
-                  placeholder: translationUpdate?.placeholder !== undefined ? translationUpdate.placeholder : t.placeholder,
-                  help: translationUpdate?.help !== undefined ? translationUpdate.help : t.help,
-                  options: translationUpdate?.options !== undefined ? translationUpdate.options : t.options,
-                };
-              }),
-            } : undefined,
-          };
-          
-          console.log('[updateField] Updated _payload for field:', {
-            id,
-            updates,
-            oldPayload: (f as any)._payload,
-            newPayload: (updatedField as any)._payload
-          });
-        }
-        
-        return updatedField;
-      });
-
-      // Force update field changes immediately when field is updated
-      flushSync(() => {
-        // State is now guaranteed to be updated
-      });
+      const updatedField = { ...f, ...updates };
       
-      setTimeout(() => {
-        console.log('[updateField] Triggering updateFieldChanges after field update');
-        updateFieldChanges();
-      }, 50); // Reduced timeout since flushSync ensures state is updated
-
-      return updated;
-    });
+      // Always preserve _payload for new fields (fields without real ID from database)
+      if (f._payload) {
+        updatedField._payload = {
+          ...f._payload,
+          ...updates,
+          // Update translations in payload if they exist
+          translations: f._payload.translations ? {
+            ...f._payload.translations,
+            create: f._payload.translations.create.map((t: any) => ({
+              ...t,
+              label: updates.translations?.[t.languages_code?.code || t.languages_code]?.label || t.label,
+              placeholder: updates.translations?.[t.languages_code?.code || t.languages_code]?.placeholder || t.placeholder,
+              help: updates.translations?.[t.languages_code?.code || t.languages_code]?.help || t.help,
+              options: updates.translations?.[t.languages_code?.code || t.languages_code]?.options || t.options,
+            })),
+          } : undefined,
+        };
+        
+        console.log('[updateField] Preserved _payload for field:', {
+          id,
+          updates,
+          payload: updatedField._payload
+        });
+      }
+      
+      return updatedField;
+    }));
   };
 
   const removeField = (id: string) => {
-    setFields((prev) => {
-      const updated = prev.filter((f) => f.id !== id).map((f, i) => ({ ...f, sort: i + 1 }));
-      
-      // Update persistent payload after field removal
-      // Note: useEffect will automatically update persistent payload
-      
-      return updated;
-    });
+    setFields((prev) => prev.filter((f) => f.id !== id).map((f, i) => ({ ...f, sort: i + 1 })));
     if (selectedId === id) setSelectedId(null);
   };
 
@@ -2162,14 +1276,6 @@ export default function FormBuilderPage() {
                       translations[activeLang] = { ...(translations[activeLang] || {}), label: e.target.value };
                       return { ...f, translations };
                     }))}
-                  />
-                </div>
-                <div>
-                  <Input
-                    label="Field Name"
-                    value={selected.name || ''}
-                    onChange={(e) => updateField(selected.id, { name: e.target.value })}
-                    placeholder="e.g., user_email, phone_number"
                   />
                 </div>
                 <div>

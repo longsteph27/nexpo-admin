@@ -185,14 +185,54 @@ export const formsApi = {
     }
   },
 
-  createForm: async (eventId: string, formData: unknown): Promise<ApiResponse<unknown>> => {
+  saveFormWithFields: async (formId: string, eventId: string, tenantId: number, formData: unknown): Promise<ApiResponse<unknown>> => {
     try {
-      const res = await directusHelpers.createForm({ ...(formData as Record<string, unknown>), event_id: Number(eventId) });
+      const res = await directusHelpers.saveFormWithFields(formId, eventId, tenantId, formData as never);
+      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: handleAxiosError(error, 'Failed to save form with fields')
+      };
+    }
+  },
+
+  createForm: async (eventId: string, tenantId: number, formData: unknown): Promise<ApiResponse<unknown>> => {
+    try {
+      const res = await directusHelpers.createForm({ 
+        ...(formData as Record<string, unknown>), 
+        event_id: Number(eventId),
+        tenant_id: tenantId
+      });
       return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
     } catch (error: unknown) {
       return {
         success: false,
         error: handleAxiosError(error, 'Failed to create form')
+      };
+    }
+  },
+
+  getRegistrationForms: async (eventId: number, tenantId: number): Promise<ApiResponse<unknown[]>> => {
+    try {
+      const res = await directusHelpers.getRegistrationForms(eventId, tenantId);
+      return res.success ? { success: true, data: res.data as unknown[] } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: handleAxiosError(error, 'Failed to get registration forms')
+      };
+    }
+  },
+
+  getOtherForms: async (eventId: number, tenantId: number): Promise<ApiResponse<unknown[]>> => {
+    try {
+      const res = await directusHelpers.getOtherForms(eventId, tenantId);
+      return res.success ? { success: true, data: res.data as unknown[] } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return {
+        success: false,
+        error: handleAxiosError(error, 'Failed to get other forms')
       };
     }
   }

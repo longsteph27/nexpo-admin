@@ -142,12 +142,11 @@ export default function EventsPage() {
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
               {filterTabs.map((tab) => (
-                <Button
+                <div
                   key={tab.id}
-                  variant="ghost"
                   onClick={() => { setActiveFilter(tab.id); setCurrentPage(1); }}
                   className={`
-                    py-4 px-1 border-b-2 font-medium text-sm transition-colors
+                    py-4 px-1 border-b-2 hover:border-slate-300 cursor-pointer rounded-[3px] font-medium text-sm transition-colors
                     ${activeFilter === tab.id ? 'border-blue-500 text-blue-600' : 'border-transparent text-content-tertiary hover:text-content-secondary hover:border-gray-300'}
                   `}
                 >
@@ -155,7 +154,7 @@ export default function EventsPage() {
                   <span className="ml-2 bg-gray-100 text-content-primary py-0.5 px-2 rounded-full text-xs">
                     {filterCounts[tab.id as keyof typeof filterCounts]}
                   </span>
-                </Button>
+                </div>
               ))}
             </nav>
           </div>
