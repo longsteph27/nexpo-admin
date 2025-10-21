@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import { eventsApi } from "@/lib/api";
 import { toast } from "sonner";
+import { Input } from "../ui/input";
 
 interface BasicInformationProps {
   event: {
@@ -114,7 +115,7 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
             Basic Information
           </h2>
         </div>
-        {!isEditing && (
+        {!isEditing ? (
           <Button 
             className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
             onClick={() => setIsEditing(true)}
@@ -122,6 +123,26 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
             <Icon icon="lucide:pencil" className="w-3 h-3 mr-1" />
             Edit
           </Button>
+        ) :
+        (
+          <div className="flex gap-2 py-1">
+            <Button variant="outline" size="sm" onClick={handleCancel}>
+              <Icon icon="lucide:x" className="w-3 h-3 mr-1" />
+              Cancel
+            </Button>
+            <Button 
+              variant="gradient" 
+              size="sm" 
+              onClick={handleSave}
+              disabled={isSaving}
+            >
+              <Icon 
+                icon={isSaving ? "lucide:loader-2" : "lucide:save"} 
+                className={`w-3 h-3 mr-1 ${isSaving ? 'animate-spin' : ''}`} 
+              />
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
         )}
       </div>
       <div className="p-4 space-y-6">
@@ -131,12 +152,10 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
             Event Name<span className="text-red-500 ml-1">*</span>
           </label>
           {isEditing ? (
-            <input 
-              type="text" 
+            <Input 
               placeholder="Enter event name" 
-              className="w-full border-0 border-b border-gray-300 focus:border-gray-900 outline-none py-2 text-content-primary bg-transparent placeholder-gray-400"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('name', e.target.value)}
             />
           ) : (
             <div className="py-2 text-content-primary text-sm">
@@ -153,7 +172,7 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
           {isEditing ? (
             <textarea 
               placeholder="Describe your event..."
-              className="w-full border-0 border-b border-gray-300 focus:border-gray-900 outline-none py-2 text-content-primary bg-transparent placeholder-gray-400 resize-none"
+              className="w-full border-0 border-b-2 rounded-sm border-nexpo-border-secondary focus:border-gray-900 outline-none py-2 px-3 text-content-primary bg-transparent placeholder-gray-400 resize-none"
               rows={3}
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
@@ -172,7 +191,7 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
           </label>
           {isEditing ? (
             <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-              <SelectTrigger className="w-full border-0 border-b border-gray-300 rounded-none focus:ring-0 focus:border-gray-900 px-0">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
@@ -204,12 +223,11 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
             Location
           </label>
           {isEditing ? (
-            <input 
+            <Input 
               type="text" 
               placeholder="Enter event location" 
-              className="w-full border-0 border-b border-gray-300 focus:border-gray-900 outline-none py-2 text-content-primary bg-transparent placeholder-gray-400"
               value={formData.location}
-              onChange={(e) => handleInputChange('location', e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('location', e.target.value)}
             />
           ) : (
             <div className="py-2 text-content-primary text-sm">
@@ -217,28 +235,6 @@ export default function BasicInformation({ event, onUpdate }: BasicInformationPr
             </div>
           )}
         </div>
-
-        {/* Edit Mode Action Buttons */}
-        {isEditing && (
-          <div className="flex gap-2 pt-4 border-t border-gray-200">
-            <Button variant="outline" size="sm" onClick={handleCancel}>
-              <Icon icon="lucide:x" className="w-3 h-3 mr-1" />
-              Cancel
-            </Button>
-            <Button 
-              variant="gradient" 
-              size="sm" 
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              <Icon 
-                icon={isSaving ? "lucide:loader-2" : "lucide:save"} 
-                className={`w-3 h-3 mr-1 ${isSaving ? 'animate-spin' : ''}`} 
-              />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   );

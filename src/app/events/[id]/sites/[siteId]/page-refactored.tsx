@@ -37,22 +37,11 @@ export default function SiteDetailPage() {
 
   // Queries
   const { data: event } = useEvent(eventId);
-  const { data: siteResponse, isLoading, error } = useQuery({
+  const { data: site, isLoading, error } = useQuery({
     queryKey: ['site', siteId],
-    queryFn: () => siteApi.getSite(Number(siteId)),
+    queryFn: () => siteApi.getSite(siteId),
     enabled: !!siteId,
   });
-
-  // Extract site data from API response
-  const site = siteResponse?.data;
-
-  // Debug API response
-  React.useEffect(() => {
-    if (siteResponse) {
-      console.log('[SiteDetailPage] API Response:', siteResponse);
-      console.log('[SiteDetailPage] Extracted site data:', site);
-    }
-  }, [siteResponse, site]);
 
   // Mutations
   const saveSiteMutation = useMutation({
@@ -72,9 +61,6 @@ export default function SiteDetailPage() {
   // Initialize edit data when site loads
   React.useEffect(() => {
     if (site && !isEditing) {
-      console.log('[SiteDetailPage] Site data loaded:', site);
-      console.log('[SiteDetailPage] Site translations:', site.translations);
-      
       // Đảm bảo có đủ translations cho cả 2 ngôn ngữ
       const existingTranslations = site.translations || [];
       const enTranslation = existingTranslations.find((t: any) => t.languages_code === 'en-US') || 
@@ -82,17 +68,12 @@ export default function SiteDetailPage() {
       const viTranslation = existingTranslations.find((t: any) => t.languages_code === 'vi-VN') || 
         { languages_code: 'vi-VN', title: '', description: '' };
       
-      const editDataToSet = {
+      setEditData({
         slug: site.slug || '',
         domain: site.domain || '',
         status: site.status || 'draft',
-        logo: site.logo || null,
-        favicon: site.favicon || null,
         translations: [enTranslation, viTranslation]
-      };
-      
-      console.log('[SiteDetailPage] Setting editData:', editDataToSet);
-      setEditData(editDataToSet);
+      });
     }
   }, [site, isEditing]);
 
@@ -115,8 +96,6 @@ export default function SiteDetailPage() {
         slug: site.slug || '',
         domain: site.domain || '',
         status: site.status || 'draft',
-        logo: site.logo || null,
-        favicon: site.favicon || null,
         translations: [enTranslation, viTranslation]
       });
     }
@@ -130,8 +109,6 @@ export default function SiteDetailPage() {
         slug: editData.slug,
         domain: editData.domain,
         status: editData.status,
-        logo: editData.logo,
-        favicon: editData.favicon,
         translations: {
           update: editData.translations
             .filter((t: any) => t.id) // Only existing translations
@@ -235,9 +212,9 @@ export default function SiteDetailPage() {
               The requested site could not be found.
             </p>
             <Button variant="outline" onClick={() => router.push(`/events/${eventId}/sites`)}>
-          <Icon icon="lucide:arrow-left" className="w-4 h-4 mr-2" />
-          Back to Sites
-        </Button>
+              <Icon icon="lucide:arrow-left" className="w-4 h-4 mr-2" />
+              Back to Sites
+            </Button>
           </div>
         </div>
       </div>
@@ -288,40 +265,36 @@ export default function SiteDetailPage() {
           onSetActiveLang={setActiveLang}
         />
 
-          {/* Site Media */}
-        <SiteMediaCard 
-          site={site} 
-          siteId={siteId}
-          onUpdateSite={updateEditData}
-        />
+        {/* Site Media */}
+        <SiteMediaCard site={site} />
 
-          {/* Navigation */}
+        {/* Navigation */}
         <NavigationCard site={site} />
 
-          {/* Pages */}
+        {/* Pages */}
         <PagesCard site={site} eventId={eventId} siteId={siteId} />
 
-          {/* Categories */}
+        {/* Categories */}
         <CategoriesCard site={site} />
 
-          {/* Posts */}
+        {/* Posts */}
         <PostsCard site={site} />
 
-          {/* Team */}
+        {/* Team */}
         <TeamCard site={site} />
 
-          {/* Testimonials */}
+        {/* Testimonials */}
         <TestimonialsCard site={site} />
 
-          {/* Languages */}
+        {/* Languages */}
         <LanguagesCard site={site} />
 
-          {/* Redirects */}
+        {/* Redirects */}
         <RedirectsCard site={site} />
 
         {/* Global Settings */}
         <GlobalsCard site={site} />
-        </div>
+      </div>
     </div>
   );
 }

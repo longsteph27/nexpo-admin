@@ -491,7 +491,8 @@ export default function PageBuilderPage() {
   return (
     <div className="h-screen flex flex-col bg-neutral-50">
       {/* Top Bar - SquareSpace style */}
-      <div className="bg-white border-b border-neutral-200 px-6 py-3 flex items-center justify-between shadow-sm">
+      <div className="bg-white border-b border-neutral-200 px-6 py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
+        {/* Left Section */}
         <div className="flex items-center space-x-4">
           <Button
             variant="ghost"
@@ -513,6 +514,28 @@ export default function PageBuilderPage() {
                 Page Builder {hasUnsavedChanges && '• Unsaved changes'}
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Center Section - Permalink */}
+        <div className="flex-1 flex justify-center">
+          <div className="bg-neutral-100 rounded-lg px-4 py-2 flex items-center space-x-2 max-w-md">
+            <Icon icon="lucide:link" className="w-4 h-4 text-neutral-500" />
+            <span className="text-sm text-neutral-700 font-mono">
+              {page?.translations?.[0]?.permalink || '/untitled-page'}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                const permalink = page?.translations?.[0]?.permalink || '/untitled-page';
+                navigator.clipboard.writeText(permalink);
+                toast.success('Permalink copied to clipboard');
+              }}
+              className="p-1 hover:bg-neutral-200 rounded"
+            >
+              <Icon icon="lucide:copy" className="w-3 h-3 text-neutral-500" />
+            </Button>
           </div>
         </div>
 

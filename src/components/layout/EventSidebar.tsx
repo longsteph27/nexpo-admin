@@ -117,13 +117,13 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     // Check if Forms section is active
     const isFormsActive = pathname?.includes('/forms');
 
-    // Animation variants for sidebar items
+    // Animation variants for sidebar items - chỉ hover effects
     const sidebarItemVariants = {
         hover: {
-            scale: 1.02,
+            scale: 1.0, // Không có scale animation
         },
         tap: {
-            scale: 0.98,
+            scale: 1.0, // Không có scale animation
         },
     };
 
@@ -212,6 +212,40 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                     />
                                 </motion.div>
                                 <span className="font-sf text-sm font-medium text-content-primary">Event Information</span>
+                            </div>
+                        </motion.div>
+
+                        {/* Registrations Item */}
+                        <motion.div 
+                            className="ml-6 cursor-pointer" 
+                            onClick={() => router.push(`/events/${eventId}/registrations`)}
+                            variants={sidebarItemVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                            transition={{
+                                duration: 0.2,
+                                ease: "easeOut",
+                            }}
+                        >
+                            <div className={cn(
+                                "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                pathname?.includes('/registrations')
+                                    ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                    : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                            )}>
+                                <motion.div
+                                    animate={pathname?.includes('/registrations') ? { scale: 1.1 } : { scale: 1 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <Icon 
+                                        icon="lucide:users" 
+                                        className={cn(
+                                            "w-4 h-4",
+                                            pathname?.includes('/registrations') ? "text-blue-600" : "text-content-tertiary"
+                                        )} 
+                                    />
+                                </motion.div>
+                                <span className="font-sf text-sm font-medium text-content-primary">Registrations</span>
                             </div>
                         </motion.div>
 

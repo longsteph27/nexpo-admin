@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formsApi } from '@/lib/api';
+import { formsApi } from '@/lib/api/forms';
 
 // Query keys
 export const formKeys = {
@@ -22,9 +22,19 @@ export function useFormsByEvent(eventId: string) {
 
 // Get single form hook
 export function useForm(formId: string) {
+  // Debug: Log formId to check if it's a string or object
+  if (typeof formId !== 'string') {
+    console.error('[useForm] ERROR: formId is not a string!', { formId, type: typeof formId });
+  } else {
+    console.log('[useForm] Using formId:', formId);
+  }
+  
   return useQuery({
     queryKey: formKeys.detail(formId),
-    queryFn: () => formsApi.getForm(formId),
+    queryFn: () => {
+      console.log('[useForm] queryFn called with formId:', formId, 'type:', typeof formId);
+      return formsApi.getForm(formId);
+    },
     enabled: !!formId,
     select: (data) => data.data,
   });
@@ -38,8 +48,8 @@ export function useSaveForm() {
     mutationFn: ({ formId, eventId, formData }: { formId: string; eventId: string; formData: unknown }) => 
       formsApi.saveForm(formId, eventId, formData),
     onSuccess: (data, variables) => {
-      // Update the specific form in cache
-      queryClient.setQueryData(formKeys.detail(variables.formId), data);
+      // Invalidate the specific form in cache to force refetch
+      queryClient.invalidateQueries({ queryKey: formKeys.detail(variables.formId) });
       // Invalidate forms list for the event
       queryClient.invalidateQueries({ queryKey: formKeys.list(variables.eventId) });
     },
@@ -54,8 +64,8 @@ export function useSaveFormWithFields() {
     mutationFn: ({ formId, eventId, tenantId, formData }: { formId: string; eventId: string; tenantId: number; formData: unknown }) => 
       formsApi.saveFormWithFields(formId, eventId, tenantId, formData),
     onSuccess: (data, variables) => {
-      // Update the specific form in cache
-      queryClient.setQueryData(formKeys.detail(variables.formId), data);
+      // Invalidate the specific form in cache to force refetch
+      queryClient.invalidateQueries({ queryKey: formKeys.detail(variables.formId) });
       // Invalidate forms list for the event
       queryClient.invalidateQueries({ queryKey: formKeys.list(variables.eventId) });
     },

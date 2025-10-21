@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { useCreateForm } from '@/hooks/useForms';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button-base';
@@ -13,9 +13,13 @@ import { toast } from 'sonner';
 export default function CreateFormPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { selectedTenant } = useAuth();
   const eventId = String(params?.id || '');
   const tenantId = selectedTenant?.id;
+
+  // Check if this is a registration form from query parameter
+  const isRegistrationForm = searchParams.get('type') === 'registration';
 
   const [formData, setFormData] = useState({
     title: '',
@@ -24,7 +28,7 @@ export default function CreateFormPage() {
     status: 'draft' as 'draft' | 'published' | 'archived',
     on_success: 'message' as 'redirect' | 'message',
     redirect_url: '',
-    is_registration: false,
+    is_registration: isRegistrationForm, // Auto-set based on query parameter
   });
 
   const createFormMutation = useCreateForm();
@@ -110,8 +114,15 @@ export default function CreateFormPage() {
   return (
     <div className="p-6 max-w-2xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-content-primary mb-2">Create New Form</h1>
-        <p className="text-content-secondary">Create a new form for your event.</p>
+        <h1 className="text-2xl font-bold text-content-primary mb-2">
+          {isRegistrationForm ? 'Create Registration Form' : 'Create New Form'}
+        </h1>
+        <p className="text-content-secondary">
+          {isRegistrationForm 
+            ? 'Create a new registration form for your event.' 
+            : 'Create a new form for your event.'
+          }
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -219,10 +230,12 @@ export default function CreateFormPage() {
                 id="is_registration"
                 checked={formData.is_registration}
                 onChange={(e) => setFormData(prev => ({ ...prev, is_registration: e.target.checked }))}
-                className="rounded border-gray-300"
+                disabled={isRegistrationForm}
+                className="rounded border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <label htmlFor="is_registration" className="text-sm font-medium text-content-primary">
                 This is a registration form
+                {isRegistrationForm && <span className="text-xs text-blue-600 ml-1">(Auto-set for registration forms)</span>}
               </label>
             </div>
           </div>

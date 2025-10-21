@@ -147,96 +147,8 @@ export const eventsApi = {
   }
 };
 
-// Forms API
-export const formsApi = {
-  getFormsByEvent: async (eventId: string): Promise<ApiResponse<unknown[]>> => {
-    try {
-      const res = await directusHelpers.getFormByEvent(Number(eventId));
-      return res.success ? { success: true, data: res.data ? [res.data] : [] } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to get forms')
-      };
-    }
-  },
-
-  getForm: async (formId: string): Promise<ApiResponse<unknown>> => {
-    try {
-      const res = await directusHelpers.getForm(formId);
-      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to get form')
-      };
-    }
-  },
-
-  saveForm: async (formId: string, eventId: string, formData: unknown): Promise<ApiResponse<unknown>> => {
-    try {
-      const res = await directusHelpers.saveForm(formId, eventId, formData as never);
-      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to save form')
-      };
-    }
-  },
-
-  saveFormWithFields: async (formId: string, eventId: string, tenantId: number, formData: unknown): Promise<ApiResponse<unknown>> => {
-    try {
-      const res = await directusHelpers.saveFormWithFields(formId, eventId, tenantId, formData as never);
-      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to save form with fields')
-      };
-    }
-  },
-
-  createForm: async (eventId: string, tenantId: number, formData: unknown): Promise<ApiResponse<unknown>> => {
-    try {
-      const res = await directusHelpers.createForm({ 
-        ...(formData as Record<string, unknown>), 
-        event_id: Number(eventId),
-        tenant_id: tenantId
-      });
-      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to create form')
-      };
-    }
-  },
-
-  getRegistrationForms: async (eventId: number, tenantId: number): Promise<ApiResponse<unknown[]>> => {
-    try {
-      const res = await directusHelpers.getRegistrationForms(eventId, tenantId);
-      return res.success ? { success: true, data: res.data as unknown[] } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to get registration forms')
-      };
-    }
-  },
-
-  getOtherForms: async (eventId: number, tenantId: number): Promise<ApiResponse<unknown[]>> => {
-    try {
-      const res = await directusHelpers.getOtherForms(eventId, tenantId);
-      return res.success ? { success: true, data: res.data as unknown[] } : { success: false, error: res.error };
-    } catch (error: unknown) {
-      return {
-        success: false,
-        error: handleAxiosError(error, 'Failed to get other forms')
-      };
-    }
-  }
-};
+// Re-export Forms API from dedicated file
+export { formsApi } from '@/lib/api/forms';
 
 // Site Builder API: site (one per event), pages, blocks
 export const siteApi = {
@@ -258,10 +170,10 @@ export const siteApi = {
     }
   },
 
-  getSite: async (siteId: number): Promise<ApiResponse<{ id: number; slug?: string; domain?: string; status?: string }>> => {
+  getSite: async (siteId: number): Promise<ApiResponse<any>> => {
     try {
       const res = await directusHelpers.getSite(Number(siteId));
-      return res.success ? { success: true, data: res.data as { id: number; slug?: string; domain?: string; status?: string } } : { success: false, error: res.error };
+      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
     } catch (error: unknown) {
       return { success: false, error: handleAxiosError(error, 'Failed to get site') };
     }

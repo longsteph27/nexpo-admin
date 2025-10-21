@@ -50,7 +50,7 @@ export default function EventLayout({ children, eventId }: EventLayoutProps) {
   return (
     <div className="flex w-full h-full relative">
       {/* Sidebar */}
-      <motion.div
+      {/* <motion.div
         initial={false}
         animate={{ 
           width: sidebarCollapsed ? 0 : 288, // 72 * 4 = 288px (w-72)
@@ -64,10 +64,10 @@ export default function EventLayout({ children, eventId }: EventLayoutProps) {
         className="h-full shrink-0 overflow-hidden"
       >
         <EventSidebar eventId={eventId} />
-      </motion.div>
+      </motion.div> */}
 
       {/* Toggle Button */}
-      <motion.div
+      {/* <motion.div
         onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
         className="fixed z-50 bg-white border border-gray-200 shadow-md hover:shadow-lg transition-shadow rounded-r-lg cursor-pointer"
         animate={{ 
@@ -87,7 +87,7 @@ export default function EventLayout({ children, eventId }: EventLayoutProps) {
           icon={sidebarCollapsed ? 'lucide:chevron-right' : 'lucide:chevron-left'}
           className="w-4 h-4 text-content-secondary"
         />
-      </motion.div>
+      </motion.div> */}
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto min-w-0 relative">

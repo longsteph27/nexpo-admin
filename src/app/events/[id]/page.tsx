@@ -9,6 +9,8 @@ import BasicInformation from "@/components/events/BasicInformation";
 import EventRecognition from "@/components/events/EventRecognition";
 import EventLocation from "@/components/events/EventLocation";
 import EventDetailSkeleton from "@/components/loading/EventDetailSkeleton";
+import ContainerHeader from "@/components/layout/Container-header";
+import Container from "@/components/layout/Container";
 
 export default function EventDetailsPage() {
   const router = useRouter();
@@ -46,14 +48,14 @@ export default function EventDetailsPage() {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="w-full space-y-4">
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <ContainerHeader className="flex items-end justify-between">
         <div>
           <h1 className="text-xl font-bold text-content-primary">
             Event Information
           </h1>
-          <p className="text-content-secondary mt-1 text-sm">
+          <p className="text-content-tertiary mt-1 text-sm">
             View and manage event details and settings
           </p>
         </div>
@@ -67,10 +69,10 @@ export default function EventDetailsPage() {
             Settings
           </Button>
         </div>
-      </div>
+      </ContainerHeader>
 
       {/* Content Sections */}
-      <div className="space-y-4">
+      <Container className="space-y-4">
         {/* Basic Information Component - Only real schema fields */}
         <BasicInformation 
           event={{
@@ -109,7 +111,7 @@ export default function EventDetailsPage() {
           <Icon icon="lucide:info" className="w-3 h-3" />
           <span>Message content</span>
           </div>
-      </div>
+      </Container>
     </div >
   );
 }

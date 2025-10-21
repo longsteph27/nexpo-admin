@@ -105,22 +105,20 @@ export default function AppLayout({
 
       {/* Page Content */}
       <main className="flex-1 overflow-hidden flex">
-        {isEventDetailPage && eventId ? (
+        {/* {isEventDetailPage && eventId ? (
           <EventLayout eventId={eventId}>
             {children}
           </EventLayout>
-        ) : (
+        ) : ( */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             className="flex-1 overflow-y-auto"
           >
-            <div className={`${pathname?.startsWith('/events/create') ? 'p-0' : isEventDetailPage ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
               {children}
-            </div>
           </motion.div>
-        )}
+        {/* )} */}
       </main>
     </div>
   );

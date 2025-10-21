@@ -225,7 +225,8 @@ export default function CreatePagePage() {
               Cancel
             </Button>
             <Button
-              className="bg-neutral-900 hover:bg-neutral-800 text-white"
+              // className="bg-neutral-900 hover:bg-neutral-800 text-white"
+              variant="gradient"
               onClick={handleCreate}
               disabled={isCreating || !formData.title_en || !formData.permalink || !siteId}
             >

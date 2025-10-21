@@ -85,7 +85,7 @@ export default function EventRecognition({ event, onUpdate }: EventRecognitionPr
                         Required fields are marked with an asterisk *
                     </p>
                 </div>
-                {!isEditing && (
+                {!isEditing ? (
                     <Button
                         className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
                         onClick={() => setIsEditing(true)}
@@ -93,7 +93,27 @@ export default function EventRecognition({ event, onUpdate }: EventRecognitionPr
                         <Icon icon="lucide:pencil" className="w-3 h-3 mr-1" />
                         Edit
                     </Button>
-                )}
+                ) :
+                    (
+                        <div className="flex gap-2">
+                            <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
+                                <Icon icon="lucide:x" className="w-3 h-3 mr-1" />
+                                Cancel
+                            </Button>
+                            <Button
+                                variant="gradient"
+                                size="sm"
+                                onClick={() => setIsEditing(false)}
+                                disabled={isSaving}
+                            >
+                                <Icon
+                                    icon={isSaving ? "lucide:loader-2" : "lucide:save"}
+                                    className={`w-3 h-3 mr-1 ${isSaving ? 'animate-spin' : ''}`}
+                                />
+                                {isSaving ? 'Processing...' : 'Done'}
+                            </Button>
+                        </div>
+                    )}
             </div>
             <div className="p-4">
                 <div className="space-y-6">
@@ -112,11 +132,10 @@ export default function EventRecognition({ event, onUpdate }: EventRecognitionPr
                                 <div className="flex items-start space-x-3">
                                     <Button
                                         variant="ghost"
-                                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-sm overflow-hidden p-1.5 bg-white flex items-center justify-center border border-gray-300 hover:border-gray-400 transition-colors ${
-                                            !isEditing ? 'pointer-events-none' : ''
-                                        }`}
+                                        className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-sm overflow-hidden p-1.5 bg-white flex items-center justify-center border border-gray-300 hover:border-gray-400 transition-colors ${!isEditing ? 'pointer-events-none' : ''
+                                            }`}
                                         onClick={isEditing ? openPicker : undefined}
-                                        disabled={!isEditing}
+                                        // disabled={!isEditing}
                                     >
                                         {hasImage && imageUrl ? (
                                             <Image
@@ -134,9 +153,9 @@ export default function EventRecognition({ event, onUpdate }: EventRecognitionPr
                                                         className="w-2 h-2 text-gray-500"
                                                     />
                                                 </div>
-                                            <span className="text-xs text-gray-500 font-medium">Upload</span>
-                                        </div>
-                                    )}
+                                                <span className="text-xs text-gray-500 font-medium">Upload</span>
+                                            </div>
+                                        )}
                                     </Button>
                                     <div className="flex-1">
                                         <div className="space-y-1.5 text-xs text-content-tertiary">
@@ -185,11 +204,10 @@ export default function EventRecognition({ event, onUpdate }: EventRecognitionPr
                                 <>
                                     <Button
                                         variant="ghost"
-                                        className={`relative overflow-hidden w-full h-40 sm:h-80 border border-gray-300 rounded-sm p-1.5 bg-white hover:border-gray-400 transition-colors ${
-                                            !isEditing ? 'pointer-events-none' : ''
-                                        }`}
+                                        className={`relative overflow-hidden w-full h-40 sm:h-80 border border-gray-300 rounded-sm p-1.5 bg-white hover:border-gray-400 transition-colors ${!isEditing ? 'pointer-events-none' : ''
+                                            }`}
                                         onClick={isEditing ? openPicker : undefined}
-                                        disabled={!isEditing}
+                                        // disabled={!isEditing}
                                     >
                                         <div className="w-full h-full rounded-md overflow-hidden">
                                             {hasImage && imageUrl ? (
@@ -237,28 +255,6 @@ export default function EventRecognition({ event, onUpdate }: EventRecognitionPr
                         </ImageUploadField>
                     </div>
                 </div>
-
-                {/* Edit Mode Action Buttons */}
-                {isEditing && (
-                    <div className="flex gap-2 pt-4 border-t border-gray-200 mt-4">
-                        <Button variant="outline" size="sm" onClick={() => setIsEditing(false)}>
-                            <Icon icon="lucide:x" className="w-3 h-3 mr-1" />
-                            Cancel
-                        </Button>
-                        <Button
-                            variant="gradient"
-                            size="sm"
-                            onClick={() => setIsEditing(false)}
-                            disabled={isSaving}
-                        >
-                            <Icon
-                                icon={isSaving ? "lucide:loader-2" : "lucide:save"}
-                                className={`w-3 h-3 mr-1 ${isSaving ? 'animate-spin' : ''}`}
-                            />
-                            {isSaving ? 'Processing...' : 'Done'}
-                        </Button>
-                    </div>
-                )}
             </div>
         </section>
     );

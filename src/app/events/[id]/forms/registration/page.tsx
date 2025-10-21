@@ -29,7 +29,7 @@ export default function FormsRegistrationPage() {
   });
 
   const handleCreateForm = () => {
-    router.push(`/events/${eventId}/forms/new`);
+    router.push(`/events/${eventId}/forms/new?type=registration`);
   };
 
   if (isLoading) {

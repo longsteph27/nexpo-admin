@@ -21,6 +21,7 @@ module.exports = {
                 // CSS Variables from globals.css
                 background: "var(--background)",
                 foreground: "var(--foreground)",
+                'background-secondary': "#F7F7F7",
                 
                 // Content Text Colors from CSS Variables
                 'content-primary': "var(--content-primary)",
@@ -108,6 +109,7 @@ module.exports = {
                     'blue': '#0075F4',
                     'gray': '#374151',
                     'light-gray': '#D9D9D9',
+                    'border-secondary': '#A6A6A6',
                     'bg-gray': '#F7F7F7',
                     'bg-sidebar': '#06043E'
                 },

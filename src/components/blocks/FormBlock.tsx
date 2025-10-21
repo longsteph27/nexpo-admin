@@ -66,8 +66,15 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
   const title = translation?.title || ''
   const headline = translation?.headline || ''
 
+  // Debug: Log data.form to check if it's a string or object
+  console.log('[FormBlock] data.form:', data.form, 'type:', typeof data.form);
+  
+  // Ensure formId is a string
+  const formId = typeof data.form === 'string' ? data.form : (data.form?.id || '');
+  console.log('[FormBlock] Using formId:', formId);
+  
   // Load form data via React Query
-  const { data: formResponse, isLoading, error } = useForm(data.form || '')
+  const { data: formResponse, isLoading, error } = useForm(formId)
 
   // Extract form data from response
   const form = formResponse as Form | undefined

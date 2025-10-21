@@ -125,7 +125,7 @@ export default function EventsPage() {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         <div className="flex items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-content-primary">{pageInfo.title}</h1>

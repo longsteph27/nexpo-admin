@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 import { ImageUpload } from '@/components/ui/ImageUpload';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { assetsApi } from '@/lib/api';
 import { useFormsByEvent } from '@/hooks/useForms';
 import RichtextBlockEditor from './RichtextBlockEditor';
@@ -43,8 +44,23 @@ export default function BlockEditorModal({
 
   // Initialize form data when block changes
   useEffect(() => {
+    console.log('[BlockEditorModal] Block changed:', { 
+      blockId: block?.id, 
+      blockItem: block?.item,
+      blockItemForm: block?.item?.form,
+      blockItemFormType: typeof block?.item?.form
+    });
+    
     if (block?.item) {
-      setFormData(block.item);
+      // Ensure form field is a string, not an object
+      const itemData = { ...block.item };
+      if (itemData.form && typeof itemData.form === 'object') {
+        console.log('[BlockEditorModal] Converting form object to string:', itemData.form);
+        itemData.form = itemData.form.id || itemData.form;
+      }
+      
+      setFormData(itemData);
+      console.log('[BlockEditorModal] Set formData from block.item:', itemData);
     } else {
       // Initialize with default structure
       setFormData({
@@ -55,6 +71,7 @@ export default function BlockEditorModal({
       });
     }
   }, [block]);
+
 
   const handleSave = () => {
     // Ensure event_id và tenant_id luôn có trong formData
@@ -997,13 +1014,26 @@ function FormBlockEditor({ formData, updateTranslation, updateField, currentTran
   // Load available forms for the current event using React Query
   const { data: availableForms = [], isLoading, error } = useFormsByEvent(eventId || '');
 
-  // Set selected form when formData changes
+  // Initialize selected form when formData has existing form
   useEffect(() => {
+    console.log('[FormBlockEditor] useEffect triggered:', { 
+      formDataForm: formData.form, 
+      availableFormsLength: availableForms.length,
+      currentSelectedForm: selectedForm?.id 
+    });
+    
     if (formData.form && availableForms.length > 0) {
       const form = availableForms.find((f: any) => f.id === formData.form);
-      setSelectedForm(form || null);
+      console.log('[FormBlockEditor] Found form:', form?.id, form?.translations?.[0]?.title);
+      
+      if (form) {
+        // Always update selectedForm when formData.form changes, not just when selectedForm is null
+        setSelectedForm(form);
+        console.log('[FormBlockEditor] Set selectedForm to:', form.id);
+      }
     }
-  }, [formData.form, availableForms]);
+  }, [formData.form, availableForms, selectedForm?.id]);
+
 
   const handleFormSelect = (formId: string) => {
     updateField('form', formId);
@@ -1068,19 +1098,38 @@ function FormBlockEditor({ formData, updateTranslation, updateField, currentTran
           <div className="space-y-3">
             {/* Form Dropdown */}
             <div className="relative">
-              <select
-                className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                value={formData.form || ''}
-                onChange={(e) => handleFormSelect(e.target.value)}
-              >
-                <option value="">Choose an existing form...</option>
-                {availableForms.map((form: any) => (
-                  <option key={form.id} value={form.id}>
-                    {form.translations?.[0]?.title || form.name || `Form ${form.id.slice(0, 8)}`}
-                    {form.status === 'draft' && ' (Draft)'}
-                  </option>
-                ))}
-              </select>
+              <Select value={formData.form || ''} onValueChange={handleFormSelect}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Choose an existing form..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableForms.length === 0 ? (
+                    <div className="px-2 py-1.5 text-sm text-gray-500 text-center">
+                      No forms found for this event
+                    </div>
+                  ) : (
+                    availableForms.map((form: any) => {
+                      // Get form title from translations array or object
+                      let formTitle = 'Untitled Form';
+                      if (Array.isArray(form.translations)) {
+                        const enTranslation = form.translations.find((t: any) => t.languages_code === 'en-US');
+                        formTitle = enTranslation?.title || form.name || `Form ${form.id.slice(0, 8)}`;
+                      } else if (form.translations && typeof form.translations === 'object') {
+                        formTitle = form.translations['en-US']?.title || form.name || `Form ${form.id.slice(0, 8)}`;
+                      } else {
+                        formTitle = form.name || `Form ${form.id.slice(0, 8)}`;
+                      }
+                      
+                      return (
+                        <SelectItem key={form.id} value={form.id}>
+                          {formTitle}
+                          {form.status === 'draft' && ' (Draft)'}
+                        </SelectItem>
+                      );
+                    })
+                  )}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Selected Form Info */}
@@ -1089,7 +1138,16 @@ function FormBlockEditor({ formData, updateTranslation, updateField, currentTran
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h4 className="text-sm font-medium text-blue-900 mb-1">
-                      {selectedForm.translations?.[0]?.title || 'Untitled Form'}
+                      {(() => {
+                        // Get form title from translations array or object
+                        if (Array.isArray(selectedForm.translations)) {
+                          const enTranslation = selectedForm.translations.find((t: any) => t.languages_code === 'en-US');
+                          return enTranslation?.title || 'Untitled Form';
+                        } else if (selectedForm.translations && typeof selectedForm.translations === 'object') {
+                          return selectedForm.translations['en-US']?.title || 'Untitled Form';
+                        }
+                        return 'Untitled Form';
+                      })()}
                     </h4>
                     <p className="text-xs text-blue-700 mb-2">
                       Status: <span className="capitalize font-medium">{selectedForm.status}</span>

@@ -237,6 +237,23 @@ interface SiteTranslation {
   title?: string;
 }
 
+interface Registration {
+  id: string;
+  full_name?: string;
+  email?: string;
+  phone_number?: string;
+  checkin_status?: boolean;
+  date_created?: string;
+  date_updated?: string;
+  badge_id?: string;
+  redeem_id?: string;
+  group_id?: string;
+  checkin_history?: Array<{ date_time_checkin: string }>;
+  event_id?: number;
+  tenant_id?: number;
+  submissions?: string;
+}
+
 interface Page {
   id: string;
   sort?: number;
@@ -405,11 +422,19 @@ export const directusHelpers = {
   // Forms
   async getForm(formId: string) {
     try {
-      const form = await directus.request(readItems('forms', {
+      // Debug: Log formId to check if it's a string or object
+      if (typeof formId !== 'string') {
+        console.error('[getForm] ERROR: formId is not a string!', { formId, type: typeof formId });
+        return { success: false, error: 'Invalid formId: must be a string' };
+      }
+      
+      console.log('[getForm] Fetching form with ID:', formId);
+      
+      const forms = await directus.request(readItems('forms', {
         filter: { id: { _eq: formId } },
         limit: 1,
         fields: ([
-          'id', 'status', 'on_success', 'redirect_url', 'event_id',
+          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'event_id',
           { translations: ['id','languages_code','title','submit_label','success_message'] },
           { fields: [
             'id','name','type','width','sort','is_required','validation','conditions',
@@ -417,8 +442,14 @@ export const directusHelpers = {
           ]}
         ]) as unknown as never,
       }));
-      return { success: true, data: form?.[0] };
+      
+      if (!forms || forms.length === 0) {
+        return { success: false, error: 'Form not found' };
+      }
+      
+      return { success: true, data: forms[0] };
     } catch (error) {
+      console.error('[getForm] Error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get form' };
     }
   },
@@ -445,13 +476,29 @@ export const directusHelpers = {
         filter: { event_id: { _eq: Number(eventId) } },
         limit: 1,
         fields: ([
-          'id','event_id','status','on_success','redirect_url',
+          'id','event_id','status','on_success','redirect_url','template_email',
           { translations: ['id','languages_code','title','submit_label','success_message'] },
         ]) as unknown as never,
       }));
       return { success: true, data: forms?.[0] };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to get form by event' };
+    }
+  },
+
+  async getAllFormsByEvent(eventId: number | string) {
+    try {
+      const forms = await directus.request(readItems('forms', {
+        filter: { event_id: { _eq: Number(eventId) } },
+        fields: ([
+          'id','event_id','status','on_success','redirect_url','template_email','is_registration',
+          { translations: ['id','languages_code','title','submit_label','success_message'] },
+        ]) as unknown as never,
+        sort: ['date_created'],
+      }));
+      return { success: true, data: forms || [] };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to get forms by event' };
     }
   },
 
@@ -714,6 +761,7 @@ export const directusHelpers = {
           is_required: field.is_required,
           validation: field.validation || null,
           conditions: field.conditions || null,
+          event_id: Number(eventId),
         };
 
         let fieldResult;
@@ -772,6 +820,7 @@ export const directusHelpers = {
     status: 'draft' | 'published' | 'archived';
     on_success: 'redirect' | 'message';
     redirect_url?: string;
+    template_email?: string;
     event_id: number;
     tenant_id: number;
     
@@ -868,6 +917,7 @@ export const directusHelpers = {
         status: formData.status,
         on_success: formData.on_success,
         redirect_url: formData.redirect_url,
+        template_email: formData.template_email,
         event_id: formData.event_id,
         tenant_id: formData.tenant_id,
         
@@ -1259,7 +1309,7 @@ export const directusHelpers = {
               'name', 
               'status',
               'image',
-              { translations: ['languages_code', 'title', 'bio'] }
+              { translations: ['languages_code', 'job_title', 'bio'] }
             ] 
           },
           { 
@@ -1339,6 +1389,29 @@ export const directusHelpers = {
       return { success: true, data: site };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to create site' };
+    }
+  },
+
+  async updateSite(siteId: number, payload: Partial<{
+    slug: string;
+    domain: string;
+    status: string;
+    logo: string | null;
+    favicon: string | null;
+    tenant_id: number;
+    translations: {
+      create?: Array<{ languages_code: { code: string }; title?: string; description?: string }>;
+      update?: Array<{ id: number; title?: string; description?: string }>;
+    };
+  }>) {
+    try {
+      console.log('[updateSite] Updating site:', siteId, 'with payload:', payload);
+      
+      const site = await directus.request(updateItem('sites' as never, siteId as never, payload as never));
+      return { success: true, data: site };
+    } catch (error) {
+      console.error('[updateSite] Error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update site' };
     }
   },
 
@@ -1534,6 +1607,123 @@ export const directusHelpers = {
       return { success: true, data: sites as unknown as Site[] };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch sites' };
+    }
+  },
+
+  // Registrations queries
+  async getRegistrationsByEvent(eventId: number) {
+    try {
+      console.log('[getRegistrationsByEvent] Fetching registrations for eventId:', eventId);
+      const registrations = await directus.request(
+        readItems('registrations' as never, {
+          filter: { event_id: { _eq: eventId } },
+          fields: ([
+            'id', 'full_name', 'email', 'phone_number', 'checkin_status', 'date_created', 'badge_id', 'redeem_id',
+            {
+              submissions: [
+                'id', 'date_sumitted', 'status',
+                {
+                  form: [
+                    'id',
+                    {
+                      translations: ['languages_code', 'title']
+                    }
+                  ]
+                },
+                {
+                  answers: [
+                    'id', 'value',
+                    {
+                      field: [
+                        'id', 'name', 'type',
+                        {
+                          translations: ['languages_code', 'label']
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ] as unknown) as never,
+          sort: (['-date_created'] as unknown) as never,
+        })
+      );
+      console.log('[getRegistrationsByEvent] Raw registrations data:', registrations);
+      return { success: true, data: registrations as unknown as Registration[] };
+    } catch (error) {
+      console.error('[getRegistrationsByEvent] Error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch registrations' };
+    }
+  },
+
+  async getRegistrationById(registrationId: string) {
+    try {
+      const registration = await directus.request(
+        readItems('registrations' as never, {
+          filter: { id: { _eq: registrationId } },
+          fields: ([
+            'id', 'full_name', 'email', 'phone_number', 'checkin_status', 'date_created', 'badge_id', 'redeem_id',
+            {
+              submissions: [
+                'id', 'date_sumitted', 'status',
+                {
+                  form: [
+                    'id',
+                    {
+                      translations: ['languages_code', 'title']
+                    }
+                  ]
+                },
+                {
+                  answers: [
+                    'id', 'value',
+                    {
+                      field: [
+                        'id', 'name', 'type',
+                        {
+                          translations: ['languages_code', 'label']
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ] as unknown) as never,
+        })
+      );
+      return { success: true, data: registration?.[0] as unknown as Registration };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch registration' };
+    }
+  },
+
+  async updateRegistration(registrationId: string, data: any) {
+    try {
+      console.log('[updateRegistration] Updating registration:', registrationId, data);
+      const result = await directus.request(
+        updateItem('registrations' as never, registrationId, data)
+      );
+      console.log('[updateRegistration] Update result:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('[updateRegistration] Error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update registration' };
+    }
+  },
+
+  async updateFormAnswer(answerId: string, data: any) {
+    try {
+      console.log('[updateFormAnswer] Updating answer:', answerId, data);
+      const result = await directus.request(
+        updateItem('form_answers' as never, answerId, data)
+      );
+      console.log('[updateFormAnswer] Update result:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('[updateFormAnswer] Error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update form answer' };
     }
   },
 

@@ -34,14 +34,14 @@ export default function TenantSelector() {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center space-x-3 px-4 py-2 bg-transparent cursor-pointer hover:bg-gray-100rounded-lg transition-all duration-200 group"
       >
-        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0">
           {selectedTenant?.logo ? (
             <Image 
               src={`https://app.nexpo.vn/assets/${selectedTenant.logo}`} 
               alt={selectedTenant.name}
               width={32}
               height={32}
-              className="w-full h-full object-cover rounded-lg"
+              className="w-full h-full object-contain rounded-lg"
             />
           ) : (
             <Icon icon="lucide:building" className="w-4 h-4 text-white" />
@@ -102,7 +102,7 @@ export default function TenantSelector() {
                           alt={tenant.name}
                           width={32}
                           height={32}
-                          className="w-full h-full object-cover rounded-lg"
+                          className="w-full h-full object-contain rounded-lg"
                         />
                       ) : (
                         <Icon icon="lucide:building" className="w-4 h-4 text-content-tertiary" />

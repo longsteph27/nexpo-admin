@@ -61,20 +61,20 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
 
       // Update event in Directus
       const result = await eventsApi.updateEvent(event.id, updateData);
-      
+
       if (!result.success) {
         throw new Error(result.error || 'Failed to update event location');
       }
-      
+
       // Show success message
       toast.success("Event location updated successfully!");
-      
+
       // Exit edit mode
       setIsEditing(false);
-      
+
       // Trigger parent update
       onUpdate();
-      
+
     } catch (error) {
       console.error("Error updating event location:", error);
       toast.error("Failed to update event location. Please try again.");
@@ -108,15 +108,35 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
             * indicates a required field
           </p>
         </div>
-        {!isEditing && (
-          <Button 
+        {!isEditing ? (
+          <Button
             className="bg-blue-500 hover:bg-blue-600 text-white border-blue-500"
             onClick={() => setIsEditing(true)}
           >
             <Icon icon="lucide:pencil" className="w-3 h-3 mr-1" />
             Edit
           </Button>
-        )}
+        ) :
+          (
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleCancel}>
+                <Icon icon="lucide:x" className="w-3 h-3 mr-1" />
+                Cancel
+              </Button>
+              <Button
+                variant="gradient"
+                size="sm"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                <Icon
+                  icon={isSaving ? "lucide:loader-2" : "lucide:save"}
+                  className={`w-3 h-3 mr-1 ${isSaving ? 'animate-spin' : ''}`}
+                />
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+            </div>
+          )}
       </div>
       <div className="p-4 space-y-4">
         {/* Start and End Date/Time */}
@@ -213,8 +233,8 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
           </label>
           {isEditing ? (
             <div className="relative">
-              <input 
-                type="text" 
+              <input
+                type="text"
                 className="w-full border-b border-gray-300 focus:border-gray-900 outline-none py-1.5 text-content-primary bg-transparent pr-6 text-sm"
                 placeholder="Enter event location"
                 value={formData.location}
@@ -231,28 +251,6 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
             </div>
           )}
         </div>
-
-        {/* Edit Mode Action Buttons */}
-        {isEditing && (
-          <div className="flex gap-2 pt-4 border-t border-gray-200">
-            <Button variant="outline" size="sm" onClick={handleCancel}>
-              <Icon icon="lucide:x" className="w-3 h-3 mr-1" />
-              Cancel
-            </Button>
-            <Button 
-              variant="gradient" 
-              size="sm" 
-              onClick={handleSave}
-              disabled={isSaving}
-            >
-              <Icon 
-                icon={isSaving ? "lucide:loader-2" : "lucide:save"} 
-                className={`w-3 h-3 mr-1 ${isSaving ? 'animate-spin' : ''}`} 
-              />
-              {isSaving ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        )}
       </div>
     </section>
   );
