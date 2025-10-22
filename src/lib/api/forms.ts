@@ -210,5 +210,37 @@ export const formsApi = {
         error: handleAxiosError(error, 'Failed to get form fields')
       };
     }
+  },
+
+  /**
+   * Update email template
+   */
+  updateEmailTemplate: async (formId: string, templateEmail?: string, qrCodeField?: string): Promise<ApiResponse<any>> => {
+    try {
+      console.log('[updateEmailTemplate] Updating email template for formId:', formId);
+      
+      const updateData: any = {};
+      if (templateEmail !== undefined) {
+        updateData.template_email = templateEmail;
+      }
+      if (qrCodeField !== undefined) {
+        updateData.qr_code_field = qrCodeField;
+      }
+
+      const result = await directusHelpers.updateFormTemplate(formId, updateData);
+      
+      if (result.success) {
+        console.log('[updateEmailTemplate] Success:', result.data);
+        return { success: true, data: result.data };
+      }
+      
+      return { success: false, error: result.error || 'Failed to update email template' };
+    } catch (error: unknown) {
+      console.error('[updateEmailTemplate] Error:', error);
+      return {
+        success: false,
+        error: handleAxiosError(error, 'Failed to update email template')
+      };
+    }
   }
 };

@@ -434,7 +434,7 @@ export const directusHelpers = {
         filter: { id: { _eq: formId } },
         limit: 1,
         fields: ([
-          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'event_id',
+          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'event_id',
           { translations: ['id','languages_code','title','submit_label','success_message'] },
           { fields: [
             'id','name','type','width','sort','is_required','validation','conditions',
@@ -1724,6 +1724,20 @@ export const directusHelpers = {
     } catch (error) {
       console.error('[updateFormAnswer] Error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to update form answer' };
+    }
+  },
+
+  async updateFormTemplate(formId: string, data: any) {
+    try {
+      console.log('[updateFormTemplate] Updating form template:', formId, data);
+      const result = await directus.request(
+        updateItem('forms' as never, formId, data)
+      );
+      console.log('[updateFormTemplate] Update result:', result);
+      return { success: true, data: result };
+    } catch (error) {
+      console.error('[updateFormTemplate] Error:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update form template' };
     }
   },
 

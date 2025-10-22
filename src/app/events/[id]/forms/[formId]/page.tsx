@@ -1,18 +1,13 @@
 'use client';
 
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useRouter } from 'next/navigation';
-import { useForm, useSaveForm, useSaveFormWithFields } from '@/hooks/useForms';
-import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button-base';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
-import EmailTemplateEditor from '@/components/form-builder/EmailTemplateEditor';
 import { Icon } from '@iconify/react';
-import { toast } from 'sonner';
 import {
   DndContext,
   rectIntersection,
@@ -20,13 +15,10 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
-  DragStartEvent,
   DragOverlay,
   useDroppable,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -35,31 +27,11 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
-type FormField = {
-  id: string;
-  name?: string;
-  type?: string;
-  width?: string;
-  sort?: number;
-  is_required?: boolean;
-  validation?: string;
-  conditions?: Record<string, unknown>;
-  translations?: {
-    'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] };
-    'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] };
-  };
-};
+// Import custom hooks and utilities
+import { useFormBuilder } from '@/hooks/useFormBuilder';
+import { useFormFields } from '@/hooks/useFormFields';
+import { CATALOG, FormField } from '@/lib/utils/formBuilderUtils';
 
-const CATALOG: { id: string; label: string; icon: string }[] = [
-  { id: 'input', label: 'Input', icon: 'lucide:type' },
-  { id: 'textarea', label: 'Textarea', icon: 'lucide:align-left' },
-  { id: 'email', label: 'Email', icon: 'lucide:mail' },
-  { id: 'number', label: 'Number', icon: 'lucide:hash' },
-  { id: 'select', label: 'Select', icon: 'lucide:chevron-down' },
-  { id: 'multiselect', label: 'Multi Select', icon: 'lucide:list' },
-  { id: 'file', label: 'File', icon: 'lucide:paperclip' },
-  { id: 'image', label: 'Image', icon: 'lucide:image' },
-];
 
 // Catalog Item Component (Draggable)
 function CatalogItem({
@@ -358,7 +330,7 @@ function FormPreviewDroppable({
   children: React.ReactNode;
   fields: FormField[];
   activeLang: 'en-US' | 'vi-VN';
-  formLang: any;
+  formLang: { 'en-US': { title?: string; submit_label?: string; success_message?: string }; 'vi-VN': { title?: string; submit_label?: string; success_message?: string } };
   selectedId: string | null;
   onSelect: (id: string) => void;
   onMoveUp: (index: number) => void;
@@ -556,347 +528,37 @@ function FormPreviewDroppable({
 export default function FormBuilderPage() {
   const router = useRouter();
   const params = useParams();
-  const { selectedTenant } = useAuth();
   const eventId = String(params?.id || '');
   const formId = String(params?.formId || '');
-  const tenantId = selectedTenant?.id;
 
-  const [, setFormMeta] = useState<{ status?: string; on_success?: string; redirect_url?: string; translations?: Array<{ languages_code: string; title?: string; submit_label?: string; success_message?: string }> } | null>(null);
-  const [fields, setFields] = useState<FormField[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [dropPosition, setDropPosition] = useState<number | null>(null);
-  const [activeLang, setActiveLang] = useState<'en-US' | 'vi-VN'>('en-US');
-  const [formLang, setFormLang] = useState<{ 'en-US': { id?: string; title?: string; submit_label?: string; success_message?: string }; 'vi-VN': { id?: string; title?: string; submit_label?: string; success_message?: string } }>({ 'en-US': {}, 'vi-VN': {} });
-  const [formSettings, setFormSettings] = useState<{ status?: string; on_success?: string; redirect_url?: string; template_email?: string }>({});
-  const [emailTemplate, setEmailTemplate] = useState('');
+  // Use custom hooks
+  const {
+    fields,
+    selectedId,
+    setSelectedId,
+    activeLang,
+    setActiveLang,
+    formLang,
+    setFormLang,
+    formSettings,
+    setFormSettings,
+    selected,
+    isSaving,
+    handleSave,
+    setFields,
+  } = useFormBuilder(formId, eventId);
 
-  // Optimized field state management
-  const [fieldChanges, setFieldChanges] = useState({
-    create: [] as any[],
-    update: [] as any[],
-    delete: [] as string[],
-  });
-
-  // Store original parsed fields for comparison
-  const [originalParsedFields, setOriginalParsedFields] = useState<any[]>([]);
-
-  // Form translations and settings changes tracking
-  const [formTranslationChanges, setFormTranslationChanges] = useState({
-    create: [] as any[],
-    update: [] as any[],
-    delete: [] as string[],
-  });
-  const [originalFormTranslations, setOriginalFormTranslations] = useState<any[]>([]);
-
-  // Form translation changes tracking
-  const updateFormTranslationChanges = React.useCallback(() => {
-    const newTranslationChanges = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[],
-    };
-
-    // Process each language
-    const languages = ['en-US', 'vi-VN'] as const;
-
-    for (const lang of languages) {
-      const currentTranslation = formLang[lang];
-      const originalTranslation = originalFormTranslations.find((t: any) => t.languages_code === lang);
-
-      if (currentTranslation && Object.keys(currentTranslation).length > 0) {
-        if (originalTranslation) {
-          // Check if translation has changes (normalize empty strings and undefined)
-          const normalizeValue = (value: any) => value || '';
-          const hasChanges = (
-            normalizeValue(currentTranslation.title) !== normalizeValue(originalTranslation.title) ||
-            normalizeValue(currentTranslation.submit_label) !== normalizeValue(originalTranslation.submit_label) ||
-            normalizeValue(currentTranslation.success_message) !== normalizeValue(originalTranslation.success_message)
-          );
-
-          if (hasChanges) {
-            newTranslationChanges.update.push({
-              id: currentTranslation.id, // Use existing ID for update
-              languages_code: lang,
-              title: currentTranslation.title || '',
-              submit_label: currentTranslation.submit_label || '',
-              success_message: currentTranslation.success_message || '',
-            });
-          }
-        } else if (currentTranslation.title || currentTranslation.submit_label || currentTranslation.success_message) {
-          // New translation
-          newTranslationChanges.create.push({
-            languages_code: lang,
-            title: currentTranslation.title || '',
-            submit_label: currentTranslation.submit_label || '',
-            success_message: currentTranslation.success_message || '',
-          });
-        }
-      } else if (originalTranslation) {
-        // Translation was deleted
-        newTranslationChanges.delete.push(originalTranslation.id);
-      }
-    }
-
-    setFormTranslationChanges(newTranslationChanges);
-  }, [formLang, originalFormTranslations]);
-
-  // Helper function to process field translations (object format) with create/update/delete structure
-  const processFieldTranslations = useCallback((currentTranslations: any, originalTranslations: any = {}) => {
-    if (!currentTranslations || Object.keys(currentTranslations).length === 0) {
-      return {
-        create: [],
-        update: [],
-        delete: [],
-      };
-    }
-
-    const translationsPayload: any = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[]
-    };
-
-    const languages = ['en-US', 'vi-VN'];
-
-    for (const lang of languages) {
-      const current = currentTranslations[lang];
-      const original = originalTranslations[lang];
-
-      if (current) {
-        // Convert object format to array format for API
-        const translationData = {
-          languages_code: { code: lang },
-          label: current.label || '',
-          placeholder: current.placeholder || '',
-          help: current.help || '',
-          options: current.options || []
-        };
-
-        if (original && original.id) {
-          // Update existing translation
-          translationsPayload.update.push({
-            id: original.id,
-            ...translationData
-          });
-        } else {
-          // Create new translation
-          translationsPayload.create.push(translationData);
-        }
-      }
-    }
-
-    return translationsPayload;
-  }, []);
-
-  // Helper function to compare field objects deeply
-  const areFieldsEqual = useCallback((field1: any, field2: any) => {
-    if (!field1 || !field2) return false;
-
-    // Compare basic fields
-    const basicFieldsEqual = (
-      field1.name === field2.name &&
-      field1.type === field2.type &&
-      field1.width === field2.width &&
-      field1.sort === field2.sort &&
-      field1.is_required === field2.is_required &&
-      field1.validation === field2.validation &&
-      JSON.stringify(field1.conditions || null) === JSON.stringify(field2.conditions || null)
-    );
-
-    // Compare translations deeply
-    const translationsEqual = JSON.stringify(field1.translations || {}) === JSON.stringify(field2.translations || {});
-
-    return basicFieldsEqual && translationsEqual;
-  }, []);
-
-  // Optimized field changes tracking
-  const updateFieldChanges = React.useCallback(() => {
-    const newFieldChanges = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[],
-    };
-
-    // Track processed field IDs to avoid duplicates
-    const processedIds = new Set<string>();
-
-    // 1. Process new fields (have _payload) - these are always creates
-    for (const field of fields) {
-      if ((field as any)._payload) {
-        // ✅ Ensure payload uses current field data (basic fields + translations)
-        let finalPayload = (field as any)._payload;
-
-        // Check if payload needs to be synced with current field state
-        const payloadNeedsSync = (
-          (field as any)._payload.name !== field.name ||
-          (field as any)._payload.type !== field.type ||
-          (field as any)._payload.width !== field.width ||
-          (field as any)._payload.sort !== field.sort ||
-          (field as any)._payload.is_required !== field.is_required ||
-          (field as any)._payload.validation !== field.validation ||
-          JSON.stringify((field as any)._payload.conditions) !== JSON.stringify(field.conditions)
-        );
-
-        if (payloadNeedsSync) {
-          // Update payload with current field data (basic fields)
-          finalPayload = {
-            ...(field as any)._payload,
-            name: field.name,
-            type: field.type,
-            width: field.width,
-            sort: field.sort,
-            is_required: field.is_required,
-            validation: field.validation,
-            conditions: field.conditions,
-          };
-        }
-
-        // If field has translations but payload translations are outdated, update them
-        if (field.translations && (field as any)._payload.translations) {
-          const updatedPayloadTranslations = {
-            ...(field as any)._payload.translations,
-            create: (field as any)._payload.translations.create.map((t: any) => {
-              const langCode = t.languages_code?.code;
-              const currentTranslation = field.translations[langCode];
-
-              return {
-                ...t,
-                label: currentTranslation?.label !== undefined ? currentTranslation.label : t.label,
-                placeholder: currentTranslation?.placeholder !== undefined ? currentTranslation.placeholder : t.placeholder,
-                help: currentTranslation?.help !== undefined ? currentTranslation.help : t.help,
-                options: currentTranslation?.options !== undefined ? currentTranslation.options : t.options,
-              };
-            })
-          };
-
-          finalPayload = {
-            ...finalPayload,
-            translations: updatedPayloadTranslations
-          };
-        }
-
-        newFieldChanges.create.push(finalPayload);
-        processedIds.add(field.id);
-      }
-    }
-
-    // 2. Process existing fields - check for changes
-    const originalFieldIds = new Set(originalParsedFields.map((f: any) => f.id));
-
-    for (const field of fields) {
-      if (field.id && originalFieldIds.has(field.id) && !processedIds.has(field.id)) {
-        const originalField = originalParsedFields.find((f: any) => f.id === field.id);
-        if (originalField) {
-          const fieldHasChanges = !areFieldsEqual(field, originalField);
-
-          if (fieldHasChanges) {
-            const fieldData = {
-              id: field.id,
-              name: field.name,
-              type: field.type,
-              width: field.width,
-              sort: field.sort,
-              is_required: field.is_required,
-              validation: field.validation,
-              conditions: field.conditions,
-              event_id: Number(eventId),
-              tenant_id: Number(tenantId),
-              translations: processFieldTranslations(field.translations || {}, originalField.translations || {}),
-            };
-            newFieldChanges.update.push(fieldData);
-          }
-          processedIds.add(field.id);
-        }
-      }
-    }
-
-    // 3. Find deleted fields
-    for (const originalField of originalParsedFields) {
-      if (!processedIds.has(originalField.id)) {
-        newFieldChanges.delete.push(originalField.id);
-      }
-    }
-
-    console.log('[FormBuilder] Updating field changes:', { 
-      fields: fields.length, 
-      originalParsedFields: originalParsedFields.length,
-      newFieldChanges 
-    });
-    setFieldChanges(newFieldChanges);
-  }, [fields, originalParsedFields, eventId, tenantId, areFieldsEqual, processFieldTranslations]);
-
-
-  // Use React Query hook to fetch form data
-  const { data: formData, refetch: refetchForm } = useForm(formId);
-  const saveFormMutation = useSaveForm();
-  const saveFormWithFieldsMutation = useSaveFormWithFields();
-  const queryClient = useQueryClient();
-
-  // Reset all state after successful save
-  const resetFormState = useCallback(() => {
-    // Reset fields state
-    setFields([]);
-
-    // Reset selected field
-    setSelectedId(null);
-
-    // Reset form language state
-    setFormLang({ 'en-US': {}, 'vi-VN': {} });
-
-    // Reset form settings
-    setFormSettings({});
-
-    // Reset field changes
-    setFieldChanges({
-      create: [],
-      update: [],
-      delete: [],
-    });
-
-    // Reset form translation changes
-    setFormTranslationChanges({
-      create: [],
-      update: [],
-      delete: [],
-    });
-
-    // Reset original parsed fields
-    setOriginalParsedFields([]);
-
-    // Reset original form translations
-    setOriginalFormTranslations([]);
-
-    // Reset active language
-    setActiveLang('en-US');
-
-    // Reset form meta
-    setFormMeta(null);
-  }, []);
-
-  // Auto-update field changes when fields change (debounced)
-  useEffect(() => {
-    // Always update field changes when fields change, regardless of originalParsedFields
-    if (fields.length > 0) {
-      const timeoutId = setTimeout(() => {
-        updateFieldChanges();
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [fields, originalParsedFields, updateFieldChanges]);
-
-  // Auto-update form translation changes when formLang changes (debounced)
-  useEffect(() => {
-    if (originalFormTranslations.length >= 0) { // Allow empty array for new forms
-      const timeoutId = setTimeout(() => {
-        updateFormTranslationChanges();
-      }, 100);
-
-      return () => clearTimeout(timeoutId);
-    }
-  }, [formLang, originalFormTranslations, updateFormTranslationChanges]);
-  const isSaving = saveFormMutation.isPending || saveFormWithFieldsMutation.isPending;
+  const {
+    activeId,
+    dropPosition,
+    addFieldFromCatalog,
+    updateField,
+    removeField,
+    moveField,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useFormFields(fields, setFields, eventId, undefined);
 
   // dnd-kit sensors
   const sensors = useSensors(
@@ -906,634 +568,6 @@ export default function FormBuilderPage() {
     })
   );
 
-  // Helper function to parse field translations
-  const parseFieldTranslations = (field: unknown) => {
-    const f = field as { id: string; name?: string; type?: string; width?: string; sort?: number; is_required?: boolean; validation?: string; conditions?: any; translations?: Array<{ id?: string; languages_code: string; label?: string; placeholder?: string; help?: string; options?: string | null }> };
-    const fieldTranslations = f.translations || [];
-    const enFieldTranslation = fieldTranslations.find((t: { languages_code: string }) => t.languages_code === 'en-US');
-    const viFieldTranslation = fieldTranslations.find((t: { languages_code: string }) => t.languages_code === 'vi-VN');
-
-    // Parse options if they exist
-    const parseOptions = (optionsStr: string | null) => {
-      if (!optionsStr) return undefined;
-      try {
-        return JSON.parse(optionsStr);
-      } catch {
-        return undefined;
-      }
-    };
-
-    return {
-      id: f.id,
-      name: f.name,
-      type: f.type,
-      width: f.width,
-      sort: f.sort,
-      is_required: f.is_required,
-      validation: f.validation,
-      conditions: f.conditions,
-      translations: {
-        'en-US': {
-          id: enFieldTranslation?.id, // ✅ Preserve translation ID
-          label: enFieldTranslation?.label || '',
-          placeholder: enFieldTranslation?.placeholder || '',
-          help: enFieldTranslation?.help || '',
-          options: parseOptions(enFieldTranslation?.options || null)
-        },
-        'vi-VN': {
-          id: viFieldTranslation?.id, // ✅ Preserve translation ID
-          label: viFieldTranslation?.label || '',
-          placeholder: viFieldTranslation?.placeholder || '',
-          help: viFieldTranslation?.help || '',
-          options: parseOptions(viFieldTranslation?.options || null)
-        },
-      }
-    };
-  };
-
-  // Process form data when it loads
-  React.useEffect(() => {
-    console.log('[FormBuilder] Processing form data:', { formData, formId });
-    if (formData) {
-      setFormMeta(formData);
-
-      // Properly handle form translations by languages_code with IDs
-      const translations = ((formData as { translations?: Array<{ id?: string; languages_code: string; title?: string; submit_label?: string; success_message?: string }> })?.translations || []);
-      const enTranslation = translations.find((t) => t.languages_code === 'en-US');
-      const viTranslation = translations.find((t) => t.languages_code === 'vi-VN');
-
-
-      // Store original form translations for comparison
-      setOriginalFormTranslations(translations);
-
-      setFormLang({
-        'en-US': {
-          id: enTranslation?.id, // ✅ Preserve translation ID
-          title: enTranslation?.title || '',
-          submit_label: enTranslation?.submit_label || '',
-          success_message: enTranslation?.success_message || ''
-        },
-        'vi-VN': {
-          id: viTranslation?.id, // ✅ Preserve translation ID
-          title: viTranslation?.title || '',
-          submit_label: viTranslation?.submit_label || '',
-          success_message: viTranslation?.success_message || ''
-        },
-      });
-      setFormSettings({
-        status: (formData as { status?: string; on_success?: string; redirect_url?: string; template_email?: string }).status,
-        on_success: (formData as { status?: string; on_success?: string; redirect_url?: string; template_email?: string }).on_success,
-        redirect_url: (formData as { status?: string; on_success?: string; redirect_url?: string; template_email?: string }).redirect_url,
-        template_email: (formData as { status?: string; on_success?: string; redirect_url?: string; template_email?: string }).template_email
-      });
-      
-      // Process form fields first
-      const formFields = (formData as { fields?: unknown[] })?.fields || [];
-      const processedFields = formFields.map(parseFieldTranslations);
-      setFields(processedFields);
-
-      // Set email template - convert from ${fieldId} format to {fieldName} format for display
-      const rawEmailTemplate = (formData as { template_email?: string }).template_email || '';
-      const displayEmailTemplate = rawEmailTemplate.replace(
-        /\$\{([^}]+)\}/g,
-        (match, fieldId) => {
-          const field = processedFields.find(f => f.id === fieldId);
-          if (field) {
-            const fieldLabel = Array.isArray(field.translations) 
-              ? field.translations.find(t => t.languages_code === 'en-US')?.label 
-              : field.translations?.['en-US']?.label;
-            return fieldLabel ? `{${fieldLabel}}` : match;
-          }
-          return match;
-        }
-      );
-      setEmailTemplate(displayEmailTemplate);
-      
-      console.log('[FormBuilder] Email template load conversion:', {
-        raw: rawEmailTemplate,
-        display: displayEmailTemplate,
-        fields: processedFields.map(f => ({
-          id: f.id,
-          name: f.name,
-          label: Array.isArray(f.translations) 
-            ? f.translations.find(t => t.languages_code === 'en-US')?.label 
-            : f.translations?.['en-US']?.label
-        }))
-      });
-
-      // Store original parsed fields for comparison
-      setOriginalParsedFields(processedFields);
-
-      // Initialize field changes as empty (will be updated when changes occur)
-      setFieldChanges({
-        create: [],
-        update: [],
-        delete: [],
-      });
-    }
-  }, [formData]);
-
-  // dnd-kit drag start handler
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(String(event.active.id));
-    setDropPosition(null);
-  }, []);
-
-  // dnd-kit drag over handler
-  const handleDragOver = useCallback((event: any) => {
-    const { active, over } = event;
-
-    // Handle catalog items being dragged
-    if (String(active.id).startsWith('catalog-')) {
-      if (over && over.id !== 'form-preview') {
-        // Find the field index
-        const fieldIndex = fields.findIndex(f => f.id === over.id);
-        if (fieldIndex !== -1) {
-          setDropPosition(fieldIndex);
-        }
-      } else if (over && over.id === 'form-preview') {
-        // Drop at the end
-        setDropPosition(fields.length);
-      }
-    }
-    // Handle existing fields being reordered
-    else if (over && over.id !== active.id) {
-      const activeIndex = fields.findIndex(f => f.id === active.id);
-      const overIndex = fields.findIndex(f => f.id === over.id);
-
-      if (activeIndex !== -1 && overIndex !== -1) {
-        // Calculate the new position based on where we're hovering
-        let newPosition = overIndex;
-
-        // If dragging over a field, determine if we should place before or after
-        if (event.activatorEvent) {
-          const overElement = document.querySelector(`[data-sortable-id="${over.id}"]`);
-          if (overElement) {
-            const rect = overElement.getBoundingClientRect();
-            const relativeY = event.activatorEvent.clientY - rect.top;
-
-            // If dragging in the upper half, place before; lower half, place after
-            if (relativeY < rect.height / 2) {
-              newPosition = overIndex;
-            } else {
-              newPosition = overIndex + 1;
-            }
-          }
-        }
-
-        // Perform live sorting during drag
-        setFields((prev) => {
-          const oldIndex = prev.findIndex((f) => f.id === active.id);
-          let newIndex = prev.findIndex((f) => f.id === over.id);
-
-          // Handle special case for placing at the end
-          if (newPosition > overIndex) {
-            newIndex = newPosition - 1; // Adjust for arrayMove behavior
-          }
-
-          // Ensure newIndex is within bounds
-          newIndex = Math.max(0, Math.min(newIndex, prev.length - 1));
-
-          if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return prev;
-
-          const updated = arrayMove(prev, oldIndex, newIndex).map((f, i) => ({
-            ...f,
-            sort: i + 1
-          }));
-
-          return updated;
-        });
-
-        setDropPosition(newPosition);
-      }
-    } else {
-      setDropPosition(null);
-    }
-  }, [fields]);
-
-  // dnd-kit drag end handler
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    setDropPosition(null);
-
-    console.log('[FormBuilder] Drag end:', { active, over, fields: fields.length });
-
-    if (!over) return;
-
-    // Check if dragging from catalog
-    if (String(active.id).startsWith('catalog-')) {
-      const catalogItem = CATALOG.find(item => `catalog-${item.id}` === active.id);
-      if (catalogItem && (over.id === 'form-preview' || fields.some(f => f.id === over.id))) {
-        // Add new field from catalog at specified position
-        const id = crypto.randomUUID();
-        const fieldName = `${catalogItem.id}_${Date.now()}`;
-
-        console.log('[FormBuilder] Adding field from catalog:', { catalogItem, over, fields: fields.length });
-
-        setFields((prev) => {
-          let insertIndex = prev.length; // Default to end
-
-          if (over.id !== 'form-preview') {
-            // Find the field index to insert before
-            const fieldIndex = prev.findIndex(f => f.id === over.id);
-            if (fieldIndex !== -1) {
-              insertIndex = fieldIndex;
-            }
-          }
-
-          // Create payload for the new field
-          const payload = {
-            name: fieldName,
-            type: catalogItem.id,
-            width: 'full',
-            sort: insertIndex + 1,
-            is_required: false,
-            validation: '',
-            conditions: null as any,
-            event_id: Number(eventId),
-            tenant_id: Number(tenantId),
-            translations: {
-              create: [
-                {
-                  languages_code: { code: 'en-US' },
-                  label: catalogItem.label,
-                  placeholder: '',
-                  help: '',
-                  options: []
-                },
-                {
-                  languages_code: { code: 'vi-VN' },
-                  label: catalogItem.label,
-                  placeholder: '',
-                  help: '',
-                  options: []
-                }
-              ],
-              update: [],
-              delete: [],
-            },
-          };
-
-          const newField = {
-            id,
-            name: fieldName,
-            type: catalogItem.id,
-            width: 'full',
-            sort: insertIndex + 1,
-            is_required: false,
-            validation: '',
-            conditions: null as any,
-            translations: {
-              'en-US': {
-                id: `${id}_en`,
-                label: catalogItem.label,
-                placeholder: '',
-                help: '',
-                options: []
-              },
-              'vi-VN': {
-                id: `${id}_vi`,
-                label: catalogItem.label,
-                placeholder: '',
-                help: '',
-                options: []
-              }
-            },
-            _payload: payload,
-          };
-
-          const updated = [...prev];
-          updated.splice(insertIndex, 0, newField);
-
-          // Update sort values
-          updated.forEach((field, index) => {
-            field.sort = index + 1;
-          });
-
-          return updated;
-        });
-        setSelectedId(id);
-      }
-      return;
-    }
-
-    // Handle field reordering - live sorting already handled in handleDragOver
-    // No need to do anything here since sorting is done during drag
-  }, [fields, eventId, tenantId]);
-
-  // Move field using buttons
-  const moveField = useCallback((index: number, direction: -1 | 1) => {
-    setFields((prev) => {
-      const arr = [...prev];
-      const newIndex = index + direction;
-      if (newIndex < 0 || newIndex >= arr.length) return prev;
-
-      const updated = arrayMove(arr, index, newIndex).map((f, i) => ({
-        ...f,
-        sort: i + 1
-      }));
-
-      return updated;
-    });
-  }, []);
-
-  const selected = useMemo(() => fields.find((f) => f.id === selectedId) || null, [fields, selectedId]);
-
-  // Save form
-  const handleSave = useCallback(() => {
-    if (!formId || !eventId || !tenantId) return;
-
-    console.log('[FormBuilder] Saving form:', { 
-      formId, 
-      eventId, 
-      tenantId, 
-      fields: fields.length, 
-      fieldChanges 
-    });
-
-    // Calculate form translation changes directly in handleSave to ensure latest state
-    const directFormTranslationChanges = {
-      create: [] as any[],
-      update: [] as any[],
-      delete: [] as string[],
-    };
-
-    // Process each language
-    const languages = ['en-US', 'vi-VN'] as const;
-
-    for (const lang of languages) {
-      const currentTranslation = formLang[lang];
-      // Find original translation by matching both languages_code and id
-      const originalTranslation = originalFormTranslations.find((t: any) =>
-        t.languages_code === lang && t.id === currentTranslation?.id
-      );
-
-      if (currentTranslation && Object.keys(currentTranslation).length > 0) {
-        if (originalTranslation) {
-          // Check if translation has changes (normalize empty strings and undefined)
-          const normalizeValue = (value: any) => value || '';
-          const hasChanges = (
-            normalizeValue(currentTranslation.title) !== normalizeValue(originalTranslation.title) ||
-            normalizeValue(currentTranslation.submit_label) !== normalizeValue(originalTranslation.submit_label) ||
-            normalizeValue(currentTranslation.success_message) !== normalizeValue(originalTranslation.success_message)
-          );
-
-          if (hasChanges) {
-            directFormTranslationChanges.update.push({
-              id: currentTranslation.id, // Use existing ID for update
-              languages_code: lang,
-              title: currentTranslation.title || '',
-              submit_label: currentTranslation.submit_label || '',
-              success_message: currentTranslation.success_message || '',
-            });
-          }
-        } else if (currentTranslation.title || currentTranslation.submit_label || currentTranslation.success_message) {
-          // New translation
-          directFormTranslationChanges.create.push({
-            languages_code: lang,
-            title: currentTranslation.title || '',
-            submit_label: currentTranslation.submit_label || '',
-            success_message: currentTranslation.success_message || '',
-          });
-        }
-      } else if (originalTranslation) {
-        // Translation was deleted
-        directFormTranslationChanges.delete.push(originalTranslation.id);
-      }
-    }
-
-    const finalFormTranslationChanges = (
-      directFormTranslationChanges.create.length > 0 ||
-      directFormTranslationChanges.update.length > 0 ||
-      directFormTranslationChanges.delete.length > 0
-    ) ? directFormTranslationChanges : formTranslationChanges;
-
-    const safeFinalFormTranslationChanges = finalFormTranslationChanges || {
-      create: [],
-      update: [],
-      delete: [],
-    };
-
-    // Convert emailTemplate from {fieldName} format to ${fieldId} format for Directus
-    const convertEmailTemplateToDirectusFormat = (template: string) => {
-      if (!template) return template;
-      
-      return template.replace(
-        /\{([^}]+)\}/g,
-        (match, fieldName) => {
-          const field = fields.find(f => {
-            const fieldLabel = Array.isArray(f.translations) 
-              ? f.translations.find(t => t.languages_code === 'en-US')?.label 
-              : f.translations?.['en-US']?.label;
-            return fieldLabel === fieldName || f.name === fieldName;
-          });
-          return field ? `\${${field.id}}` : match;
-        }
-      );
-    };
-
-    const directusEmailTemplate = convertEmailTemplateToDirectusFormat(emailTemplate);
-    
-    console.log('[FormBuilder] Email template conversion:', {
-      original: emailTemplate,
-      converted: directusEmailTemplate,
-      fields: fields.map(f => ({
-        id: f.id,
-        name: f.name,
-        label: Array.isArray(f.translations) 
-          ? f.translations.find(t => t.languages_code === 'en-US')?.label 
-          : f.translations?.['en-US']?.label
-      }))
-    });
-
-    const formDataWithFields = {
-      status: (formSettings.status as 'draft' | 'published' | 'archived') || 'draft',
-      on_success: (formSettings.on_success as 'redirect' | 'message') || 'message',
-      redirect_url: formSettings.redirect_url || undefined,
-      template_email: directusEmailTemplate || undefined,
-      event_id: Number(eventId),
-      tenant_id: Number(tenantId),
-      translations: safeFinalFormTranslationChanges,
-      fields: fieldChanges,
-    };
-
-    saveFormWithFieldsMutation.mutate(
-      {
-        formId,
-        eventId,
-        tenantId: Number(tenantId),
-        formData: formDataWithFields
-      },
-      {
-        onSuccess: async () => {
-          // Show success toast
-          toast.success('Form saved successfully!', {
-            description: 'All changes have been saved to Directus.',
-          });
-
-          // Reset all form state
-          resetFormState();
-
-          // Refetch form data to get fresh data from API
-          try {
-            await refetchForm();
-
-            // Invalidate related queries to ensure fresh data
-            queryClient.invalidateQueries({ queryKey: ['forms', 'detail', formId] });
-            queryClient.invalidateQueries({ queryKey: ['forms', 'list'] });
-          } catch {
-            toast.error('Form saved but failed to reload data', {
-              description: 'Please refresh the page to see the latest changes.',
-            });
-          }
-        },
-        onError: (error) => {
-          toast.error('Failed to save form', {
-            description: error.message,
-          });
-        },
-      }
-    );
-  }, [formId, eventId, tenantId, formLang, originalFormTranslations, formTranslationChanges, formSettings, fieldChanges, saveFormWithFieldsMutation, resetFormState, refetchForm, queryClient]);
-
-  // Add field from catalog
-  const addFieldFromCatalog = useCallback((type: string, label: string) => {
-    const id = crypto.randomUUID();
-    const fieldName = `${type}_${Date.now()}`;
-    const fieldSort = fields.length;
-
-    // Create pre-built payload structure first
-    const payload = {
-      name: fieldName,
-      type: type,
-      width: 'full',
-      sort: fieldSort,
-      is_required: false,
-      validation: '',
-      conditions: null as any,
-      event_id: Number(eventId),
-      tenant_id: Number(tenantId),
-      translations: {
-        create: [
-          {
-            label: label,
-            languages_code: { code: 'en-US' },
-            placeholder: '',
-            help: '',
-            options: [],
-          },
-          {
-            label: label,
-            languages_code: { code: 'vi-VN' },
-            placeholder: '',
-            help: '',
-            options: [],
-          },
-        ],
-        update: [],
-        delete: [],
-      },
-    };
-
-    // Create new field with pre-built payload structure
-    const newField = {
-      id,
-      type,
-      name: fieldName,
-      sort: fieldSort,
-      is_required: false,
-      validation: '',
-      conditions: null as any,
-      width: 'full',
-      translations: {
-        'en-US': {
-          label: label,
-          placeholder: '',
-          help: '',
-          options: [],
-        },
-        'vi-VN': {
-          label: label,
-          placeholder: '',
-          help: '',
-          options: [],
-        },
-      },
-      _payload: payload,
-    };
-
-    setFields((prev) => [...prev, newField]);
-    setSelectedId(id);
-  }, [fields.length, eventId, tenantId]);
-
-  // Helper function to update field and its payload
-  const updateField = useCallback((id: string, updates: any) => {
-    setFields((prev) => {
-      const updated = prev.map((f) => {
-        if (f.id !== id) return f;
-
-        const updatedField = { ...f, ...updates };
-
-        // Always preserve _payload for new fields (fields without real ID from database)
-        if ((f as any)._payload) {
-          (updatedField as any)._payload = {
-            ...(f as any)._payload,
-            // Update basic fields in payload
-            name: updates.name !== undefined ? updates.name : (f as any)._payload.name,
-            type: updates.type !== undefined ? updates.type : (f as any)._payload.type,
-            width: updates.width !== undefined ? updates.width : (f as any)._payload.width,
-            sort: updates.sort !== undefined ? updates.sort : (f as any)._payload.sort,
-            is_required: updates.is_required !== undefined ? updates.is_required : (f as any)._payload.is_required,
-            validation: updates.validation !== undefined ? updates.validation : (f as any)._payload.validation,
-            conditions: updates.conditions !== undefined ? updates.conditions : (f as any)._payload.conditions,
-            // Update translations in payload if they exist
-            translations: (f as any)._payload.translations ? {
-              ...(f as any)._payload.translations,
-              create: (f as any)._payload.translations.create.map((t: any) => {
-                const langCode = t.languages_code?.code;
-
-                // Handle both object format (from UI) and direct updates
-                let translationUpdate = null;
-                if (updates.translations) {
-                  // If updates.translations is object format { 'en-US': {...}, 'vi-VN': {...} }
-                  if (typeof updates.translations === 'object' && !Array.isArray(updates.translations)) {
-                    translationUpdate = updates.translations[langCode];
-                  }
-                  // If updates.translations is array format (direct update)
-                  else if (Array.isArray(updates.translations)) {
-                    translationUpdate = updates.translations.find((ut: any) =>
-                      ut.languages_code?.code === langCode || ut.languages_code === langCode
-                    );
-                  }
-                }
-
-                return {
-                  ...t,
-                  label: translationUpdate?.label !== undefined ? translationUpdate.label : t.label,
-                  placeholder: translationUpdate?.placeholder !== undefined ? translationUpdate.placeholder : t.placeholder,
-                  help: translationUpdate?.help !== undefined ? translationUpdate.help : t.help,
-                  options: translationUpdate?.options !== undefined ? translationUpdate.options : t.options,
-                };
-              }),
-            } : undefined,
-          };
-        }
-
-        return updatedField;
-      });
-
-      return updated;
-    });
-  }, []);
-
-  const removeField = useCallback((id: string) => {
-    setFields((prev) => {
-      const updated = prev.filter((f) => f.id !== id).map((f, i) => ({ ...f, sort: i + 1 }));
-      return updated;
-    });
-    if (selectedId === id) setSelectedId(null);
-  }, [selectedId]);
 
   return (
     <div className="w-full h-full space-y-6 p-6">
@@ -1548,6 +582,13 @@ export default function FormBuilderPage() {
           <Button variant="outline" onClick={() => router.push(`/events/${eventId}`)}>
             <Icon icon="lucide:arrow-left" className="w-4 h-4 mr-2" />
             Back
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={() => router.push(`/events/${eventId}/forms/${formId}/email-template`)}
+          >
+            <Icon icon="lucide:mail" className="w-4 h-4 mr-2" />
+            Email Template
           </Button>
           <Button
             variant="gradient"
@@ -1590,7 +631,10 @@ export default function FormBuilderPage() {
                       >
                         <CatalogItem
                           item={t}
-                          onClick={() => addFieldFromCatalog(t.id, t.label)}
+                          onClick={() => {
+                            const newId = addFieldFromCatalog(t.id, t.label);
+                            setSelectedId(newId);
+                          }}
                         />
                       </motion.div>
                     ))}
@@ -1616,7 +660,7 @@ export default function FormBuilderPage() {
                 onSelect={setSelectedId}
                 onMoveUp={(idx) => moveField(idx, -1)}
                 onMoveDown={(idx) => moveField(idx, 1)}
-                onRemove={removeField}
+                onRemove={(id) => removeField(id, selectedId, setSelectedId)}
                 isAnyDragging={!!activeId}
                 dropPosition={dropPosition}
                 activeId={activeId}
@@ -1943,30 +987,6 @@ export default function FormBuilderPage() {
           </Panel>
         </PanelGroup>
 
-        {/* Email Template Editor - Full Width Card */}
-        <div className="w-full mt-6">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
-            <div className="p-6 border-b border-gray-100">
-              <div className="flex items-center gap-3">
-                <Icon icon="lucide:mail" className="w-5 h-5 text-blue-600" />
-                <div>
-                  <h3 className="text-lg font-semibold text-content-primary">Email Template</h3>
-                  <p className="text-sm text-content-secondary mt-1">
-                    Configure automatic email template sent when form is submitted. Use <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">${'{'}</code> to insert form fields.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="p-6">
-              <EmailTemplateEditor
-                value={emailTemplate}
-                onChange={setEmailTemplate}
-                formFields={fields}
-                className="w-full"
-              />
-            </div>
-          </div>
-        </div>
 
         {/* Drag Overlay */}
         <DragOverlay>

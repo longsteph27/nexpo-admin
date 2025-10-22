@@ -85,3 +85,17 @@ export function useCreateForm() {
     },
   });
 }
+
+// Update email template mutation
+export function useUpdateEmailTemplate() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ formId, templateEmail, qrCodeField }: { formId: string; templateEmail?: string; qrCodeField?: string }) => 
+      formsApi.updateEmailTemplate(formId, templateEmail, qrCodeField),
+    onSuccess: (data, variables) => {
+      // Invalidate the specific form in cache to force refetch
+      queryClient.invalidateQueries({ queryKey: formKeys.detail(variables.formId) });
+    },
+  });
+}
