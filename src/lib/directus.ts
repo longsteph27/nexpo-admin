@@ -1346,7 +1346,7 @@ export const directusHelpers = {
               'status',
               'date_created',
               'date_updated',
-              { translations: ['id', 'languages_code', 'title'] },
+              { translations: ['id', 'languages_code', 'title', 'permalink'] },
               { blocks: ['id', 'collection'] }
             ] 
           },

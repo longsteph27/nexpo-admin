@@ -188,6 +188,50 @@ export default function SiteDetailPage() {
     });
   };
 
+  const handlePreviewSite = () => {
+    if (!site?.slug) {
+      toast.error('Site slug is required to preview the site');
+      return;
+    }
+
+    // Map language codes to URL format
+    const languageMap: Record<string, string> = {
+      'en-US': 'en',
+      'vi-VN': 'vi'
+    };
+
+    const languageCode = languageMap[activeLang] || 'en';
+    
+    // Check if there's a home page (permalink = '/' or empty)
+    const homePage = site.pages?.find((page: any) => {
+      const translation = page.translations?.find((t: any) => 
+        t.languages_code === activeLang
+      );
+      return translation?.permalink === '/' || translation?.permalink === '';
+    });
+
+    let publicUrl: string;
+    
+    if (homePage) {
+      // If home page exists, go to root
+      publicUrl = `https://nxp-public-ruby.vercel.app/${site.slug}/${languageCode}`;
+    } else if (site.pages && site.pages.length > 0) {
+      // If no home page but pages exist, go to first page
+      const firstPage = site.pages[0];
+      const translation = firstPage.translations?.find((t: any) => 
+        t.languages_code === activeLang
+      );
+      const permalink = translation?.permalink || '';
+      publicUrl = `https://nxp-public-ruby.vercel.app/${site.slug}/${languageCode}/${permalink}`;
+    } else {
+      // No pages at all, go to root
+      publicUrl = `https://nxp-public-ruby.vercel.app/${site.slug}/${languageCode}`;
+    }
+    
+    // Open in new tab
+    window.open(publicUrl, '_blank', 'noopener,noreferrer');
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -264,7 +308,7 @@ export default function SiteDetailPage() {
             <Icon icon="lucide:settings" className="w-4 h-4 mr-2" />
             Settings
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handlePreviewSite}>
             <Icon icon="lucide:eye" className="w-4 h-4 mr-2" />
             Preview Site
           </Button>
