@@ -815,6 +815,19 @@ export default function FormBuilderPage() {
                     <input id="req" type="checkbox" checked={!!selected.is_required} onChange={(e) => updateField(selected.id, { is_required: e.target.checked })} />
                     <label htmlFor="req" className="text-xs text-content-secondary">Required</label>
                   </div>
+                  
+                  {/* Group Field Setting - Only show if form allows groups */}
+                  {formSettings.is_allow_group && (
+                    <div className="flex items-center gap-2">
+                      <input 
+                        id="group-field" 
+                        type="checkbox" 
+                        checked={!!selected.is_group_field} 
+                        onChange={(e) => updateField(selected.id, { is_group_field: e.target.checked })} 
+                      />
+                      <label htmlFor="group-field" className="text-xs text-content-secondary">Group Field</label>
+                    </div>
+                  )}
                   <div>
                     <Input
                       label="Validation"
@@ -979,6 +992,17 @@ export default function FormBuilderPage() {
                         />
                       </div>
                     )}
+                    
+                    {/* Group Settings */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        id="allow-group" 
+                        type="checkbox" 
+                        checked={!!formSettings.is_allow_group} 
+                        onChange={(e) => setFormSettings((s) => ({ ...s, is_allow_group: e.target.checked }))} 
+                      />
+                      <label htmlFor="allow-group" className="text-xs text-content-secondary">Allow Group Registration</label>
+                    </div>
                   </div>
                 </div>
                 

@@ -12,6 +12,8 @@ export interface FormData {
   status?: 'draft' | 'published' | 'archived';
   on_success?: 'redirect' | 'message';
   redirect_url?: string;
+  is_allow_group?: boolean;
+  template_email_group?: string;
   event_id: number;
   tenant_id: number;
   translations?: {
@@ -35,6 +37,7 @@ export interface FormField {
   is_required?: boolean;
   validation?: string;
   conditions?: Record<string, unknown>;
+  is_group_field?: boolean;
   translations?: {
     'en-US'?: {
       id?: string;
@@ -215,7 +218,7 @@ export const formsApi = {
   /**
    * Update email template
    */
-  updateEmailTemplate: async (formId: string, templateEmail?: string, qrCodeField?: string): Promise<ApiResponse<any>> => {
+  updateEmailTemplate: async (formId: string, templateEmail?: string, qrCodeField?: string, templateEmailGroup?: string): Promise<ApiResponse<any>> => {
     try {
       console.log('[updateEmailTemplate] Updating email template for formId:', formId);
       
@@ -225,6 +228,9 @@ export const formsApi = {
       }
       if (qrCodeField !== undefined) {
         updateData.qr_code_field = qrCodeField;
+      }
+      if (templateEmailGroup !== undefined) {
+        updateData.template_email_group = templateEmailGroup;
       }
 
       const result = await directusHelpers.updateFormTemplate(formId, updateData);

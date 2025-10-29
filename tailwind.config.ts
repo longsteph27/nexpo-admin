@@ -17,6 +17,12 @@ module.exports = {
                     secondary: '#404040',   // Secondary text - xám đậm
                     tertiary: '#666666',    // Tertiary text - xám vừa
                 },
+                border: {
+                    tertiary: '#D9D9D9',
+                },
+                bg: {
+                    hover: '#F7F7F7',
+                },
                 
                 // CSS Variables from globals.css
                 background: "var(--background)",

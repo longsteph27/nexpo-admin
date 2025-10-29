@@ -14,6 +14,7 @@ export type FormField = {
   is_required?: boolean;
   validation?: string;
   conditions?: Record<string, unknown>;
+  is_group_field?: boolean;
   translations?: {
     'en-US'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] };
     'vi-VN'?: { label?: string; placeholder?: string; help?: string; options?: { value: string; label: string }[] };
@@ -29,6 +30,8 @@ export type FormSettings = {
   status?: string;
   on_success?: string;
   redirect_url?: string;
+  is_allow_group?: boolean;
+  template_email_group?: string;
 };
 
 export type FieldChanges = {
@@ -91,6 +94,7 @@ export function useFormBuilder(formId: string, eventId: string) {
       is_required?: boolean; 
       validation?: string; 
       conditions?: any; 
+      is_group_field?: boolean;
       translations?: Array<{ 
         id?: string; 
         languages_code: string; 
@@ -124,6 +128,7 @@ export function useFormBuilder(formId: string, eventId: string) {
       is_required: f.is_required,
       validation: f.validation,
       conditions: f.conditions,
+      is_group_field: f.is_group_field,
       translations: {
         'en-US': {
           id: enFieldTranslation?.id,
@@ -203,6 +208,7 @@ export function useFormBuilder(formId: string, eventId: string) {
       field1.sort === field2.sort &&
       field1.is_required === field2.is_required &&
       field1.validation === field2.validation &&
+      field1.is_group_field === field2.is_group_field &&
       JSON.stringify(field1.conditions || null) === JSON.stringify(field2.conditions || null)
     );
 
@@ -289,6 +295,7 @@ export function useFormBuilder(formId: string, eventId: string) {
           (field as any)._payload.sort !== field.sort ||
           (field as any)._payload.is_required !== field.is_required ||
           (field as any)._payload.validation !== field.validation ||
+          (field as any)._payload.is_group_field !== field.is_group_field ||
           JSON.stringify((field as any)._payload.conditions) !== JSON.stringify(field.conditions)
         );
 
@@ -303,6 +310,7 @@ export function useFormBuilder(formId: string, eventId: string) {
             is_required: field.is_required,
             validation: field.validation,
             conditions: field.conditions,
+            is_group_field: field.is_group_field,
           };
         }
 
@@ -354,6 +362,7 @@ export function useFormBuilder(formId: string, eventId: string) {
               is_required: field.is_required,
               validation: field.validation,
               conditions: field.conditions,
+              is_group_field: field.is_group_field,
               event_id: Number(eventId),
               tenant_id: Number(tenantId),
               translations: processFieldTranslations(field.translations || {}, originalField.translations || {}),
@@ -421,9 +430,11 @@ export function useFormBuilder(formId: string, eventId: string) {
       });
 
       setFormSettings({
-        status: (formData as { status?: string; on_success?: string; redirect_url?: string }).status,
-        on_success: (formData as { status?: string; on_success?: string; redirect_url?: string }).on_success,
-        redirect_url: (formData as { status?: string; on_success?: string; redirect_url?: string }).redirect_url
+        status: (formData as { status?: string; on_success?: string; redirect_url?: string; is_allow_group?: boolean; template_email_group?: string }).status,
+        on_success: (formData as { status?: string; on_success?: string; redirect_url?: string; is_allow_group?: boolean; template_email_group?: string }).on_success,
+        redirect_url: (formData as { status?: string; on_success?: string; redirect_url?: string; is_allow_group?: boolean; template_email_group?: string }).redirect_url,
+        is_allow_group: (formData as { status?: string; on_success?: string; redirect_url?: string; is_allow_group?: boolean; template_email_group?: string }).is_allow_group,
+        template_email_group: (formData as { status?: string; on_success?: string; redirect_url?: string; is_allow_group?: boolean; template_email_group?: string }).template_email_group
       });
       
       // Process form fields first
@@ -543,6 +554,8 @@ export function useFormBuilder(formId: string, eventId: string) {
       status: (formSettings.status as 'draft' | 'published' | 'archived') || 'draft',
       on_success: (formSettings.on_success as 'redirect' | 'message') || 'message',
       redirect_url: formSettings.redirect_url || undefined,
+      is_allow_group: formSettings.is_allow_group || false,
+      template_email_group: formSettings.template_email_group || undefined,
       event_id: Number(eventId),
       tenant_id: Number(tenantId),
       translations: safeFinalFormTranslationChanges,

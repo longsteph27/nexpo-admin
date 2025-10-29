@@ -249,6 +249,40 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                             </div>
                         </motion.div>
 
+                        {/* Checkin Item */}
+                        <motion.div 
+                            className="ml-6 cursor-pointer" 
+                            onClick={() => router.push(`/events/${eventId}/checkin`)}
+                            variants={sidebarItemVariants}
+                            whileHover="hover"
+                            whileTap="tap"
+                            transition={{
+                                duration: 0.2,
+                                ease: "easeOut",
+                            }}
+                        >
+                            <div className={cn(
+                                "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                pathname?.includes('/checkin')
+                                    ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                    : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                            )}>
+                                <motion.div
+                                    animate={pathname?.includes('/checkin') ? { scale: 1.1 } : { scale: 1 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <Icon 
+                                        icon="lucide:qr-code" 
+                                        className={cn(
+                                            "w-4 h-4",
+                                            pathname?.includes('/checkin') ? "text-blue-600" : "text-content-tertiary"
+                                        )} 
+                                    />
+                                </motion.div>
+                                <span className="font-sf text-sm font-medium text-content-primary">Checkin</span>
+                            </div>
+                        </motion.div>
+
                         {/* Forms Item with Sub-items */}
                         <div className="ml-6">
                             <motion.div 

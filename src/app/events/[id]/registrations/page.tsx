@@ -1,12 +1,15 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { directusHelpers } from '@/lib/directus';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import Pagination from '@/components/ui/Pagination';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button-base';
 
 interface FormAnswer {
   id: string;
@@ -48,20 +51,64 @@ interface Registration {
   submissions?: FormSubmission; // m2o relationship, not array
 }
 
+interface PaginationData {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  hasNextPage: boolean;
+  hasPrevPage: boolean;
+}
+
+interface RegistrationsResponse {
+  registrations: Registration[];
+  pagination: PaginationData;
+}
+
 export default function RegistrationsPage() {
   const params = useParams();
   const router = useRouter();
   const eventId = params.id as string;
 
-  // Fetch registrations for this event
-  const { data: registrations = [], isLoading, error } = useQuery({
-    queryKey: ['registrations', eventId],
+  // Pagination and search state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('-date_created');
+  const limit = 10;
+
+  // Debounced search term
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+
+  // Debounce search term
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+      setCurrentPage(1); // Reset to first page when searching
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Fetch registrations for this event with pagination
+  const { data: registrationsData, isLoading, error } = useQuery({
+    queryKey: ['registrations', eventId, currentPage, debouncedSearchTerm, sortBy],
     queryFn: async () => {
-      const result = await directusHelpers.getRegistrationsByEvent(parseInt(eventId));
-      return result.success ? result.data : [];
+      const result = await directusHelpers.getRegistrationsByEvent(parseInt(eventId), {
+        page: currentPage,
+        limit,
+        sort: sortBy,
+        search: debouncedSearchTerm || undefined
+      });
+      return result.success ? result.data : { registrations: [], pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false } };
     },
     enabled: !!eventId,
   });
+
+  const registrations = registrationsData?.registrations || [];
+  const pagination = registrationsData?.pagination;
+
+  // Debug pagination data
+  console.log('[RegistrationsPage] Pagination data:', pagination);
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
@@ -132,6 +179,10 @@ export default function RegistrationsPage() {
     );
   }
 
+  // Calculate stats from current page data
+  const checkedInCount = registrations.filter((r: Registration) => r.checkin_status).length;
+  const pendingCount = registrations.filter((r: Registration) => !r.checkin_status).length;
+
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
@@ -145,7 +196,7 @@ export default function RegistrationsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-content-secondary">Total Registrations</p>
-              <p className="text-2xl font-bold text-content-primary">{registrations.length}</p>
+              <p className="text-2xl font-bold text-content-primary">{pagination?.totalCount || 0}</p>
             </div>
           </div>
         </div>
@@ -159,9 +210,7 @@ export default function RegistrationsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-content-secondary">Checked In</p>
-              <p className="text-2xl font-bold text-content-primary">
-                {registrations.filter((r: Registration) => r.checkin_status).length}
-              </p>
+              <p className="text-2xl font-bold text-content-primary">{checkedInCount}</p>
             </div>
           </div>
         </div>
@@ -175,11 +224,56 @@ export default function RegistrationsPage() {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-content-secondary">Pending Check-in</p>
-              <p className="text-2xl font-bold text-content-primary">
-                {registrations.filter((r: Registration) => !r.checkin_status).length}
-              </p>
+              <p className="text-2xl font-bold text-content-primary">{pendingCount}</p>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="flex flex-col sm:flex-row gap-4">
+          {/* Search Input */}
+          <div className="flex-1">
+            <div className="relative">
+              <Icon icon="lucide:search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search by name, email, phone, badge ID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          {/* Sort Dropdown */}
+          <div className="sm:w-48">
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="-date_created">Newest First</option>
+              <option value="date_created">Oldest First</option>
+              <option value="full_name">Name A-Z</option>
+              <option value="-full_name">Name Z-A</option>
+              <option value="email">Email A-Z</option>
+              <option value="-email">Email Z-A</option>
+            </select>
+          </div>
+
+          {/* Clear Search Button */}
+          {searchTerm && (
+            <Button
+              variant="outline"
+              onClick={() => setSearchTerm('')}
+              className="px-4"
+            >
+              <Icon icon="lucide:x" className="w-4 h-4 mr-2" />
+              Clear
+            </Button>
+          )}
         </div>
       </div>
 
@@ -187,8 +281,25 @@ export default function RegistrationsPage() {
       {registrations.length === 0 ? (
         <div className="text-center py-12">
           <Icon icon="lucide:users" className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-content-primary mb-2">No registrations yet</h3>
-          <p className="text-content-secondary">Visitors will appear here once they register for your event.</p>
+          <h3 className="text-lg font-medium text-content-primary mb-2">
+            {searchTerm ? 'No registrations found' : 'No registrations yet'}
+          </h3>
+          <p className="text-content-secondary">
+            {searchTerm 
+              ? 'Try adjusting your search terms or filters.' 
+              : 'Visitors will appear here once they register for your event.'
+            }
+          </p>
+          {searchTerm && (
+            <Button
+              variant="outline"
+              onClick={() => setSearchTerm('')}
+              className="mt-4"
+            >
+              <Icon icon="lucide:x" className="w-4 h-4 mr-2" />
+              Clear Search
+            </Button>
+          )}
         </div>
       ) : (
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
@@ -309,6 +420,19 @@ export default function RegistrationsPage() {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {pagination && pagination.totalPages > 1 && (
+            <Pagination
+              currentPage={pagination.page}
+              totalPages={pagination.totalPages}
+              onPageChange={setCurrentPage}
+              hasNextPage={pagination.hasNextPage}
+              hasPrevPage={pagination.hasPrevPage}
+              totalCount={pagination.totalCount}
+              limit={pagination.limit}
+            />
+          )}
         </div>
       )}
     </div>

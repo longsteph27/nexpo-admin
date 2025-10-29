@@ -41,8 +41,6 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const router = useRouter();
-  const pathname = usePathname();
   const {
     isAuthenticated,
     isLoading,
@@ -59,64 +57,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   } = useAuthStore();
 
   const hasInitializedRef = useRef(false);
-  const hasCheckedAuthRef = useRef(false);
-  const isLoginPage = pathname === '/login';
 
   // Initialize authentication on mount - ONLY ONCE
-  // Check auth for ALL routes to ensure proper redirect behavior
   useEffect(() => {
-    console.log('[AuthContext] Init check - hasInitialized:', hasInitializedRef.current);
     if (!hasInitializedRef.current) {
       hasInitializedRef.current = true;
       console.log('[AuthContext] Starting checkAuth...');
-      checkAuth().finally(() => {
-        // Mark auth check as completed regardless of success/failure
-        // The auth state will handle redirects based on isAuthenticated flag
-        hasCheckedAuthRef.current = true;
-        console.log('[AuthContext] checkAuth completed');
-      });
+      checkAuth();
     }
   }, [checkAuth]);
-
-  // Handle authentication state - only redirect after initial auth check is done
-  useEffect(() => {
-    // Don't redirect if:
-    // 1. Still loading/refreshing
-    // 2. Haven't completed initial auth check yet (avoid race condition with stale isAuthenticated)
-    if (isLoading || isRefreshing || !hasCheckedAuthRef.current) {
-      return;
-    }
-    
-    // Redirect logic based on authentication state and current page
-    if (isAuthenticated && isLoginPage) {
-      // If authenticated and on login page, redirect to events
-      console.log('[AuthContext] Authenticated user on login page, redirecting to /events');
-      router.replace('/events');
-    } else if (!isAuthenticated && !isLoginPage) {
-      // If not authenticated and not on login page, redirect to login
-      console.log('[AuthContext] Unauthenticated user on protected route, redirecting to /login');
-      router.replace('/login');
-    }
-  }, [isAuthenticated, isLoading, isRefreshing, isLoginPage, router]);
 
   // Handle tenant changes
   const handleTenantChange = useCallback((tenant: Tenant | null) => {
     setSelectedTenant(tenant);
-    router.push('/events');
-  }, [setSelectedTenant, router]);
-
-  // Log state only on key changes (not every render)
-  useEffect(() => {
-    if (hasCheckedAuthRef.current) {
-      console.log('[AuthContext] Auth state updated:', { 
-        isAuthenticated, 
-        isLoading, 
-        user: user?.email,
-        selectedTenant: selectedTenant?.name
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, isLoading, user?.email, selectedTenant?.id]);
+  }, [setSelectedTenant]);
 
   const contextValue: AuthContextType = {
     // Authentication state

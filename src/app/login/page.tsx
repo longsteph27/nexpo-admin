@@ -10,6 +10,7 @@ import { Icon } from '@iconify/react';
 import { useAuthStore } from '@/store/auth';
 import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
+import Image from 'next/image';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -63,16 +64,8 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <motion.div
-              initial={{ scale: 0.8 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-xl mb-4"
-            >
-              <span className="text-2xl font-bold text-white">NX</span>
-            </motion.div>
-            <h1 className="text-2xl font-bold text-content-primary mb-2">NEXPO</h1>
-            <p className="text-content-secondary">Welcome back</p>
+            <Image src="/logo_nexpo.png" alt="NEXPO" width={150} height={150} className='mx-auto mb-4' />
+            <p className="text-content-primary font-semibold">Welcome back</p>
           </div>
 
           {/* Google Login Button */}
@@ -83,12 +76,11 @@ export default function LoginPage() {
             className="mb-6"
           >
             <Button
-              variant="outline"
-              fullWidth
+              variant="default"
               onClick={handleGoogleLogin}
-              icon="logos:google-icon"
-              className="border-gray-300 hover:bg-gray-50"
+              className="bg-bg-hover w-full hover:bg-bg-hover/80 shadow-none"
             >
+              <Image src="/google_icon.png" alt="Google" width={16} height={16} className='text'/>
               Log in with Google
             </Button>
           </motion.div>
@@ -99,7 +91,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-4 bg-white text-content-tertiary">or continue with</span>
+              <span className="px-4 bg-white text-border-tertiary">or continue with</span>
             </div>
           </div>
 

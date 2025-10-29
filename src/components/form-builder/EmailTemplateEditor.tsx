@@ -4,6 +4,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
+import { TextAlign } from '@tiptap/extension-text-align';
 import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
 
@@ -91,6 +92,11 @@ export default function EmailTemplateEditor({
       Placeholder.configure({
         placeholder: 'Start typing your email template...',
       }),
+      TextAlign.configure({
+        types: ['heading', 'paragraph'],
+        alignments: ['left', 'center', 'right', 'justify'],
+        defaultAlignment: 'left',
+      }),
     ],
     content: '',
     onUpdate: ({ editor }) => {
@@ -100,6 +106,12 @@ export default function EmailTemplateEditor({
     },
     immediatelyRender: false,
   });
+
+  // Text alignment functions
+  const setTextAlign = (align: 'left' | 'center' | 'right') => {
+    if (!editor) return;
+    editor.chain().focus().setTextAlign(align).run();
+  };
 
   // Insert form field function
   const insertFormField = useCallback((field: FormField) => {
@@ -241,6 +253,37 @@ export default function EmailTemplateEditor({
             </Button>
           </div>
 
+          {/* Text Alignment */}
+          <div className="flex items-center gap-1 border-r border-gray-300 pr-3 mr-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTextAlign('left')}
+              className={`px-2 py-1 h-8 ${editor.isActive({ textAlign: 'left' }) ? 'bg-gray-200' : ''}`}
+              title="Align Left"
+            >
+              <Icon icon="lucide:align-left" className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTextAlign('center')}
+              className={`px-2 py-1 h-8 ${editor.isActive({ textAlign: 'center' }) ? 'bg-gray-200' : ''}`}
+              title="Align Center"
+            >
+              <Icon icon="lucide:align-center" className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setTextAlign('right')}
+              className={`px-2 py-1 h-8 ${editor.isActive({ textAlign: 'right' }) ? 'bg-gray-200' : ''}`}
+              title="Align Right"
+            >
+              <Icon icon="lucide:align-right" className="w-4 h-4" />
+            </Button>
+          </div>
+
           {/* Form Fields */}
           <div className="flex items-center gap-1">
             <span className="text-xs font-medium text-gray-600 mr-2">Fields:</span>
@@ -372,6 +415,23 @@ export default function EmailTemplateEditor({
           margin: 16px 0;
           font-style: italic;
           color: rgb(75 85 99);
+        }
+        
+        /* Text Alignment */
+        .ProseMirror [style*="text-align: left"] {
+          text-align: left !important;
+        }
+        
+        .ProseMirror [style*="text-align: center"] {
+          text-align: center !important;
+        }
+        
+        .ProseMirror [style*="text-align: right"] {
+          text-align: right !important;
+        }
+        
+        .ProseMirror [style*="text-align: justify"] {
+          text-align: justify !important;
         }
         
         .ProseMirror code {
