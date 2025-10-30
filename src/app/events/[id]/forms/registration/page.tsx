@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button-base';
 import { formsApi } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
 import FormCard from '@/components/forms/FormCard';
+import ContainerHeader from '@/components/layout/Container-header';
+import Container from '@/components/layout/Container';
 
 export default function FormsRegistrationPage() {
   const params = useParams();
@@ -55,9 +57,9 @@ export default function FormsRegistrationPage() {
   }
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="w-full space-y-4">
       {/* Page Header */}
-      <div className="flex items-start justify-between">
+      <ContainerHeader className="flex items-end justify-between">
         <div>
           <h1 className="text-xl font-bold text-content-primary">
             Forms Registration
@@ -74,7 +76,7 @@ export default function FormsRegistrationPage() {
           <Icon icon="lucide:plus" className="w-3 h-3 mr-1" />
           Create Form
         </Button>
-      </div>
+      </ContainerHeader>
 
       {/* Content */}
       {forms.length === 0 ? (
@@ -98,7 +100,7 @@ export default function FormsRegistrationPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <Container className="grid grid-cols-1 md:grid-cols-2 bg-white h-full rounded-lg lg:grid-cols-3 gap-4">
           {forms.map((form: any) => (
             <FormCard
               key={form.id}
@@ -107,7 +109,7 @@ export default function FormsRegistrationPage() {
               lang="en-US"
             />
           ))}
-        </div>
+        </Container>
       )}
     </div>
   );

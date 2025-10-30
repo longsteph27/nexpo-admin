@@ -42,7 +42,7 @@
     "@tiptap/extension-underline": "^3.6.2",
     "@tiptap/react": "^3.7.2",
     "@tiptap/starter-kit": "^3.7.2",
-    "@types/qrcode": "^1.5.5",
+    "@types/qrcode": "^1.5.6",
     "@types/react-dropzone": "^4.2.2",
     "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",

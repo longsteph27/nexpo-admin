@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Html5QrcodeSupportedFormats, Html5Qrcode } from 'html5-qrcode';
 import { directusHelpers } from '@/lib/directus';
 import { useAuthStore } from '@/store/auth';
+import QRCode from 'qrcode';
 
 
 export default function CheckinPage() {
@@ -28,6 +29,104 @@ export default function CheckinPage() {
 
   const qrCodeScannerRef = useRef<Html5Qrcode | null>(null);
   const qrCodeDivRef = useRef<HTMLDivElement>(null);
+
+  // Function to generate QR code and open print dialog
+  const printWelcomeCard = async (qrCodeText: string) => {
+    try {
+      // Generate QR code as data URL
+      const qrCodeDataUrl = await QRCode.toDataURL(qrCodeText, {
+        width: 200,
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#FFFFFF'
+        }
+      });
+
+      // Create print content
+      const printContent = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Nexpo Welcome Card</title>
+          <style>
+            @page {
+              size: 72mm 106mm;
+              margin: 0;
+            }
+            body {
+              margin: 0;
+              padding: 6mm;
+              font-family: 'Arial', sans-serif;
+              width: 60mm;
+              height: 94mm;
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              justify-content: center;
+              background: white;
+              box-sizing: border-box;
+            }
+            .welcome-text {
+              font-size: 12px;
+              font-weight: bold;
+              color: #1f2937;
+              text-align: center;
+              margin-bottom: 6mm;
+              line-height: 1.2;
+            }
+            .qr-code {
+              width: 25mm;
+              height: 25mm;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
+            .qr-code img {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
+            }
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="welcome-text">Chào mừng bạn đến với Nexpo</div>
+          <div class="qr-code">
+            <img src="${qrCodeDataUrl}" alt="QR Code" />
+          </div>
+        </body>
+        </html>
+      `;
+
+      // Open print dialog
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        
+        // Wait for content to load then trigger print
+        printWindow.onload = () => {
+          setTimeout(() => {
+            printWindow.print();
+            // Close the window after printing
+            setTimeout(() => {
+              printWindow.close();
+            }, 1000);
+          }, 500);
+        };
+      }
+    } catch (error) {
+      console.error('Error generating QR code for print:', error);
+      toast.error('Failed to generate print content');
+    }
+  };
 
   // Cleanup on unmount
   useEffect(() => {
@@ -266,6 +365,9 @@ export default function CheckinPage() {
 
       // Step 3: Show success message
       toast.success(`Successfully checked in ${matchingRegistrations.length} registration(s)!`);
+
+      // Step 4: Print welcome card with QR code
+      await printWelcomeCard(qrCodeId);
 
       // Keep camera running for continuous scanning
       console.log('[processCheckin] Checkin completed, camera continues running...');
