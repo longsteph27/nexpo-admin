@@ -441,6 +441,24 @@ export const navigationApi = {
       return { success: false, error: handleAxiosError(error, 'Failed to create navigation item') };
     }
   },
+
+  updateNavigationItem: async (id: string, payload: Record<string, unknown>): Promise<ApiResponse<unknown>> => {
+    try {
+      const res = await directusHelpers.updateNavigationItem(id, payload);
+      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to update navigation item') };
+    }
+  },
+
+  deleteNavigationItem: async (id: string): Promise<ApiResponse<void>> => {
+    try {
+      const res = await directusHelpers.deleteNavigationItem(id);
+      return res.success ? { success: true } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to delete navigation item') };
+    }
+  },
 };
 
 // Global Settings API

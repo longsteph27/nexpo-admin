@@ -2,8 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import { directusHelpers } from '@/lib/directus';
+import { useRegistrations, useRegistrationCounts } from '@/hooks/useRegistrations';
 import { Icon } from '@iconify/react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -90,22 +89,22 @@ export default function RegistrationsPage() {
   }, [searchTerm]);
 
   // Fetch registrations for this event with pagination
-  const { data: registrationsData, isLoading, error } = useQuery({
-    queryKey: ['registrations', eventId, currentPage, debouncedSearchTerm, sortBy],
-    queryFn: async () => {
-      const result = await directusHelpers.getRegistrationsByEvent(parseInt(eventId), {
-        page: currentPage,
-        limit,
-        sort: sortBy,
-        search: debouncedSearchTerm || undefined
-      });
-      return result.success ? result.data : { registrations: [], pagination: { page: 1, limit: 10, totalCount: 0, totalPages: 0, hasNextPage: false, hasPrevPage: false } };
-    },
-    enabled: !!eventId,
+  const { data: registrationsData, isLoading, error } = useRegistrations({
+    eventId: parseInt(eventId),
+    page: currentPage,
+    limit,
+    sort: sortBy,
+    search: debouncedSearchTerm || undefined,
   });
 
   const registrations = registrationsData?.registrations || [];
   const pagination = registrationsData?.pagination;
+
+  // Fetch checked-in and pending counts from API (server-side count with filters)
+  const { checkedInCount: checkedInCountData, pendingCount: pendingCountData } = useRegistrationCounts({
+    eventId: parseInt(eventId),
+    search: debouncedSearchTerm || undefined,
+  });
 
   // Debug pagination data
   console.log('[RegistrationsPage] Pagination data:', pagination);
@@ -179,9 +178,9 @@ export default function RegistrationsPage() {
     );
   }
 
-  // Calculate stats from current page data
-  const checkedInCount = registrations.filter((r: Registration) => r.checkin_status).length;
-  const pendingCount = registrations.filter((r: Registration) => !r.checkin_status).length;
+  // Use server-side counts (fallback to 0 while loading)
+  const checkedInCount = checkedInCountData ?? 0;
+  const pendingCount = pendingCountData ?? 0;
 
   return (
     <div className="space-y-6">

@@ -1461,10 +1461,16 @@ export const directusHelpers = {
 
   async updatePage(pageId: string, payload: Record<string, unknown>) {
     try {
-      const page = await directus.request(updateItem('pages' as never, pageId, payload as never));
+      console.log('[updatePage] Updating page:', pageId, 'with payload:', JSON.stringify(payload, null, 2));
+      
+      const page = await directus.request(updateItem('pages' as never, pageId as never, payload as never));
+      
+      console.log('[updatePage] Update result:', page);
       return { success: true, data: page };
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Failed to update page' };
+      console.error('[updatePage] Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update page';
+      return { success: false, error: errorMessage };
     }
   },
 
@@ -1503,10 +1509,10 @@ export const directusHelpers = {
   async getNavigation(siteId: number) {
     try {
       const nav = await directus.request(readItems('navigation' as never, {
-        filter: { site_id: { _eq: Number(siteId) } },
+        filter: { site: { _eq: Number(siteId) } },
         limit: 1,
         fields: ([
-          'id','status','type','site_id',
+          'id','status','type','site',
           { translations: ['languages_code','title'] },
           { items: [
             'id','sort','type','url','open_in_new_tab','has_children',
@@ -1531,9 +1537,9 @@ export const directusHelpers = {
   async getNavigations(siteId: number) {
     try {
       const list = await directus.request(readItems('navigation' as never, {
-        filter: { site_id: { _eq: Number(siteId) } },
+        filter: { site: { _eq: Number(siteId) } },
         fields: ([
-          'id','status','type','site_id',
+          'id','status','type','site',
           { translations: ['languages_code','title'] },
           { items: [
             'id','sort','type','url','open_in_new_tab','has_children',
@@ -1588,6 +1594,15 @@ export const directusHelpers = {
       return { success: true, data: updated };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to update navigation item' };
+    }
+  },
+
+  async deleteNavigationItem(id: string) {
+    try {
+      await directus.request(deleteItem('navigation_items' as never, id as never));
+      return { success: true };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to delete navigation item' };
     }
   },
 
@@ -1648,6 +1663,89 @@ export const directusHelpers = {
       return { success: true, data: pages as unknown as Page[] };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch pages' };
+      }
+    },
+
+    async getSitesByEvent(eventId: number, tenantId?: number, options?: { page?: number; limit?: number; sort?: string; search?: string; }) {
+      try {
+        // Backward-compatible: if tenantId or options not provided, return full list (no pagination)
+        if (!tenantId || !options) {
+          const filter: any = { event_id: { _eq: eventId } };
+          const fields = ([
+            'id','slug','domain','status','date_updated',
+            { translations: ['languages_code','title','description'] },
+          ] as unknown) as never;
+          const items = await directus.request(
+            readItems('sites' as never, {
+              filter,
+              fields,
+              sort: (['-date_updated'] as unknown) as never,
+            })
+          );
+          return { success: true, data: items };
+        }
+
+        const { page = 1, limit = 10, sort = '-date_updated', search } = options || {};
+        const filter: any = { event_id: { _eq: eventId }, tenant_id: { _eq: tenantId } };
+        if (search) {
+          filter._or = [
+            { slug: { _icontains: search } },
+            { domain: { _icontains: search } },
+            { 'translations.title': { _icontains: search } as any },
+          ];
+        }
+        const fields = ([
+          'id','slug','domain','status','date_updated',
+          { translations: ['languages_code','title','description'] },
+          { pages: ['id'] },
+          { navigation: ['id'] },
+          { categories: ['id'] },
+        ] as unknown) as never;
+        const result = await this.getPaginatedItems('sites', filter, fields, { page, limit, sort });
+        return result.success ? { success: true, data: { sites: result.data.items, pagination: result.data.pagination } } : result;
+      } catch (error) {
+        console.error('[getSitesByEvent] Error:', error);
+        return { success: false, error: 'Failed to fetch sites' };
+      }
+    },
+
+    async getPagesBySite(siteId: number, options?: { page?: number; limit?: number; sort?: string; search?: string; }) {
+      try {
+        // Backward-compatible: if no options provided, return full list (no pagination)
+        if (!options) {
+          const filter: any = { site_id: { _eq: siteId } };
+          const fields = ([
+            'id','status','site_id','date_updated',
+            { translations: ['languages_code','title','permalink'] },
+          ] as unknown) as never;
+          const items = await directus.request(
+            readItems('pages' as never, {
+              filter,
+              fields,
+              sort: (['-date_updated'] as unknown) as never,
+            })
+          );
+          return { success: true, data: items };
+        }
+        const { page = 1, limit = 10, sort = '-date_updated', search } = options || {};
+        const filter: any = { site_id: { _eq: siteId } };
+        if (search) {
+          filter._or = [
+            { status: { _icontains: search } },
+            { 'translations.title': { _icontains: search } as any },
+            { 'translations.permalink': { _icontains: search } as any },
+          ];
+        }
+        const fields = ([
+          'id','status','site_id','date_updated',
+          { translations: ['languages_code','title','permalink'] },
+          { blocks: ['id'] },
+        ] as unknown) as never;
+        const result = await this.getPaginatedItems('pages', filter, fields, { page, limit, sort });
+        return result.success ? { success: true, data: { pages: result.data.items, pagination: result.data.pagination } } : result;
+      } catch (error) {
+        console.error('[getPagesBySite] Error:', error);
+        return { success: false, error: 'Failed to fetch pages' };
       }
     },
 
@@ -1772,6 +1870,54 @@ export const directusHelpers = {
     },
 
     // Registrations queries
+    async countRegistrationsByEvent(eventId: number, options?: {
+      status?: 'checkedIn' | 'pending';
+      search?: string;
+    }) {
+      try {
+        const { status, search } = options || {};
+
+        // Base filter by event
+        const filter: any = { event_id: { _eq: eventId } };
+
+        // Status filter
+        if (status === 'checkedIn') {
+          filter.checkin_status = { _eq: true };
+        } else if (status === 'pending') {
+          // pending means not checked in yet → null
+          filter.checkin_status = { _null: true };
+        }
+
+        // Search filter (consistent with list)
+        if (search) {
+          filter._or = [
+            { full_name: { _icontains: search } },
+            { email: { _icontains: search } },
+            { phone_number: { _icontains: search } },
+            { badge_id: { _icontains: search } },
+            { redeem_id: { _icontains: search } }
+          ];
+        }
+
+        const countResult = await directus.request(
+          readItems('registrations' as never, {
+            filter,
+            fields: ['id'] as unknown as never,
+            aggregate: { countDistinct: 'id' }
+          })
+        );
+
+        const totalCount = Array.isArray(countResult) && countResult.length > 0
+          ? parseInt(countResult[0].countDistinct?.id || '0')
+          : 0;
+
+        return { success: true, data: totalCount };
+      } catch (error) {
+        console.error('[countRegistrationsByEvent] Error:', error);
+        return { success: false, error: error instanceof Error ? error.message : 'Failed to count registrations' };
+      }
+    },
+
     async getRegistrationsByEvent(eventId: number, options?: {
       page?: number;
       limit?: number;

@@ -2,10 +2,10 @@
 
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
-import { siteApi } from "@/lib/api";
+import { useSitesByEvent } from "@/hooks/useSites";
+import Pagination from '@/components/ui/Pagination';
 import { Button } from "@/components/ui/button-base";
 import { Icon } from "@iconify/react";
 
@@ -18,13 +18,16 @@ export default function EventSitesListPage() {
   // Fetch event data (includes site IDs)
   const { data: event, isLoading: loadingEvent } = useEvent(eventId);
 
-  // Fetch all sites data for list display (filtered by event_id and tenant_id)
-  const { data: sites = [], isLoading: loadingSites } = useQuery({
-    queryKey: ["sites-list", { eventId, tenantId: selectedTenant?.id }],
-    queryFn: () => siteApi.getSitesList(Number(eventId), selectedTenant?.id),
-    select: (r) => r.data || [],
-    enabled: !!eventId && !!selectedTenant?.id,
+  const [page, setPage] = React.useState(1);
+  const limit = 10;
+  const { data: sitesData, isLoading: loadingSites } = useSitesByEvent({
+    eventId: Number(eventId),
+    tenantId: Number(selectedTenant?.id),
+    page,
+    limit,
   });
+  const sites = sitesData?.sites || [];
+  const pagination = sitesData?.pagination;
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -76,9 +79,7 @@ export default function EventSitesListPage() {
       {/* Sites List */}
       <section className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h2 className="text-base font-semibold text-content-primary">
-            All Sites ({sites.length})
-          </h2>
+          <h2 className="text-base font-semibold text-content-primary">All Sites ({pagination?.totalCount || 0})</h2>
         </div>
         <div className="p-6">
           {sites.length === 0 ? (
@@ -208,6 +209,17 @@ export default function EventSitesListPage() {
             </div>
           )}
         </div>
+        {pagination && pagination.totalPages > 1 && (
+          <Pagination
+            currentPage={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            hasNextPage={pagination.hasNextPage}
+            hasPrevPage={pagination.hasPrevPage}
+            totalCount={pagination.totalCount}
+            limit={pagination.limit}
+          />
+        )}
       </section>
     </div>
   );

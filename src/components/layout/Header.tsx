@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button-base';
 import TenantSelector from '@/components/ui/TenantSelector';
 import AccountMenu from '@/components/ui/AccountMenu';
-import { useEvent } from '@/hooks/useEvents';
+import { useEvent } from '@/features/events/hooks/useEvents';
 import { getDirectusAssetUrl } from '@/util/static';
 import clsx from 'clsx';
 
@@ -40,7 +40,7 @@ export default function Header({ onMobileMenuClick, actions, eventId }: HeaderPr
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 relative z-30">
-      <div className={clsx("", eventId && event ? 'px-4 sm:px-6 lg:pr-8 lg:pl-2' : 'px-4 sm:px-6 lg:px-8')}>
+      <div className={clsx("", isEventDetailPage ? 'px-4 sm:px-6 lg:pr-8 lg:pl-2' : 'px-4 sm:px-6 lg:px-8')}>
         <div className="flex items-center justify-between h-16">
           {/* Mobile menu button */}
           <button

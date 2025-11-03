@@ -17,11 +17,11 @@ export default function PagesCard({ site, eventId, siteId }: PagesCardProps) {
   const [copiedPermalink, setCopiedPermalink] = useState<string | null>(null);
 
   const handleAddPage = () => {
-    router.push(`/events/${eventId}/sites/${siteId}/pages/new`);
+    router.push(`/events/${eventId}/pages/create`);
   };
 
   const handlePageClick = (pageId: string) => {
-    router.push(`/events/${eventId}/sites/${siteId}/pages/${pageId}`);
+    router.push(`/events/${eventId}/pages/${pageId}`);
   };
 
   const getPermalink = (page: any, language: string = 'en') => {

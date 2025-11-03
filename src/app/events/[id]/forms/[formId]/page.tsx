@@ -570,13 +570,13 @@ export default function FormBuilderPage() {
 
 
   return (
-    <div className="w-full h-full space-y-6 p-6">
+    <div className="w-full h-full space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex items-end justify-between">
         <div>
           <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-sm">Form Builder</div>
           <h1 className="mt-2 text-2xl font-bold text-content-primary tracking-tight">Design your form</h1>
-          <p className="text-content-secondary mt-1">Event <span className="font-medium">{eventId}</span> • Form <span className="font-medium">{formId}</span></p>
+          {/* <p className="text-content-secondary mt-1">Event <span className="font-medium">{eventId}</span> • Form <span className="font-medium">{formId}</span></p> */}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => router.push(`/events/${eventId}`)}>

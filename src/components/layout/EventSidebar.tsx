@@ -105,11 +105,11 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     };
 
     const navigateToPage = (page: Page, siteId: number) => {
-        router.push(`/events/${eventId}/sites/${siteId}/pages/${page.id}`);
+        router.push(`/events/${eventId}/pages/${page.id}`);
     };
 
     // Check if Event Information is active (on main event page)
-    const isEventInformationActive = pathname === `/events/${eventId}` || pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/') && !pathname?.includes('/forms');
+    const isEventInformationActive = pathname === `/events/${eventId}` || (pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/') && !pathname?.includes('/forms') && !pathname?.includes('/pages/') && !pathname?.includes('/registrations') && !pathname?.includes('/checkin'));
     
     // Check if Sites section is active (any site or page is selected)
     const isSitesActive = pathname?.includes('/sites/');
