@@ -55,17 +55,25 @@ export function usePageBuilderBlocks({ pageBlocks }: UsePageBuilderBlocksProps) 
   }, []);
 
   const replaceBlock = useCallback((blockId: string, updatedBlock: Block) => {
+    console.log('[replaceBlock] Called with:', { blockId, updatedBlock });
     setBlocks(prevBlocks => {
+      console.log('[replaceBlock] Previous blocks:', prevBlocks);
       const existingIndex = prevBlocks.findIndex(b => String(b.id) === blockId);
-      
+
       if (existingIndex === -1) {
         // Block not found, shouldn't happen but safety check
-        console.error('[usePageBuilderBlocks] Block not found for replace:', blockId);
+        console.error('[replaceBlock] Block not found for replace:', blockId);
         return prevBlocks;
       }
 
+      console.log('[replaceBlock] Found block at index:', existingIndex);
+      console.log('[replaceBlock] Old block:', prevBlocks[existingIndex]);
+      console.log('[replaceBlock] New block:', updatedBlock);
+
       const newBlocks = [...prevBlocks];
       newBlocks[existingIndex] = updatedBlock;
+
+      console.log('[replaceBlock] New blocks array:', newBlocks);
       return newBlocks;
     });
   }, []);
