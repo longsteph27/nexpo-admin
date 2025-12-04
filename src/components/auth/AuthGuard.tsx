@@ -26,6 +26,22 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     }
   }, [isLoading, isRefreshing]);
 
+  // Handle authentication redirects
+  useEffect(() => {
+    // Only run redirect after auth check is complete
+    if (!hasCheckedAuth || isLoading || isRefreshing) {
+      return;
+    }
+
+    if (isAuthenticated && isPublicRoute) {
+      // Authenticated user on login page, redirect to events
+      router.replace('/events');
+    } else if (!isAuthenticated && !isPublicRoute) {
+      // Unauthenticated user on protected route, redirect to login
+      router.replace('/login');
+    }
+  }, [hasCheckedAuth, isLoading, isRefreshing, isAuthenticated, isPublicRoute, router, pathname]);
+
   // Show loading screen during auth check
   if (!hasCheckedAuth || isLoading || isRefreshing) {
     return (
@@ -39,17 +55,16 @@ export default function AuthGuard({ children }: AuthGuardProps) {
     );
   }
 
-  // Handle authentication redirects
-  if (isAuthenticated && isPublicRoute) {
-    // Authenticated user on login page, redirect to events
-    router.replace('/events');
-    return null;
-  }
-
-  if (!isAuthenticated && !isPublicRoute) {
-    // Unauthenticated user on protected route, redirect to login
-    router.replace('/login');
-    return null;
+  // Show loading during redirect to prevent flash of wrong content
+  if ((isAuthenticated && isPublicRoute) || (!isAuthenticated && !isPublicRoute)) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 text-lg font-medium">Redirecting...</p>
+        </div>
+      </div>
+    );
   }
 
   // Render children if authenticated or on public route

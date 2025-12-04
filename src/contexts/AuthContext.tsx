@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useCallback, useRef } from
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/store/auth';
 import type { User, Tenant } from '@/lib/directus';
+import { useAppContextStore } from '@/store/appContext';
 
 interface AuthContextType {
   // Authentication state
@@ -13,14 +14,14 @@ interface AuthContextType {
   user: User | null;
   tenants: Tenant[];
   selectedTenant: Tenant | null;
-  
+
   // Authentication actions
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => Promise<void>;
-  
+
   // Tenant management
   setSelectedTenant: (tenant: Tenant | null) => void;
-  
+
   // Error handling
   error: string | null;
   clearError: () => void;
@@ -67,6 +68,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [checkAuth]);
 
+  // Keep tenantId in app context store in sync
+  const { setTenantId } = useAppContextStore();
+  useEffect(() => {
+    setTenantId(selectedTenant?.id ?? null);
+  }, [selectedTenant, setTenantId]);
+
   // Handle tenant changes
   const handleTenantChange = useCallback((tenant: Tenant | null) => {
     setSelectedTenant(tenant);
@@ -80,14 +87,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
     user,
     tenants,
     selectedTenant,
-    
+
     // Authentication actions
     login,
     logout,
-    
+
     // Tenant management
     setSelectedTenant: handleTenantChange,
-    
+
     // Error handling
     error,
     clearError,

@@ -10,6 +10,7 @@ export const pagesApi = {
   updatePageBlocks: siteApi.updatePageBlocks,
   getBlocksByPage: siteApi.getBlocksByPage,
   upsertPageBlock: siteApi.upsertPageBlock,
+  updatePageTranslations: siteApi.updatePageTranslations,
 } as const;
 
 export type { ApiResponse };

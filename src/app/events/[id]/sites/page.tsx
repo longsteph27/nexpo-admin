@@ -4,7 +4,7 @@ import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useEvent } from "@/hooks/useEvents";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSitesByEvent } from "@/hooks/useSites";
+import { useSitesByEvent } from '@/features/sites';
 import Pagination from '@/components/ui/Pagination';
 import { Button } from "@/components/ui/button-base";
 import { Icon } from "@iconify/react";

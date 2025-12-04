@@ -1,14 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
-import EmailTemplateEditor from '@/components/form-builder/EmailTemplateEditor';
-import { useForm, useUpdateEmailTemplate } from '@/hooks/useForms';
+import { EmailTemplateEditor, useForm, useUpdateEmailTemplate } from '@/features/forms';
+import type { Form, FormField } from '@/features/forms';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 
@@ -106,8 +105,6 @@ function TemplatePreview({
 export default function EmailTemplatePage() {
   const router = useRouter();
   const params = useParams();
-  const queryClient = useQueryClient();
-  
   const formId = params.formId as string;
   const eventId = params.id as string;
   
@@ -117,125 +114,131 @@ export default function EmailTemplatePage() {
   const [isSaving, setIsSaving] = useState(false);
 
   // Get form data
-  const { data: formData, isLoading, error, refetch } = useForm(formId);
-  
-  // Get form fields for template editor
-  const fields = formData?.fields || [];
+  const { data: formData, isLoading, error } = useForm(formId);
+  const form = formData as Form | null;
+  const fields = useMemo<FormField[]>(() => form?.fields ?? [], [form]);
+
+  const getFieldLabel = useCallback((field: FormField): string => {
+    const translation = field.translations?.find((t) => t.languages_code === 'en-US') ?? field.translations?.[0];
+    if (translation && typeof translation.label === 'string' && translation.label.trim().length > 0) {
+      return translation.label;
+    }
+    return field.name || field.id;
+  }, []);
 
   // Initialize email template and QR code content when form data loads
   useEffect(() => {
-    if (formData?.template_email) {
-      // Convert from ${fieldId} format to {fieldName} format for display
-      const displayEmailTemplate = formData.template_email.replace(
+    if (!form) {
+      setEmailTemplate('');
+      setQrCodeContent('');
+      setGroupEmailTemplate('');
+      return;
+    }
+
+    if (form.template_email) {
+      const displayEmailTemplate = form.template_email.replace(
         /\$\{([^}]+)\}/g,
-        (match, fieldId) => {
-          const field = fields.find((f: any) => f.id === fieldId);
-          if (field) {
-            const fieldLabel = Array.isArray(field.translations) 
-              ? field.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-              : field.translations?.['en-US']?.label;
-            return fieldLabel ? `{${fieldLabel}}` : match;
-          }
-          return match;
+        (_match: string, fieldId: string) => {
+          const field = fields.find((f) => f.id === fieldId);
+          const label = field ? getFieldLabel(field) : fieldId;
+          return `{${label}}`;
         }
       );
-      setEmailTemplate(displayEmailTemplate);
-    }
-    
-    // Initialize QR code content - convert from ${fieldId} to {fieldName} format
-    // Only load QR code content for non-registration forms
-    if (formData?.qr_code_field && !formData?.is_registration) {
-      const displayQrCodeContent = formData.qr_code_field.replace(
-        /\$\{([^}]+)\}/g,
-        (match, fieldId) => {
-          const field = fields.find((f: any) => f.id === fieldId);
-          if (field) {
-            const fieldLabel = Array.isArray(field.translations) 
-              ? field.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-              : field.translations?.['en-US']?.label;
-            return fieldLabel ? `{${fieldLabel}}` : match;
-          }
-          return match;
+      const htmlContent = displayEmailTemplate.replace(
+        /\{([^}]+)\}/g,
+        (_match: string, fieldName: string) => {
+          const field = fields.find((f) => getFieldLabel(f) === fieldName);
+          const fieldId = field ? field.id : fieldName;
+          return `<span class="form-field-tag" data-field-id="${fieldId}">${fieldName}</span>`;
         }
       );
-      setQrCodeContent(displayQrCodeContent);
+      setEmailTemplate(htmlContent);
+    } else {
+      setEmailTemplate('');
     }
-    
-    // Initialize group email template - convert from ${fieldId} to {fieldName} format
-    if (formData?.template_email_group) {
-      const displayGroupEmailTemplate = formData.template_email_group.replace(
+
+    if (form.qr_code_field && !form.is_registration) {
+      const displayQrCodeContent = form.qr_code_field.replace(
         /\$\{([^}]+)\}/g,
-        (match, fieldId) => {
-          const field = fields.find((f: any) => f.id === fieldId);
-          if (field) {
-            const fieldLabel = Array.isArray(field.translations) 
-              ? field.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-              : field.translations?.['en-US']?.label;
-            return fieldLabel ? `{${fieldLabel}}` : match;
-          }
-          return match;
+        (_match: string, fieldId: string) => {
+          const field = fields.find((f) => f.id === fieldId);
+          const label = field ? getFieldLabel(field) : fieldId;
+          return `{${label}}`;
         }
       );
-      setGroupEmailTemplate(displayGroupEmailTemplate);
+      const htmlContent = displayQrCodeContent.replace(
+        /\{([^}]+)\}/g,
+        (_match: string, fieldName: string) => {
+          const field = fields.find((f) => getFieldLabel(f) === fieldName);
+          const fieldId = field ? field.id : fieldName;
+          return `<span class="form-field-tag" data-field-id="${fieldId}">${fieldName}</span>`;
+        }
+      );
+      setQrCodeContent(htmlContent);
+    } else {
+      setQrCodeContent('');
     }
-  }, [formData, fields]);
+
+    if (form.template_email_group) {
+      const displayGroupEmailTemplate = form.template_email_group.replace(
+        /\$\{([^}]+)\}/g,
+        (_match: string, fieldId: string) => {
+          const field = fields.find((f) => f.id === fieldId);
+          const label = field ? getFieldLabel(field) : fieldId;
+          return `{${label}}`;
+        }
+      );
+      const htmlContent = displayGroupEmailTemplate.replace(
+        /\{([^}]+)\}/g,
+        (_match: string, fieldName: string) => {
+          const field = fields.find((f) => getFieldLabel(f) === fieldName);
+          const fieldId = field ? field.id : fieldName;
+          return `<span class="form-field-tag" data-field-id="${fieldId}">${fieldName}</span>`;
+        }
+      );
+      setGroupEmailTemplate(htmlContent);
+    } else {
+      setGroupEmailTemplate('');
+    }
+  }, [form, fields, getFieldLabel]);
 
   // Save email template mutation
   const saveEmailTemplateMutation = useUpdateEmailTemplate();
 
   const handleSave = async () => {
+    if (!form) {
+      toast.error('Form data is not available yet.');
+      return;
+    }
+
     setIsSaving(true);
     try {
       // Convert from {fieldName} format to ${fieldId} format for saving
-      const directusTemplate = emailTemplate.replace(
-        /\{([^}]+)\}/g,
-        (match, fieldName) => {
-          const field = fields.find((f: any) => {
-            const fieldLabel = Array.isArray(f.translations) 
-              ? f.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-              : f.translations?.['en-US']?.label;
-            return fieldLabel === fieldName || f.name === fieldName;
-          });
-          return field ? `\${${field.id}}` : match;
-        }
-      );
+      const directusTemplate = emailTemplate.replace(/\{([^}]+)\}/g, (_match: string, fieldName: string) => {
+        const field = fields.find((f) => getFieldLabel(f) === fieldName || f.name === fieldName);
+        return field ? `\${${field.id}}` : _match;
+      });
 
       // Convert QR code content from {fieldName} format to ${fieldId} format for saving
       // Only save QR code content for non-registration forms
       let directusQrCode = '';
-      if (!formData?.is_registration) {
-        directusQrCode = qrCodeContent.replace(
-          /\{([^}]+)\}/g,
-          (match, fieldName) => {
-            const field = fields.find((f: any) => {
-              const fieldLabel = Array.isArray(f.translations) 
-                ? f.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-                : f.translations?.['en-US']?.label;
-              return fieldLabel === fieldName || f.name === fieldName;
-            });
-            return field ? `\${${field.id}}` : match;
-          }
-        );
+      if (!form.is_registration) {
+        directusQrCode = qrCodeContent.replace(/\{([^}]+)\}/g, (_match: string, fieldName: string) => {
+          const field = fields.find((f) => getFieldLabel(f) === fieldName || f.name === fieldName);
+          return field ? `\${${field.id}}` : _match;
+        });
       }
 
       // Convert group email template from {fieldName} format to ${fieldId} format for saving
-      const directusGroupTemplate = groupEmailTemplate.replace(
-        /\{([^}]+)\}/g,
-        (match, fieldName) => {
-          const field = fields.find((f: any) => {
-            const fieldLabel = Array.isArray(f.translations) 
-              ? f.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-              : f.translations?.['en-US']?.label;
-            return fieldLabel === fieldName || f.name === fieldName;
-          });
-          return field ? `\${${field.id}}` : match;
-        }
-      );
+      const directusGroupTemplate = groupEmailTemplate.replace(/\{([^}]+)\}/g, (_match: string, fieldName: string) => {
+        const field = fields.find((f) => getFieldLabel(f) === fieldName || f.name === fieldName);
+        return field ? `\${${field.id}}` : _match;
+      });
 
       await saveEmailTemplateMutation.mutateAsync({
         formId,
         templateEmail: directusTemplate,
-        qrCodeField: !formData?.is_registration ? directusQrCode : undefined,
+        qrCodeField: !form.is_registration ? directusQrCode : undefined,
         templateEmailGroup: directusGroupTemplate,
       });
       
@@ -295,7 +298,7 @@ export default function EmailTemplatePage() {
             <div>
               <h1 className="text-xl font-bold text-content-primary">Email Template Configuration</h1>
               <p className="text-content-secondary text-sm mt-1">
-                Form: {formData?.translations?.[0]?.title || 'Untitled Form'}
+                Form: {form?.translations?.[0]?.title || 'Untitled Form'}
               </p>
             </div>
           </div>
@@ -375,7 +378,7 @@ export default function EmailTemplatePage() {
               <TemplatePreview
                 template={emailTemplate}
                 qrCodeContent={qrCodeContent}
-                isRegistrationForm={!!formData?.is_registration}
+                isRegistrationForm={!!form?.is_registration}
                 title="Email Template"
                 icon="lucide:mail"
                 iconColor="blue"
@@ -384,7 +387,7 @@ export default function EmailTemplatePage() {
           </div>
 
           {/* QR Code Configuration - Only show for non-registration forms */}
-          {!formData?.is_registration && (
+          {!form?.is_registration && (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -430,12 +433,9 @@ export default function EmailTemplatePage() {
                           <Icon icon="lucide:hash" className="w-3 h-3 mr-1 inline" />
                           ID Record
                         </button>
-                        {fields.map((field: any) => {
-                          const fieldLabel = Array.isArray(field.translations) 
-                            ? field.translations.find((t: any) => t.languages_code === 'en-US')?.label 
-                            : field.translations?.['en-US']?.label;
-                          const label = fieldLabel || field.name || field.id;
-                          
+                        {fields.map((field) => {
+                          const label = getFieldLabel(field);
+
                           return (
                             <button
                               key={field.id}
@@ -480,7 +480,7 @@ export default function EmailTemplatePage() {
           )}
 
           {/* Registration Form Info */}
-          {formData?.is_registration && (
+          {form?.is_registration && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-start space-x-3">
                 <Icon icon="lucide:info" className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -496,7 +496,7 @@ export default function EmailTemplatePage() {
           )}
 
           {/* Group Email Template Configuration - Only show if form allows groups */}
-          {formData?.is_allow_group && (
+          {form?.is_allow_group && (
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
               <div className="p-6 border-b border-gray-100">
                 <div className="flex items-center gap-3">
@@ -521,7 +521,7 @@ export default function EmailTemplatePage() {
                 <TemplatePreview
                   template={groupEmailTemplate}
                   qrCodeContent={qrCodeContent}
-                  isRegistrationForm={!!formData?.is_registration}
+                  isRegistrationForm={!!form?.is_registration}
                   title="Group Email Template"
                   icon="lucide:users"
                   iconColor="purple"

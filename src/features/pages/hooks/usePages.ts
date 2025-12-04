@@ -150,4 +150,5 @@ export { usePageBuilderSave } from './usePageBuilderSave';
 export { usePageData, usePageNavigations } from './usePageData';
 export { usePageSiteNavigation } from './usePageSiteNavigation';
 export { usePageSite } from './usePageSite';
+export { usePagePayloadManager } from './usePagePayloadManager';
 

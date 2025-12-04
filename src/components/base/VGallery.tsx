@@ -74,27 +74,40 @@ function VGallery({ items }: GalleryProps) {
                 setCurrentItemIdx(itemIdx)
                 toggle()
               }}
-              className={`group relative block w-full overflow-hidden rounded-2xl shadow-lg transition-transform duration-300 hover:scale-105 hover:shadow-2xl bg-gradient-to-br from-gray-50 to-gray-200`}
+              className="group relative block w-full overflow-hidden rounded-2xl shadow-lg bg-gradient-to-br from-gray-50 to-gray-200"
               style={{ aspectRatio: '4/3' }}
+              data-gallery-card
             >
+              <style jsx>{`
+                [data-gallery-card] .gallery-thumb-img {
+                  transition: transform 400ms var(--gallery-scale-timing, cubic-bezier(0.4, 0, 0.2, 1));
+                }
+                [data-gallery-card]:hover .gallery-thumb-img {
+                  transform: scale(1.08);
+                }
+                [data-gallery-card] .gallery-thumb-overlay {
+                  opacity: 0;
+                  transition: opacity 200ms ease;
+                }
+                [data-gallery-card]:hover .gallery-thumb-overlay {
+                  opacity: 1;
+                }
+              `}</style>
+
               <Image
                 src={getDirectusMedia(item.id)}
                 width={800}
                 height={600}
                 alt={item.title || ''}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                className="gallery-thumb-img w-full h-full object-cover"
               />
-              <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {/* Overlay & Icon - only applied to hovered image */}
+              <div className="gallery-thumb-overlay pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40">
                 <VIcon
                   icon="heroicons:magnifying-glass-plus"
-                  className="text-white drop-shadow-lg h-12 w-12 animate-pulse vgallery-primary"
+                  className="text-white drop-shadow-lg h-12 w-12"
                 />
               </div>
-              {/* {item.title && (
-                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 py-2 text-white text-lg font-semibold truncate">
-                  {item.title}
-                </div>
-              )} */}
             </button>
           ))}
         </div>
@@ -102,52 +115,50 @@ function VGallery({ items }: GalleryProps) {
       {/* Gallery Modal */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm animate-fade-in">
-          {/* Tips for using the gallery
-          <div className="absolute left-4 top-4 z-50 hidden font-mono text-white md:block">
-            <div className="rounded-br-3xl rounded-tl-3xl bg-black/80 p-4 shadow-lg">
-              <p>Press 'esc' to close</p>
-              <p>Press 'left' or 'right' to navigate</p>
-            </div>
-          </div> */}
+          {/* Tags - theme-aware badge colors */}
           <div className="absolute bottom-4 right-4 z-50 flex flex-wrap gap-2 font-mono text-white">
-            {currentItem &&
-              currentItem.tags &&
-              currentItem.tags.map((tag, tagIdx) => (
-                <VBadge key={tagIdx} size="lg" className="rounded-xl border border-white/20 text-white vgallery-primary">
-                  {tag}
-                </VBadge>
-              ))}
+            {currentItem?.tags?.map((tag, tagIdx) => (
+              <VBadge key={tagIdx} size="lg" className="rounded-xl border border-white/20 text-white bg-black/60 backdrop-blur">
+                {tag}
+              </VBadge>
+            ))}
           </div>
+
           <div className="relative flex h-full w-full max-w-5xl flex-col items-center justify-center">
+            {/* Close button - theme-aware color */}
             <button
               onClick={toggle}
-              className="absolute right-4 top-4 z-50 rounded-xl bg-primary p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
+              className="absolute right-4 top-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110"
             >
               <span className="sr-only">Close</span>
               <VIcon icon="heroicons:x-mark" className="h-6 w-6" />
             </button>
+
             <div className="flex h-full w-full items-center justify-center">
+              {/* Navigation buttons - theme-aware */}
               <button
                 onClick={prev}
-                className="absolute left-4 z-50 rounded-xl bg-primary p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
+                className="absolute left-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110"
               >
                 <span className="sr-only">Previous</span>
-                <VIcon icon="heroicons:arrow-left" className="h-6 w-6 animate-bounce-left" />
+                <VIcon icon="heroicons:arrow-left" className="h-6 w-6" />
               </button>
               <button
                 onClick={next}
-                className="absolute right-4 z-50 rounded-xl bg-primary p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110 vgallery-primary"
+                className="absolute right-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110"
               >
                 <span className="sr-only">Next</span>
-                <VIcon icon="heroicons:arrow-right" className="h-6 w-6 animate-bounce-right" />
+                <VIcon icon="heroicons:arrow-right" className="h-6 w-6" />
               </button>
-              {/* Image */}
+
+              {/* Image + Metadata */}
               <div className="relative flex items-center justify-center w-full h-full">
                 <div className="relative w-full h-full flex flex-col items-center justify-center p-8 animate-fade-in">
                   {/* Metadata */}
                   <div className="flex w-full mb-4 items-center gap-2">
-                    <p className="inline-block rounded-xl bg-primary px-6 py-2 font-serif font-bold text-white text-xl shadow">
-                      {currentItem.title}
+                    <p className="inline-flex items-center gap-2 rounded-xl bg-[var(--color-primary)] px-6 py-2 font-serif font-bold text-white text-lg shadow">
+                      <VIcon icon="heroicons:photo" className="w-5 h-5" />
+                      {currentItem.title || 'Image'}
                     </p>
                     {currentItem.description && (
                       <p className="hidden flex-1 bg-black/60 px-6 py-2 font-mono text-white md:inline-block rounded-xl">
@@ -155,6 +166,7 @@ function VGallery({ items }: GalleryProps) {
                       </p>
                     )}
                   </div>
+
                   <Image
                     width={900}
                     height={700}

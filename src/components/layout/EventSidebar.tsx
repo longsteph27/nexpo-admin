@@ -4,11 +4,13 @@ import React, { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Icon } from '@iconify/react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { directusHelpers } from '@/lib/directus';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { useAuth } from '@/contexts/AuthContext';
+import PageMetadataDialog from '@/features/pages/components/editor/PageMetadataDialog';
+import type { LanguageCode, Page as DirectusPage } from '@/types/directus-collections';
 
 interface Site {
     id: number;
@@ -20,16 +22,6 @@ interface Site {
     }[];
 }
 
-interface Page {
-    id: string;
-    status: string;
-    translations?: {
-        title?: string;
-        permalink?: string;
-    }[];
-    site_id?: number;
-}
-
 interface EventSidebarProps {
     eventId: string;
 }
@@ -38,9 +30,13 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     const router = useRouter();
     const pathname = usePathname();
     const { isAuthenticated } = useAuth();
+    const queryClient = useQueryClient();
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
     const [expandedForms, setExpandedForms] = useState(false);
+    const [metadataDialogPage, setMetadataDialogPage] = useState<DirectusPage | null>(null);
+    const [metadataDialogLang, setMetadataDialogLang] = useState<LanguageCode>('en-US');
+    const [isMetadataDialogOpen, setIsMetadataDialogOpen] = useState(false);
 
     // Fetch sites for this event - only when authenticated
     const { data: sites = [], isLoading: sitesLoading } = useQuery({
@@ -56,12 +52,12 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     const { data: pagesData = {}, isLoading: pagesLoading } = useQuery({
         queryKey: ['pages', Array.from(expandedSites)],
         queryFn: async () => {
-            const pages: { [siteId: number]: Page[] } = {};
+            const pages: { [siteId: number]: DirectusPage[] } = {};
 
             for (const siteId of expandedSites) {
                 const result = await directusHelpers.getPagesBySite(siteId);
                 if (result.success && result.data) {
-                    pages[siteId] = result.data as Page[];
+                    pages[siteId] = result.data as DirectusPage[];
                 }
             }
 
@@ -104,7 +100,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
         router.push(`/events/${eventId}/sites/${site.id}`);
     };
 
-    const navigateToPage = (page: Page, siteId: number) => {
+    const navigateToPage = (page: DirectusPage, siteId: number) => {
         router.push(`/events/${eventId}/pages/${page.id}`);
     };
 
@@ -150,6 +146,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
     };
 
     return (
+        <>
         <div className="w-72 h-full bg-white border-r border-slate-200 flex flex-col shadow-lg">
             {/* Navigation */}
             <div className="flex-1 overflow-y-auto">
@@ -602,7 +599,7 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                                     <motion.div
                                                                         key={page.id}
                                                                         className={cn(
-                                                                            "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                                            "relative flex items-center justify-between px-3 py-2 cursor-pointer transition-all duration-200",
                                                                             "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                                             isPageActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                                         )}
@@ -625,11 +622,31 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                                                                             <div className="absolute left-0 top-full w-px h-4 bg-slate-500" />
                                                                         )} */}
 
-                                                                        <div className={cn(
-                                                                            "w-1.5 h-1.5 rounded-full flex-shrink-0",
-                                                                            isPageActive ? "bg-blue-600" : "bg-nexpo-light-gray"
-                                                                        )} />
-                                                                        <span className="text-sm font-medium ml-3 font-sf text-content-primary">{pageTitle}</span>
+                                                                        <div className="flex items-center min-w-0 flex-1">
+                                                                            <div className={cn(
+                                                                                "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                                                                                isPageActive ? "bg-blue-600" : "bg-nexpo-light-gray"
+                                                                            )} />
+                                                                            <span className="text-sm font-medium ml-3 font-sf text-content-primary truncate">{pageTitle}</span>
+                                                                        </div>
+                                                                        <button
+                                                                            className="ml-2 p-1.5 rounded hover:bg-slate-100 text-content-tertiary hover:text-blue-600 transition-colors"
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                const primaryTranslation = page.translations?.[0];
+                                                                                const langCodeRaw = primaryTranslation?.languages_code;
+                                                                                const normalizedLang =
+                                                                                    typeof langCodeRaw === 'string'
+                                                                                        ? langCodeRaw
+                                                                                        : (langCodeRaw as { code?: string })?.code;
+                                                                                const lang = normalizedLang === 'vi-VN' ? 'vi-VN' : 'en-US';
+                                                                                setMetadataDialogLang(lang as LanguageCode);
+                                                                                setMetadataDialogPage(page);
+                                                                                setIsMetadataDialogOpen(true);
+                                                                            }}
+                                                                        >
+                                                                            <Icon icon="lucide:settings" className="w-4 h-4" />
+                                                                        </button>
                                                                     </motion.div>
                                                                 );
                                                             })
@@ -669,5 +686,20 @@ export default function EventSidebar({ eventId }: EventSidebarProps) {
                 </div>
             </div>
         </div>
+
+        <PageMetadataDialog
+            isOpen={isMetadataDialogOpen && !!metadataDialogPage}
+            onClose={() => {
+                setIsMetadataDialogOpen(false);
+                setMetadataDialogPage(null);
+            }}
+            pageId={metadataDialogPage?.id || ''}
+            page={metadataDialogPage}
+            defaultLanguage={metadataDialogLang}
+            onUpdated={async () => {
+                await queryClient.invalidateQueries({ queryKey: ['pages'] });
+            }}
+        />
+        </>
     );
 }

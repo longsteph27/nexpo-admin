@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEvent } from '@/hooks/useEvents';
-import { siteApi } from '@/lib/api';
+import { siteApi } from '@/features/sites';
 import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
@@ -20,7 +20,82 @@ import {
   LanguagesCard,
   RedirectsCard,
   GlobalsCard,
-} from '@/components/sites';
+  SITE_LANGUAGE_CODES,
+} from '@/features/sites';
+import type { FeatureSite, SiteInfoEditState, SiteTranslationFormData } from '@/features/sites';
+import type { LanguageCode } from '@/types/directus-collections';
+
+const resolveLanguageCode = (code: LanguageCode | string | { code?: string }): string => {
+  if (typeof code === 'string') {
+    return code;
+  }
+  if (code && typeof code === 'object' && 'code' in code) {
+    return (code as { code?: string }).code ?? '';
+  }
+  return '';
+};
+
+const buildSiteEditState = (site: FeatureSite): SiteInfoEditState => {
+  const translations = site.translations ?? [];
+  const ensureTranslation = (language: LanguageCode): SiteTranslationFormData => {
+    const match = translations.find(
+      (translation) => resolveLanguageCode(translation.languages_code) === language
+    );
+    return {
+      id: match?.id,
+      languages_code: language,
+      title: match?.title ?? '',
+      description: match?.description ?? '',
+    };
+  };
+
+  return {
+    slug: site.slug ?? '',
+    domain: site.domain ?? '',
+    status: site.status ?? 'draft',
+    logo: site.logo ?? null,
+    favicon: site.favicon ?? null,
+    translations: SITE_LANGUAGE_CODES.map(ensureTranslation),
+  };
+};
+
+const createEmptyEditState = (): SiteInfoEditState => ({
+  slug: '',
+  domain: '',
+  status: 'draft',
+  logo: null,
+  favicon: null,
+  translations: SITE_LANGUAGE_CODES.map((language) => ({
+    languages_code: language,
+    title: '',
+    description: '',
+  })),
+});
+
+const ensureLanguagePresence = (
+  translations: SiteTranslationFormData[]
+): SiteTranslationFormData[] => {
+  const byLanguage = new Map<LanguageCode, SiteTranslationFormData>();
+
+  translations.forEach((translation) => {
+    const code = resolveLanguageCode(translation.languages_code) as LanguageCode;
+    if (SITE_LANGUAGE_CODES.includes(code)) {
+      byLanguage.set(code, { ...translation, languages_code: code });
+    }
+  });
+
+  SITE_LANGUAGE_CODES.forEach((language) => {
+    if (!byLanguage.has(language)) {
+      byLanguage.set(language, {
+        languages_code: language,
+        title: '',
+        description: '',
+      });
+    }
+  });
+
+  return Array.from(byLanguage.values());
+};
 
 export default function SiteDetailPage() {
   const params = useParams();
@@ -31,9 +106,9 @@ export default function SiteDetailPage() {
 
   // State management
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<any>({});
+  const [editData, setEditData] = useState<SiteInfoEditState>(createEmptyEditState());
   const [isSaving, setIsSaving] = useState(false);
-  const [activeLang, setActiveLang] = useState<'en-US' | 'vi-VN'>('en-US');
+  const [activeLang, setActiveLang] = useState<LanguageCode>('en-US');
 
   // Queries
   const { data: event } = useEvent(eventId);
@@ -44,7 +119,7 @@ export default function SiteDetailPage() {
   });
 
   // Extract site data from API response
-  const site = siteResponse?.data;
+  const site = siteResponse?.data as FeatureSite | undefined;
 
   // Debug API response
   React.useEffect(() => {
@@ -74,25 +149,9 @@ export default function SiteDetailPage() {
     if (site && !isEditing) {
       console.log('[SiteDetailPage] Site data loaded:', site);
       console.log('[SiteDetailPage] Site translations:', site.translations);
-      
-      // Đảm bảo có đủ translations cho cả 2 ngôn ngữ
-      const existingTranslations = site.translations || [];
-      const enTranslation = existingTranslations.find((t: any) => t.languages_code === 'en-US') || 
-        { languages_code: 'en-US', title: '', description: '' };
-      const viTranslation = existingTranslations.find((t: any) => t.languages_code === 'vi-VN') || 
-        { languages_code: 'vi-VN', title: '', description: '' };
-      
-      const editDataToSet = {
-        slug: site.slug || '',
-        domain: site.domain || '',
-        status: site.status || 'draft',
-        logo: site.logo || null,
-        favicon: site.favicon || null,
-        translations: [enTranslation, viTranslation]
-      };
-      
-      console.log('[SiteDetailPage] Setting editData:', editDataToSet);
-      setEditData(editDataToSet);
+      const nextEditState = buildSiteEditState(site);
+      console.log('[SiteDetailPage] Setting editData:', nextEditState);
+      setEditData(nextEditState);
     }
   }, [site, isEditing]);
 
@@ -104,21 +163,7 @@ export default function SiteDetailPage() {
   const handleCancel = () => {
     setIsEditing(false);
     if (site) {
-      // Đảm bảo có đủ translations cho cả 2 ngôn ngữ
-      const existingTranslations = site.translations || [];
-      const enTranslation = existingTranslations.find((t: any) => t.languages_code === 'en-US') || 
-        { languages_code: 'en-US', title: '', description: '' };
-      const viTranslation = existingTranslations.find((t: any) => t.languages_code === 'vi-VN') || 
-        { languages_code: 'vi-VN', title: '', description: '' };
-      
-      setEditData({
-        slug: site.slug || '',
-        domain: site.domain || '',
-        status: site.status || 'draft',
-        logo: site.logo || null,
-        favicon: site.favicon || null,
-        translations: [enTranslation, viTranslation]
-      });
+      setEditData(buildSiteEditState(site));
     }
   };
 
@@ -126,30 +171,43 @@ export default function SiteDetailPage() {
     setIsSaving(true);
     try {
       // Transform data to match API expectations
-      const saveData = {
+      const translationsUpdate = editData.translations
+        .filter((translation) => translation.id)
+        .map((translation) => ({
+          id: translation.id as number,
+          title: translation.title,
+          description: translation.description,
+        }));
+
+      const translationsCreate = editData.translations
+        .filter(
+          (translation) =>
+            !translation.id && (translation.title?.trim() || translation.description?.trim())
+        )
+        .map((translation) => ({
+          languages_code: { code: translation.languages_code },
+          title: translation.title,
+          description: translation.description,
+        }));
+
+      const saveData: Record<string, unknown> = {
         slug: editData.slug,
         domain: editData.domain,
         status: editData.status,
-        logo: editData.logo,
-        favicon: editData.favicon,
-        translations: {
-          update: editData.translations
-            .filter((t: any) => t.id) // Only existing translations
-            .map((t: any) => ({
-              id: t.id,
-              title: t.title,
-              description: t.description
-            })),
-          create: editData.translations
-            .filter((t: any) => !t.id) // Only new translations
-            .map((t: any) => ({
-              languages_code: { code: t.languages_code },
-              title: t.title,
-              description: t.description
-            }))
-        }
+        logo: editData.logo || undefined,
+        favicon: editData.favicon || undefined,
       };
-      
+
+      if (translationsUpdate.length > 0 || translationsCreate.length > 0) {
+        saveData.translations = {};
+        if (translationsUpdate.length > 0) {
+          saveData.translations.update = translationsUpdate;
+        }
+        if (translationsCreate.length > 0) {
+          saveData.translations.create = translationsCreate;
+        }
+      }
+
       console.log('[handleSave] Saving site data:', saveData);
       await saveSiteMutation.mutateAsync(saveData);
     } catch (error) {
@@ -157,33 +215,39 @@ export default function SiteDetailPage() {
     }
   };
 
-  const updateEditData = (field: string, value: any) => {
-    setEditData((prev: any) => ({
+  const updateEditData = <K extends keyof SiteInfoEditState>(
+    field: K,
+    value: SiteInfoEditState[K]
+  ) => {
+    setEditData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const updateTranslation = (langCode: string, field: string, value: string) => {
-    setEditData((prev: any) => {
-      const updatedTranslations = prev.translations.map((t: any) =>
-        t.languages_code === langCode ? { ...t, [field]: value } : t
+  const updateTranslation = (
+    langCode: LanguageCode,
+    field: 'title' | 'description',
+    value: string
+  ) => {
+    setEditData((prev) => {
+      const translations = prev.translations.map((translation) =>
+        translation.languages_code === langCode
+          ? { ...translation, [field]: value }
+          : translation
       );
-      
-      // Đảm bảo luôn có đủ 2 translations
-      const hasEn = updatedTranslations.some((t: any) => t.languages_code === 'en-US');
-      const hasVi = updatedTranslations.some((t: any) => t.languages_code === 'vi-VN');
-      
-      if (!hasEn) {
-        updatedTranslations.push({ languages_code: 'en-US', title: '', description: '' });
+
+      if (!translations.some((translation) => translation.languages_code === langCode)) {
+        translations.push({
+          languages_code: langCode,
+          title: field === 'title' ? value : '',
+          description: field === 'description' ? value : '',
+        });
       }
-      if (!hasVi) {
-        updatedTranslations.push({ languages_code: 'vi-VN', title: '', description: '' });
-      }
-      
+
       return {
         ...prev,
-        translations: updatedTranslations
+        translations: ensureLanguagePresence(translations),
       };
     });
   };
@@ -343,7 +407,7 @@ export default function SiteDetailPage() {
         <NavigationCard site={site} />
 
           {/* Pages */}
-        <PagesCard site={site} eventId={eventId} siteId={siteId} />
+        <PagesCard site={site} eventId={eventId} />
 
           {/* Categories */}
         <CategoriesCard site={site} />

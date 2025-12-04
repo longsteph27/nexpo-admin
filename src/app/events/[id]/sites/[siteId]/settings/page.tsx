@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { siteApi, globalApi } from '@/lib/api';
+import { globalApi } from '@/lib/api';
+import { siteApi } from '@/features/sites';
 import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
-import SiteBasicInfo from '@/components/sites/SiteBasicInfo';
-import GlobalSettings from '@/components/sites/GlobalSettings';
+import { SiteBasicInfo, GlobalSettings } from '@/features/sites';
 
 export default function SiteSettingsPage() {
   const params = useParams();

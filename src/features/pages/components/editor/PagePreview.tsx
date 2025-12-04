@@ -1,33 +1,47 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import HeroBlock from '@/components/blocks/HeroBlock';
-import RichTextBlock from '@/components/blocks/RichTextBlock';
-import ColumnsBlock from '@/components/blocks/ColumnsBlock';
-import QuoteBlock from '@/components/blocks/QuoteBlock';
-import StepsBlock from '@/components/blocks/StepsBlock';
-import FaqsBlock from '@/components/blocks/FaqsBlock';
-import CtaBlock from '@/components/blocks/CtaBlock';
-import VideoBlock from '@/components/blocks/VideoBlock';
-import GalleryBlock from '@/components/blocks/GalleryBlock';
-import RawHtmlBlock from '@/components/blocks/RawHtmlBlock';
-import FormBlock from '@/components/blocks/FormBlock';
+import { useSiteTheme } from '../../hooks/useSiteTheme';
+import { themeToCSSVariables } from '../../services/siteThemeService';
+import { Button } from '@/components/ui/button-base';
+import {
+  HeroBlock,
+  RichTextBlock,
+  ColumnsBlock,
+  QuoteBlock,
+  StepsBlock,
+  FaqsBlock,
+  CtaBlock,
+  VideoBlock,
+  GalleryBlock,
+  RawHtmlBlock,
+  FormBlock,
+  HeaderNavigationBlock,
+  FooterNavigationBlock,
+  DividerBlock,
+} from '../blocks/preview';
 import ThemeSelector from '@/components/ui/ThemeSelector';
 import AddSectionButton from './AddSectionButton';
 import clsx from 'clsx';
+import type {
+  Navigation,
+  NavigationItem as DirectusNavigationItem,
+  BlockItem,
+  LanguageCode,
+} from '@/types/directus-collections';
 
 interface Block {
   id: string;
   collection: string;
   sort: number;
-  item?: any;
+  item?: BlockItem | Record<string, unknown>;
 }
 
 interface PagePreviewProps {
   blocks: Block[];
-  lang: 'en-US' | 'vi-VN';
+  lang: LanguageCode;
   siteId?: number;
   siteLogo?: string;
   isEditMode?: boolean;
@@ -40,8 +54,9 @@ interface PagePreviewProps {
   onEditFooter?: () => void;
   hoveredSectionIndex?: number | 'header' | 'footer' | null;
   onSectionHover?: (index: number | 'header' | 'footer' | null) => void;
-  headerNavigation?: any;
-  footerNavigation?: any;
+  headerNavigation?: Navigation & { items?: DirectusNavigationItem[] } | null;
+  footerNavigation?: Navigation & { items?: DirectusNavigationItem[] } | null;
+  onAddFirstBlock?: () => void;
 }
 
 export default function PagePreview({ 
@@ -60,7 +75,8 @@ export default function PagePreview({
   hoveredSectionIndex,
   onSectionHover,
   headerNavigation,
-  footerNavigation
+  footerNavigation,
+  onAddFirstBlock
 }: PagePreviewProps) {
   // Tính toán vị trí button add section dựa trên hoveredSectionIndex
   const addButtonPositions = useMemo(() => {
@@ -76,163 +92,121 @@ export default function PagePreview({
 
   const headerHovered = hoveredSectionIndex === 'header';
   const footerHovered = hoveredSectionIndex === 'footer';
+  const [previewContainerRef, setPreviewContainerRef] = useState<HTMLDivElement | null>(null);
 
-  const renderHeader = () => (
-    <motion.div
-      className={clsx(
-        'relative group border-b border-neutral-200',
-        isEditMode && 'cursor-pointer'
-      )}
-      onMouseEnter={() => isEditMode && onSectionHover?.('header')}
-      onMouseLeave={() => isEditMode && onSectionHover?.(null)}
-      onClick={() => isEditMode && onEditHeader?.()}
-    >
-      {isEditMode && headerHovered && (
-        <div className="absolute top-0 left-0 right-0 bottom-0 bg-black/40 z-30"></div>
-      )}
-      {/* Header Content */}
-      <div className="min-h-[80px] flex items-center justify-between px-8 relative z-10">
-        {/* Left: Logo */}
-        <div className="flex items-center">
-          {siteLogo ? (
-            <img 
-              src={`${process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://app.nexpo.vn'}/assets/${siteLogo}`} 
-              alt="Site Logo" 
-              className="h-10 w-auto object-contain"
-            />
-          ) : (
-            <img 
-              src="/logo_nexpo.png" 
-              alt="Logo" 
-              className="h-10 w-auto object-contain"
-            />
-          )}
-        </div>
- 
-        {/* Center: Navigation Links */}
-        {headerNavigation?.items && headerNavigation.items.length > 0 ? (
-          <nav className="flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
-            {headerNavigation.items.map((item: any, idx: number) => {
-              const translation = item.translations?.find((t: any) => t.languages_code === lang) || item.translations?.[0];
-              return (
-                <a
-                  key={idx}
-                  href={item.url || '#'}
-                  className="text-sm font-bold uppercase text-neutral-900 hover:text-neutral-700 tracking-wide"
-                >
-                  {translation?.title || item.title || 'Menu Item'}
-                </a>
-              );
-            })}
-          </nav>
-        ) : (
-          <nav className="flex items-center space-x-8 absolute left-1/2 transform -translate-x-1/2">
-            <span className="text-sm text-neutral-400 font-bold uppercase tracking-wide">Navigation</span>
-          </nav>
-        )}
+  // Fetch and apply site theme
+  const { theme } = useSiteTheme({
+    siteId,
+    enabled: !!siteId,
+    applyToDocument: false, // Apply to preview container instead
+  });
 
-        {/* Right: CTA Button */}
-        <div className="flex items-center">
-          <button className="px-6 py-2 bg-neutral-900 hover:bg-neutral-800 text-white rounded-full text-sm font-medium transition-colors">
-            Get In Touch
-          </button>
-        </div>
-      </div>
+  // Apply theme CSS variables to preview container
+  useEffect(() => {
+    if (previewContainerRef && theme) {
+      const vars = themeToCSSVariables(theme);
+      Object.entries(vars).forEach(([key, value]) => {
+        previewContainerRef.style.setProperty(key, value);
+      });
 
-      {/* Hover Overlay - Background xám trong suốt */}
-      {isEditMode && (
-        <motion.div
-          className="absolute inset-0 bg-neutral-400/20 z-50 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: headerHovered ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          {/* Edit Button - Nằm giữa */}
-          {headerHovered && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditHeader?.();
-              }}
-              className="bg-white/95 hover:bg-white text-neutral-900 px-5 py-2.5 rounded-full flex items-center space-x-2 shadow-lg font-medium text-sm z-30"
-            >
-              <Icon icon="lucide:pencil" className="w-4 h-4" />
-              <span>EDIT SITE HEADER</span>
-            </motion.button>
-          )}
-        </motion.div>
-      )}
-    </motion.div>
+      // Add global CSS rule for headlines to use primary color
+      if (theme.primary) {
+        const styleId = 'site-theme-headlines';
+        let styleElement = document.getElementById(styleId) as HTMLStyleElement;
+        
+        if (!styleElement) {
+          styleElement = document.createElement('style');
+          styleElement.id = styleId;
+          document.head.appendChild(styleElement);
+        }
+
+        // Apply headline color to all h1-h6 and elements with headline classes
+        // Use the preview container's scope to avoid affecting other parts of the page
+        const containerId = previewContainerRef.id || `page-preview-container-${siteId || 'default'}`;
+        const containerSelector = `#${containerId}`;
+        const headlineColor = `var(--color-headline, var(--color-primary, ${theme.primary}))`;
+        
+        // Only target TypographyHeadline components (div), exclude h1-h5 and TypographyTitle
+        styleElement.textContent = `
+          /* Target TypographyHeadline component only (renders as div) - exclude TypographyTitle */
+          /* TypographyHeadline: div with font-semibold and large text sizes, NOT TypographyTitle (has uppercase, tracking-wider) */
+          ${containerSelector} div.font-semibold.text-5xl:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div.font-semibold.text-4xl:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div.font-semibold.text-3xl:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div.font-semibold.text-2xl:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div.font-semibold.text-xl:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div[class*="text-5xl"].font-semibold:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div[class*="text-4xl"].font-semibold:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div[class*="text-3xl"].font-semibold:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div[class*="text-2xl"].font-semibold:not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div[class*="text-xl"].font-semibold:not([class*="uppercase"]):not([class*="tracking-wider"]) {
+            color: ${headlineColor} !important;
+          }
+          
+          /* Target div elements with text-primary class that are headlines (not buttons, exclude TypographyTitle) */
+          ${containerSelector} div.text-primary:not(button):not(.button):not([class*="button"]):not([class*="btn"]):not(a[class*="button"]):not(a[class*="btn"]):not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div[class*="text-primary"]:not(button):not(.button):not([class*="button"]):not([class*="btn"]):not([class*="uppercase"]):not([class*="tracking-wider"]) {
+            color: ${headlineColor} !important;
+          }
+          
+          /* Override text-vnpt-blue for headlines only (used in RichTextBlock TypographyHeadline) - exclude TypographyTitle */
+          ${containerSelector} div.text-vnpt-blue.font-semibold:not(button):not(.button):not([class*="button"]):not([class*="btn"]):not(a[class*="button"]):not(a[class*="btn"]):not([class*="uppercase"]):not([class*="tracking-wider"]),
+          ${containerSelector} div.text-vnpt-blue:not(button):not(.button):not([class*="button"]):not([class*="btn"]):not(a[class*="button"]):not(a[class*="btn"]):not([class*="uppercase"]):not([class*="tracking-wider"]) {
+            color: ${headlineColor} !important;
+          }
+          
+          /* Explicitly exclude TypographyTitle elements (h1, h2, p with uppercase and tracking-wider classes) */
+          ${containerSelector} h1.uppercase,
+          ${containerSelector} h2.uppercase,
+          ${containerSelector} p.uppercase,
+          ${containerSelector} h1[class*="tracking-wider"],
+          ${containerSelector} h2[class*="tracking-wider"],
+          ${containerSelector} p[class*="tracking-wider"] {
+            color: inherit !important;
+          }
+        `;
+        
+        // Debug: log the CSS variables
+        console.log('[PagePreview] Theme CSS applied:', {
+          containerId,
+          containerSelector,
+          headlineColor,
+          primaryColor: theme.primary,
+          cssVars: vars,
+        });
+      }
+    }
+
+    // Cleanup
+    return () => {
+      const styleElement = document.getElementById('site-theme-headlines');
+      if (styleElement) {
+        styleElement.remove();
+      }
+    };
+  }, [previewContainerRef, theme, siteId]);
+
+  const handleHeaderHoverChange = useCallback(
+    (hovering: boolean) => {
+      if (!isEditMode) return;
+      onSectionHover?.(hovering ? 'header' : null);
+    },
+    [isEditMode, onSectionHover]
   );
 
-  const renderFooter = () => (
-    <motion.div
-      className={clsx(
-        'relative group border-t border-neutral-200',
-        isEditMode && 'cursor-pointer'
-      )}
-      onMouseEnter={() => isEditMode && onSectionHover?.('footer')}
-      onMouseLeave={() => isEditMode && onSectionHover?.(null)}
-      onClick={() => isEditMode && onEditFooter?.()}
-    >
-      {/* Footer Content */}
-      <div className="min-h-[120px] flex items-center justify-center px-6 relative z-10">
-        {footerNavigation?.items && footerNavigation.items.length > 0 ? (
-          <nav className="flex flex-wrap items-center justify-center gap-6">
-            {footerNavigation.items.map((item: any, idx: number) => {
-              const translation = item.translations?.find((t: any) => t.languages_code === lang) || item.translations?.[0];
-              return (
-                <a
-                  key={idx}
-                  href={item.url || '#'}
-                  className="text-sm font-medium text-neutral-700 hover:text-neutral-900"
-                >
-                  {translation?.title || item.title || 'Menu Item'}
-                </a>
-              );
-            })}
-          </nav>
-        ) : (
-          <div className="text-sm text-neutral-400">Footer Navigation</div>
-        )}
-      </div>
-
-      {/* Hover Overlay - Background xám trong suốt */}
-      {isEditMode && (
-        <motion.div
-          className="absolute inset-0 bg-neutral-400/20 z-20 flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: footerHovered ? 1 : 0 }}
-          transition={{ duration: 0.2 }}
-        >
-          {/* Edit Button - Nằm giữa */}
-          {footerHovered && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => {
-                e.stopPropagation();
-                onEditFooter?.();
-              }}
-              className="bg-white/95 hover:bg-white text-neutral-900 px-5 py-2.5 rounded-full flex items-center space-x-2 shadow-lg font-medium text-sm z-30"
-            >
-              <Icon icon="lucide:pencil" className="w-4 h-4" />
-              <span>EDIT SITE FOOTER</span>
-            </motion.button>
-          )}
-        </motion.div>
-      )}
-    </motion.div>
+  const handleFooterHoverChange = useCallback(
+    (hovering: boolean) => {
+      if (!isEditMode) return;
+      onSectionHover?.(hovering ? 'footer' : null);
+    },
+    [isEditMode, onSectionHover]
   );
 
     return (
     <div 
+      ref={setPreviewContainerRef}
+      id={`page-preview-container-${siteId || 'default'}`}
+      data-preview-container={siteId || 'default'}
       className={clsx(
         'min-h-[600px] bg-gray-50 relative',
         // isEditMode && 'divide-y divide-blue-500/0'
@@ -247,22 +221,46 @@ export default function PagePreview({
         />
       )}
       
-      {/* Header Section - Fixed at top */}
-      {renderHeader()}
+      <HeaderNavigationBlock
+        navigation={headerNavigation}
+        lang={lang}
+        siteLogo={siteLogo}
+        isEditMode={isEditMode}
+        hovered={headerHovered}
+        onHoverChange={handleHeaderHoverChange}
+        onEdit={isEditMode ? onEditHeader : undefined}
+      />
 
       {/* Content Section - Empty state or blocks */}
       {blocks.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-12">
-        <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
-          <Icon icon="lucide:layout" className="w-8 h-8 text-neutral-400" />
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-12 space-y-4">
+          <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center">
+            <Icon icon="lucide:layout" className="w-8 h-8 text-neutral-400" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-neutral-700 mb-2">
+              Your page is empty
+            </h3>
+            <p className="text-sm text-neutral-500 max-w-md">
+              Start building by adding sections from the left panel. Each section represents a block of content.
+            </p>
+          </div>
+          {isEditMode ? (
+            <Button
+              variant="gradient"
+              size="sm"
+              className="text-white"
+              onClick={() => onAddFirstBlock?.()}
+            >
+              <Icon icon="lucide:plus" className="w-4 h-4 mr-2" />
+              Add your first section
+            </Button>
+          ) : (
+            <div className="text-xs text-neutral-400">
+              Click `Edit` to start adding sections
+            </div>
+          )}
         </div>
-        <h3 className="text-lg font-semibold text-neutral-700 mb-2">
-          Your page is empty
-        </h3>
-        <p className="text-sm text-neutral-500 max-w-md">
-          Start building by adding sections from the left panel. Each section represents a block of content.
-        </p>
-      </div>
       ) : (
         blocks.map((block, index) => {
           const isHovered = hoveredSectionIndex === index;
@@ -273,7 +271,7 @@ export default function PagePreview({
           <motion.div 
             key={block.id} 
             className={clsx(
-              'relative group',
+              'relative group bg-[#f9fafb]',
               isEditMode && 'cursor-pointer',
               // Border luôn chiếm không gian (border-2 = 2px), chỉ thay đổi màu khi hover
               isEditMode && 'border-2',
@@ -430,8 +428,14 @@ export default function PagePreview({
         })
       )}
 
-      {/* Footer Section - Fixed at bottom */}
-      {renderFooter()}
+      <FooterNavigationBlock
+        navigation={footerNavigation}
+        lang={lang}
+        isEditMode={isEditMode}
+        hovered={footerHovered}
+        onHoverChange={handleFooterHoverChange}
+        onEdit={isEditMode ? onEditFooter : undefined}
+      />
     </div>
   );
 }
@@ -439,87 +443,53 @@ export default function PagePreview({
 function renderBlockPreview(block: Block, lang: string) {
   // Convert lang format: 'en-US' -> 'en', 'vi-VN' -> 'vi'
   const shortLang = lang.split('-')[0];
+  
+  // Ensure block.item exists, fallback to empty object
+  const blockData = block.item || {};
 
   // Use real block components from docs/src
+  // Type assertion: block components expect specific types, but we receive generic BlockItem
+  // Using 'as unknown as' for safe type coercion
   switch (block.collection) {
     case 'block_hero':
-      return <HeroBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <HeroBlock key={block.id} data={blockData as unknown as Parameters<typeof HeroBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_richtext':
-      return <RichTextBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <RichTextBlock key={block.id} data={blockData as unknown as Parameters<typeof RichTextBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_columns':
-      return <ColumnsBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <ColumnsBlock key={block.id} data={blockData as unknown as Parameters<typeof ColumnsBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_quote':
-      return <QuoteBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <QuoteBlock key={block.id} data={blockData as unknown as Parameters<typeof QuoteBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_faqs':
-      return <FaqsBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <FaqsBlock key={block.id} data={blockData as unknown as Parameters<typeof FaqsBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_video':
-      return <VideoBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <VideoBlock key={block.id} data={blockData as unknown as Parameters<typeof VideoBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_gallery':
-      return <GalleryBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <GalleryBlock key={block.id} data={blockData as unknown as Parameters<typeof GalleryBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_steps':
-      return <StepsBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <StepsBlock key={block.id} data={blockData as unknown as Parameters<typeof StepsBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_cta':
-      return <CtaBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <CtaBlock key={block.id} data={blockData as unknown as Parameters<typeof CtaBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_html':
-      return <RawHtmlBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <RawHtmlBlock key={block.id} data={blockData as unknown as Parameters<typeof RawHtmlBlock>[0]['data']} lang={shortLang} />;
     
     case 'block_divider':
-      return <DividerPreview data={block.item} />;
+      return <DividerBlock key={block.id} data={blockData} />;
     
     case 'block_form':
-      return <FormBlock key={block.id} data={block.item} lang={shortLang} />;
+      return <FormBlock key={block.id} data={blockData as unknown as Parameters<typeof FormBlock>[0]['data']} lang={shortLang} />;
     
     default:
       return <PlaceholderPreview collection={block.collection} />;
   }
-}
-
-// Fallback Preview Components (for blocks not yet imported)
-
-function HtmlPreview({ data, translation }: any) {
-  const rawHtml = translation.raw_html || data.raw_html || '';
-
-  return (
-    <section className="py-16 px-6 md:px-12">
-      <div className="max-w-7xl mx-auto">
-        {rawHtml ? (
-          <div dangerouslySetInnerHTML={{ __html: rawHtml }} />
-        ) : (
-          <div className="border-2 border-dashed border-neutral-300 rounded-lg p-12 text-center">
-            <Icon icon="lucide:code" className="w-12 h-12 text-neutral-300 mx-auto mb-3" />
-            <p className="text-sm text-neutral-500">Custom HTML will appear here</p>
-          </div>
-        )}
-      </div>
-    </section>
-  );
-}
-
-function DividerPreview({ data }: any) {
-  const title = data.title || '';
-  const style = data.style || 'solid';
-
-  return (
-    <section className="py-8 px-6 md:px-12">
-      <div className="max-w-4xl mx-auto">
-        {title && (
-          <p className="text-center text-sm font-medium text-neutral-500 mb-4">
-            {title}
-          </p>
-        )}
-        <hr className={`border-neutral-300 ${style === 'dashed' ? 'border-dashed' : style === 'dotted' ? 'border-dotted' : ''}`} />
-      </div>
-    </section>
-  );
 }
 
 function PlaceholderPreview({ collection }: { collection: string }) {

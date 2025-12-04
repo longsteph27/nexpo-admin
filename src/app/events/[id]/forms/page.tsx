@@ -3,11 +3,11 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { formsApi } from "@/lib/api";
+import { formsApi, FormCard } from "@/features/forms";
+import type { FormSummary } from "@/features/forms";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button-base";
 import { Icon } from "@iconify/react";
-import FormCard from "@/components/forms/FormCard";
 
 export default function EventFormsPage() {
   const params = useParams();
@@ -18,12 +18,19 @@ export default function EventFormsPage() {
   const tenantId = selectedTenant?.id;
 
   // Fetch other forms (non-registration)
-  const { data: forms = [], isLoading: formsLoading, error } = useQuery({
+  const {
+    data: forms = [],
+    isLoading: formsLoading,
+    error,
+  } = useQuery<FormSummary[]>({
     queryKey: ["other-forms", eventId, tenantId],
     queryFn: async () => {
       if (!tenantId) return [];
       const result = await formsApi.getOtherForms(Number(eventId), tenantId);
-      return result.success ? result.data : [];
+      if (!result.success) {
+        throw new Error(result.error || "Failed to load forms");
+      }
+      return result.data ?? [];
     },
     enabled: !!eventId && !!tenantId,
   });
@@ -99,7 +106,7 @@ export default function EventFormsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {forms.map((form: any) => (
+          {forms.map((form) => (
             <FormCard
               key={form.id}
               form={form}

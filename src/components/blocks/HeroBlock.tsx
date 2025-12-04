@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import VButton from '@/components/base/VButton'
 import BlockContainer from '@/components/BlockContainer'
+import TypographyHeadline from '@/components/typography/TypographyHeadline'
 import { getDirectusMedia } from '@/lib/utils/directus-helpers'
 import Image from 'next/image'
 import { motion, HTMLMotionProps } from 'framer-motion'
@@ -68,10 +69,13 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
     <div
       className='md:col-span-2 md:pt-12 transition-all duration-700 ease-out'
     >
-      <h1
-        className="text-primary text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-font-display font-bold leading-tight mb-4"
-        dangerouslySetInnerHTML={headline ? { __html: headline } : undefined}
-      />
+      {headline && (
+        <TypographyHeadline
+          content={headline}
+          size='xl'
+          className="text-primary font-font-display font-bold leading-tight mb-4"
+        />
+      )}
       <p className="w-full py-4 font-font-body text-sm sm:text-base md:text-lg leading-relaxed text-gray">
         {content}
       </p>

@@ -5,6 +5,6 @@ export { default as PagePreview } from './PagePreview';
 export { default as NavigationEditor } from './NavigationEditor';
 export { default as InlineBlockWrapper } from './InlineBlockWrapper';
 export { default as HeroInlineEditor } from './HeroInlineEditor';
-export { default as RichtextBlockEditor } from './RichtextBlockEditor';
+export { RichtextBlockEditor } from '../blocks/RichText';
 
 

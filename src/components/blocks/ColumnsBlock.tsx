@@ -7,7 +7,7 @@ import BlockContainer from '@/components/BlockContainer'
 import { getDirectusMedia } from '@/lib/utils/directus-helpers'
 import { motion } from 'framer-motion'
 import { BlockColumns, BlockColumnsRows } from '@/directus/types'
-import { useEffect } from 'react'
+import VButton from '@/components/base/VButton'
 
 interface RowTranslation {
   title?: string
@@ -22,8 +22,29 @@ interface BlockTranslation {
   languages_code: string
 }
 
+interface ButtonTranslation {
+  label?: string
+  href?: string
+  languages_code: string
+}
+
+interface BlockButton {
+  id: string
+  label?: string
+  href?: string
+  variant?: string
+  open_in_new_window?: boolean
+  translations?: ButtonTranslation[]
+}
+
+interface ButtonGroup {
+  id: string
+  buttons?: BlockButton[]
+}
+
 interface ExtendedBlockColumnsRows extends Omit<BlockColumnsRows, 'translations'> {
   translations?: RowTranslation[]
+  button_group?: ButtonGroup
 }
 
 interface ColumnsBlockProps {
@@ -41,32 +62,29 @@ function ColumnsBlock({ data, lang }: ColumnsBlockProps) {
   const title = translation?.title || data.title || ''
   const headline = translation?.headline || data.headline || ''
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const bodyStyles = window.getComputedStyle(document.body)
-      console.log('[ColumnsBlock] CSS Variables:')
-      console.log('--color-primary:', bodyStyles.getPropertyValue('--color-primary'))
-      console.log('--font-body:', bodyStyles.getPropertyValue('--font-body'))
-      console.log('--font-display:', bodyStyles.getPropertyValue('--font-display'))
-      console.log('--font-code:', bodyStyles.getPropertyValue('--font-code'))
-    }
-  }, [])
-
   return (
     <BlockContainer className='relative mx-auto w-full max-w-7xl items-center px-5 py-24  md:px-12 lg:px-16'>
-      {title && <TypographyTitle
-        className='text-gray font-font-display font-semibold'
-      >{title}</TypographyTitle>}
-      {headline && <TypographyHeadline 
-        className='text-primary font-font-display font-semibold'
-        size='xl'
-        content={headline} />}
+      {title && (
+        <TypographyTitle
+          className='text-[var(--color-gray,#374151)] font-[var(--font-display)] font-semibold'
+        >
+          {title}
+        </TypographyTitle>
+      )}
+      {headline && (
+        <TypographyHeadline 
+          className='text-[var(--color-primary,#1E40AF)] font-[var(--font-display)] font-semibold'
+          size='xl'
+          content={headline}
+        />
+      )}
       {data.rows &&
         (data.rows as ExtendedBlockColumnsRows[]).map((row, idx) => {
           const rowTranslation = row.translations?.find((t: RowTranslation) => t.languages_code === directusLang) || row.translations?.[0]
           const rowTitle = rowTranslation?.title || row.title || ''
           const rowHeadline = rowTranslation?.headline || row.headline || ''
           const rowContent = rowTranslation?.content || row.content || ''
+          const buttons = row.button_group?.buttons || []
 
           return (
             <div
@@ -79,27 +97,52 @@ function ColumnsBlock({ data, lang }: ColumnsBlockProps) {
                     <div>
                       {rowTitle && (
                         <TypographyTitle
-                          className='text-gray font-font-display font-semibold'
-                        >{rowTitle}</TypographyTitle>
+                          className='text-[var(--color-gray,#374151)] font-[var(--font-display)] font-semibold'
+                        >
+                          {rowTitle}
+                        </TypographyTitle>
                       )}
                       {rowHeadline && (
                         <TypographyHeadline 
-                        className='text-primary font-font-display font-semibold'
-                        size='xl'
-                        content={rowHeadline} />
+                          className='text-[var(--color-primary,#1E40AF)] font-[var(--font-display)] font-semibold'
+                          size='xl'
+                          content={rowHeadline}
+                        />
                       )}
                       {rowContent && (
                         <TypographyProse
-                        
                           content={rowContent}
-                          className='mt-4 font-font-body'
+                          className='mt-4 font-[var(--font-body)]'
                         />
+                      )}
+                      {buttons.length > 0 && (
+                        <div className='mt-6 flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0'>
+                          {buttons.map((button) => {
+                            const buttonTranslation = button.translations?.find(
+                              (t: ButtonTranslation) => t.languages_code === directusLang
+                            ) || button.translations?.[0]
+                            const buttonLabel = buttonTranslation?.label || button.label || ''
+                            const buttonHref = buttonTranslation?.href || button.href || '#'
+
+                            return (
+                              <VButton
+                                key={button.id}
+                                href={buttonHref}
+                                variant={button.variant || 'solid'}
+                                target={button.open_in_new_window ? '_blank' : '_self'}
+                                size='lg'
+                              >
+                                {buttonLabel}
+                              </VButton>
+                            )
+                          })}
+                        </div>
                       )}
                     </div>
                   </div>
                 </div>
                 <div
-                  className={`order-first mt-12 block aspect-square w-full border-2 border-primary p-2  lg:mt-0 ${
+                  className={`order-first mt-12 block aspect-square w-full border-2 border-[var(--color-primary,#1E40AF)] p-2 lg:mt-0 ${
                     row.image_position === 'right'
                       ? 'rounded-xl lg:order-last'
                       : 'rounded-xl lg:order-first'

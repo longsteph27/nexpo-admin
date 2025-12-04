@@ -22,12 +22,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import ChildItemsDialog from './ChildItemsDialog';
+import type {
+  NavigationItem as DirectusNavigationItem,
+  Navigation,
+  NavigationItemTranslation,
+  NavigationItemPayload,
+  NavigationUpdatePayload,
+  Page,
+  PageTranslation,
+  LanguageCode,
+} from '@/types/directus-collections';
 
+// Extended NavigationItem for internal use (with page object and temp IDs)
 interface NavigationItem {
   id?: string;
   type: 'page' | 'url';
   url?: string;
-  page?: any;
+  page?: Page & { translations?: PageTranslation[] } | { id: string } | null;
   sort: number;
   open_in_new_tab?: boolean;
   icon?: string;
@@ -36,7 +47,7 @@ interface NavigationItem {
   children?: NavigationItem[];
   parent?: string | null;
   translations: Array<{
-    languages_code: string;
+    languages_code: LanguageCode | string;
     title: string;
   }>;
 }
@@ -45,10 +56,18 @@ interface HeaderNavigationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   siteId: number;
-  headerNavigation: any;
-  activeLang: 'en-US' | 'vi-VN';
+  headerNavigation: Navigation & { items?: DirectusNavigationItem[] } | null;
+  activeLang: LanguageCode;
   onUpdate?: () => void;
-  onSaveChanges?: (items: NavigationItem[], preparedData?: { navigationId: string | null; siteId: number; headerNavigation: any; payload: any }) => void; // Callback to save changes to parent component without API call
+  onSaveChanges?: (
+    items: NavigationItem[],
+    preparedData?: {
+      navigationId: string | null;
+      siteId: number;
+      headerNavigation: Navigation | null;
+      payload: NavigationUpdatePayload;
+    }
+  ) => void; // Callback to save changes to parent component without API call
 }
 
 // Common icon options for navigation
@@ -110,17 +129,17 @@ export default function HeaderNavigationDialog({
   useEffect(() => {
     if (headerNavigation?.items && Array.isArray(headerNavigation.items)) {
       // Build hierarchical structure from flat items
-      const buildHierarchy = (itemsList: any[]): NavigationItem[] => {
-        const itemMap = new Map();
+      const buildHierarchy = (itemsList: DirectusNavigationItem[]): NavigationItem[] => {
+        const itemMap = new Map<string, NavigationItem>();
         const rootItems: NavigationItem[] = [];
 
         // First pass: create all items
-        itemsList.forEach((item: any) => {
+        itemsList.forEach((item: DirectusNavigationItem) => {
           const navItem: NavigationItem = {
             id: item.id,
-            type: item.type,
-            url: item.url,
-            page: item.page,
+            type: item.type || 'page',
+            url: item.url || undefined,
+            page: item.page_item || (item.page ? { id: item.page } : null),
             sort: item.sort || 0,
             open_in_new_tab: item.open_in_new_tab || false,
             icon: item.icon || undefined,
@@ -128,14 +147,22 @@ export default function HeaderNavigationDialog({
             has_children: item.has_children || false,
             children: [],
             parent: item.parent || null,
-            translations: item.translations || []
+            translations: (item.translations || []).map((t: NavigationItemTranslation) => ({
+              languages_code: t.languages_code,
+              title: t.title || ''
+            }))
           };
-          itemMap.set(item.id, navItem);
+          if (item.id) {
+            itemMap.set(item.id, navItem);
+          }
         });
 
         // Second pass: build hierarchy
-        itemsList.forEach((item: any) => {
+        itemsList.forEach((item: DirectusNavigationItem) => {
+          if (!item.id) return;
           const navItem = itemMap.get(item.id);
+          if (!navItem) return;
+          
           if (!item.parent) {
             rootItems.push(navItem);
           } else {
@@ -202,9 +229,9 @@ export default function HeaderNavigationDialog({
         label: item.label || null,
         has_children: item.has_children || false,
         parent: parentIdOverride !== undefined ? parentIdOverride : (item.parent || null),
-        translations: item.translations.map((t: any) => ({
-          languages_code: t.languages_code,
-          title: t.title
+        translations: item.translations.map((t: NavigationItemTranslation | { languages_code: LanguageCode | string; title: string }) => ({
+          languages_code: typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code,
+          title: t.title || ''
         }))
       });
 
@@ -213,16 +240,16 @@ export default function HeaderNavigationDialog({
 
       // Step 2: Prepare items for batch operations
       // Get existing item IDs from headerNavigation
-      const existingItems = new Map<string, any>();
+      const existingItems = new Map<string, DirectusNavigationItem & { parent?: string | null }>();
       if (headerNavigation?.items && Array.isArray(headerNavigation.items)) {
         // Flatten existing items to map
-        const flattenExisting = (items: any[], parentId: string | null = null) => {
-          items.forEach((item: any) => {
+        const flattenExisting = (items: DirectusNavigationItem[], parentId: string | null = null) => {
+          items.forEach((item: DirectusNavigationItem) => {
             if (item.id && !item.id.startsWith('temp-')) {
               existingItems.set(item.id, { ...item, parent: parentId });
             }
             if (item.children && Array.isArray(item.children)) {
-              flattenExisting(item.children, item.id);
+              flattenExisting(item.children, item.id || null);
             }
           });
         };
@@ -230,12 +257,20 @@ export default function HeaderNavigationDialog({
       }
 
       // Separate items into create, update, delete
-      const itemsToCreate: any[] = [];
-      const itemsToUpdate: any[] = [];
+      // For create: translations don't need id and navigation_items_id
+      const itemsToCreate: Array<Omit<DirectusNavigationItem, 'id' | 'navigation' | 'translations'> & {
+        translations?: Array<Omit<NavigationItemTranslation, 'id' | 'navigation_items_id'>>;
+      }> = [];
+      const itemsToUpdate: Array<Partial<Omit<DirectusNavigationItem, 'translations'>> & {
+        id: string;
+        translations?: {
+          create?: Array<Omit<NavigationItemTranslation, 'id' | 'navigation_items_id'>>;
+          update?: Array<Partial<NavigationItemTranslation> & { id: number }>;
+          delete?: number[];
+        };
+      }> = [];
       const itemsToDelete: string[] = [];
       
-      // Track created items for parent relationships
-      const createdItemsMap = new Map<string, string>(); // tempId -> actualId
       let currentSort = 0;
 
       // Separate root items and children for processing
@@ -251,21 +286,92 @@ export default function HeaderNavigationDialog({
       });
 
       // Process root items first
-      rootItems.forEach(({ item, sort, isNew }) => {
+      rootItems.forEach(({ item, isNew }) => {
         const itemData = prepareItemData(item, currentSort++, null);
         
         if (isNew) {
-          itemsToCreate.push(itemData);
-        } else if (item.id && existingItems.has(item.id)) {
-          itemsToUpdate.push({
-            id: item.id,
-            ...itemData
+          itemsToCreate.push({
+            ...itemData,
+            translations: itemData.translations.map(t => ({
+              languages_code: t.languages_code,
+              title: t.title
+            }))
           });
+        } else if (item.id && existingItems.has(item.id)) {
+          // For update, only include fields that changed compared to existing
+          const existingItem = existingItems.get(item.id);
+          const existingTranslations = existingItem?.translations || [];
+          const normalize = (v: any) => (v === undefined || v === null ? null : v);
+
+          // Build minimal field changes
+          const updateFields: any = { id: item.id };
+          let hasFieldChanges = false;
+
+          const existingPageId = existingItem?.page ?? existingItem?.page_item?.id ?? null;
+          const currentPageId = itemData.page;
+          const fieldComparisons: Array<[keyof typeof itemData, any, any]> = [
+            ['type', itemData.type, existingItem?.type],
+            ['url', itemData.url, existingItem?.url ?? null],
+            ['page', currentPageId, existingPageId ?? null],
+            ['sort', itemData.sort, existingItem?.sort ?? 0],
+            ['open_in_new_tab', itemData.open_in_new_tab, existingItem?.open_in_new_tab ?? false],
+            ['icon', itemData.icon, existingItem?.icon ?? null],
+            ['label', itemData.label, existingItem?.label ?? null],
+            ['has_children', itemData.has_children, existingItem?.has_children ?? false],
+            ['parent', itemData.parent, existingItem?.parent ?? null],
+          ];
+          fieldComparisons.forEach(([key, current, prev]) => {
+            if (normalize(current) !== normalize(prev)) {
+              updateFields[key] = current;
+              hasFieldChanges = true;
+            }
+          });
+
+          // Process translations diff
+          const translationsToCreate: Array<Omit<NavigationItemTranslation, 'id' | 'navigation_items_id'>> = [];
+          const translationsToUpdate: Array<Partial<NavigationItemTranslation> & { id: number }> = [];
+          const translationsToDelete: number[] = [];
+
+          itemData.translations.forEach(t => {
+            const langCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code;
+            const existing = existingTranslations.find((et: NavigationItemTranslation) => {
+              const etLangCode = typeof et.languages_code === 'string' ? et.languages_code : (et.languages_code as { code: string }).code;
+              return etLangCode === langCode;
+            });
+            if (existing) {
+              if (normalize(existing.title) !== normalize(t.title)) {
+                translationsToUpdate.push({ id: existing.id, title: t.title });
+              }
+            } else {
+              translationsToCreate.push({ languages_code: t.languages_code, title: t.title });
+            }
+          });
+          existingTranslations.forEach((et: NavigationItemTranslation) => {
+            const etLangCode = typeof et.languages_code === 'string' ? et.languages_code : (et.languages_code as { code: string }).code;
+            const stillExists = itemData.translations.some(t => {
+              const tLangCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code;
+              return tLangCode === etLangCode;
+            });
+            if (!stillExists) translationsToDelete.push(et.id);
+          });
+
+          const translationsPayload: any = {};
+          if (translationsToCreate.length > 0) translationsPayload.create = translationsToCreate;
+          if (translationsToUpdate.length > 0) translationsPayload.update = translationsToUpdate;
+          if (translationsToDelete.length > 0) translationsPayload.delete = translationsToDelete;
+
+          if (Object.keys(translationsPayload).length > 0) {
+            updateFields.translations = translationsPayload;
+          }
+
+          if (hasFieldChanges || Object.keys(translationsPayload).length > 0) {
+            itemsToUpdate.push(updateFields);
+          }
         }
       });
 
       // Process child items (after parents are created)
-      childItems.forEach(({ item, sort, isNew }) => {
+      childItems.forEach(({ item, isNew }) => {
         let parentId = item.parent;
         if (parentId && parentId.startsWith('temp-')) {
           // Parent is also new - will be null initially, update after creation
@@ -275,11 +381,61 @@ export default function HeaderNavigationDialog({
         const itemData = prepareItemData(item, currentSort++, parentId);
         
         if (isNew) {
-          itemsToCreate.push(itemData);
+          itemsToCreate.push({
+            ...itemData,
+            translations: itemData.translations.map(t => ({
+              languages_code: t.languages_code,
+              title: t.title
+            }))
+          });
         } else if (item.id && existingItems.has(item.id)) {
+          // For update, need to preserve translation IDs if they exist
+          const existingItem = existingItems.get(item.id);
+          const existingTranslations = existingItem?.translations || [];
+          const translationsToCreate: Array<Omit<NavigationItemTranslation, 'id' | 'navigation_items_id'>> = [];
+          const translationsToUpdate: Array<Partial<NavigationItemTranslation> & { id: number }> = [];
+          const translationsToDelete: number[] = [];
+          
+          // Process each translation
+          itemData.translations.forEach(t => {
+            const langCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code;
+            const existing = existingTranslations.find((et: NavigationItemTranslation) => {
+              const etLangCode = typeof et.languages_code === 'string' ? et.languages_code : (et.languages_code as { code: string }).code;
+              return etLangCode === langCode;
+            });
+            
+            if (existing) {
+              translationsToUpdate.push({ id: existing.id, title: t.title });
+            } else {
+              translationsToCreate.push({ languages_code: t.languages_code, title: t.title });
+            }
+          });
+          
+          // Find translations to delete (existing but not in current)
+          existingTranslations.forEach((et: NavigationItemTranslation) => {
+            const etLangCode = typeof et.languages_code === 'string' ? et.languages_code : (et.languages_code as { code: string }).code;
+            const stillExists = itemData.translations.some(t => {
+              const tLangCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code;
+              return tLangCode === etLangCode;
+            });
+            if (!stillExists) {
+              translationsToDelete.push(et.id);
+            }
+          });
+          
+          const translationsPayload: {
+            create?: Array<Omit<NavigationItemTranslation, 'id' | 'navigation_items_id'>>;
+            update?: Array<Partial<NavigationItemTranslation> & { id: number }>;
+            delete?: number[];
+          } = {};
+          if (translationsToCreate.length > 0) translationsPayload.create = translationsToCreate;
+          if (translationsToUpdate.length > 0) translationsPayload.update = translationsToUpdate;
+          if (translationsToDelete.length > 0) translationsPayload.delete = translationsToDelete;
+          
           itemsToUpdate.push({
             id: item.id,
-            ...itemData
+            ...itemData,
+            translations: Object.keys(translationsPayload).length > 0 ? translationsPayload : undefined
           });
         }
       });
@@ -298,31 +454,44 @@ export default function HeaderNavigationDialog({
 
       // Step 3: Update navigation with items using Directus batch operations
       // Directus tự động link items với navigation, không cần navigation field trong create
-      const updatePayload: any = {};
+      const updatePayload: NavigationUpdatePayload = {};
       
       if (itemsToCreate.length > 0 || itemsToUpdate.length > 0 || itemsToDelete.length > 0) {
-        updatePayload.items = {};
-        
+        const sanitize = (d: any) => {
+          // Only keep whitelisted fields; ensure 'page' is only ID or null
+          const out: any = {};
+          if ('id' in d) out.id = d.id;
+          if ('type' in d) out.type = d.type;
+          if ('url' in d) out.url = d.url ?? null;
+          if ('page' in d) out.page = typeof d.page === 'string' ? d.page : null;
+          if ('sort' in d) out.sort = d.sort ?? 0;
+          if ('open_in_new_tab' in d) out.open_in_new_tab = !!d.open_in_new_tab;
+          if ('icon' in d) out.icon = d.icon ?? null;
+          if ('label' in d) out.label = d.label ?? null;
+          if ('has_children' in d) out.has_children = !!d.has_children;
+          if ('parent' in d) out.parent = typeof d.parent === 'string' ? d.parent : null;
+          if ('translations' in d) out.translations = d.translations;
+          return out;
+        };
+
+        const itemsPayload: NavigationItemPayload = {};
         if (itemsToCreate.length > 0) {
-          // Directus sẽ tự động tạo ID và link với navigation
-          updatePayload.items.create = itemsToCreate;
+          itemsPayload.create = itemsToCreate.map(sanitize) as Array<Omit<DirectusNavigationItem, 'id' | 'navigation'>>;
         }
-        
         if (itemsToUpdate.length > 0) {
-          updatePayload.items.update = itemsToUpdate;
+          itemsPayload.update = itemsToUpdate.map(sanitize) as Array<Partial<DirectusNavigationItem> & { id: string }>;
         }
-        
         if (itemsToDelete.length > 0) {
-          updatePayload.items.delete = itemsToDelete;
+          itemsPayload.delete = itemsToDelete;
         }
-        
+        updatePayload.items = itemsPayload as NavigationItemPayload;
       }
 
       // Return prepared payload for later saving
       return {
         navigationId,
         siteId,
-        headerNavigation,
+        headerNavigation: headerNavigation as Navigation | null,
         payload: updatePayload
       };
     };
@@ -338,7 +507,7 @@ export default function HeaderNavigationDialog({
         navigationId = prepared.navigationId;
       } else {
         // Create new navigation first
-        const navigationData: any = {
+        const navigationData: Omit<Navigation, 'id' | 'date_created' | 'date_updated' | 'user_created' | 'user_updated' | 'items'> = {
           type: 'header',
           site: prepared.siteId,
           status: 'published'
@@ -346,12 +515,18 @@ export default function HeaderNavigationDialog({
 
         const result = await navigationApi.createNavigation(navigationData);
         if (!result.success) throw new Error(result.error as string);
-        const createdData = result.data as any;
-        navigationId = typeof createdData === 'string' ? createdData : (createdData?.id || createdData);
+        const createdData = result.data;
+        if (typeof createdData === 'string') {
+          navigationId = createdData;
+        } else if (createdData && typeof createdData === 'object' && 'id' in createdData) {
+          navigationId = createdData.id as string;
+        } else {
+          throw new Error('Failed to get navigation ID from creation response');
+        }
       }
       
       if (prepared.payload.items && Object.keys(prepared.payload.items).length > 0) {
-        const updateResult = await navigationApi.updateNavigation(navigationId, prepared.payload);
+        const updateResult = await navigationApi.updateNavigation(navigationId, prepared.payload as Record<string, unknown>);
         if (!updateResult.success) throw new Error(updateResult.error as string);
       }
 
@@ -365,8 +540,9 @@ export default function HeaderNavigationDialog({
       onUpdate?.();
       onClose();
     },
-    onError: (error: any) => {
-      toast.error(error.message || 'Failed to save header navigation');
+    onError: (error: Error | unknown) => {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save header navigation';
+      toast.error(errorMessage);
     }
   });
 
@@ -427,7 +603,13 @@ export default function HeaderNavigationDialog({
     setItems(updateItemChildren(newItems, parentItemPath));
   };
 
-  const updateItem = (index: number, field: string, value: any, lang?: 'en-US' | 'vi-VN', path?: number[]) => {
+  const updateItem = (
+    index: number,
+    field: string,
+    value: string | boolean | Page | { id: string } | null,
+    lang?: LanguageCode,
+    path?: number[]
+  ) => {
     const newItems = [...items];
     
     let targetItem: NavigationItem | undefined;
@@ -444,23 +626,33 @@ export default function HeaderNavigationDialog({
     if (field === 'title') {
       const editLang = lang || itemEditLang[finalItemId] || activeLang;
       const transIndex = targetItem.translations.findIndex(
-        t => t.languages_code === editLang
+        t => (typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code) === editLang
       );
       if (transIndex >= 0) {
-        targetItem.translations[transIndex].title = value;
+        targetItem.translations[transIndex].title = value as string;
       } else {
         targetItem.translations.push({
           languages_code: editLang,
-          title: value
+          title: value as string
         });
       }
     } else if (field === 'has_children') {
-      targetItem.has_children = value;
+      targetItem.has_children = value as boolean;
       if (!value) {
         targetItem.children = [];
       }
-    } else {
-      (targetItem as any)[field] = value;
+    } else if (field === 'type') {
+      targetItem.type = value as 'page' | 'url';
+    } else if (field === 'url') {
+      targetItem.url = value as string | undefined;
+    } else if (field === 'page') {
+      targetItem.page = value as Page | { id: string } | null;
+    } else if (field === 'open_in_new_tab') {
+      targetItem.open_in_new_tab = value as boolean;
+    } else if (field === 'icon') {
+      targetItem.icon = value as string | undefined;
+    } else if (field === 'label') {
+      targetItem.label = value as string | undefined;
     }
     
     setItems(newItems);
@@ -560,7 +752,16 @@ export default function HeaderNavigationDialog({
             )}
             {item.type === 'page' && item.page && (
               <span className="text-xs text-neutral-500">
-                ({pagesData?.find((p: any) => p.id === item.page?.id)?.translations?.find((t: any) => t.languages_code === activeLang)?.title || 'Page'})
+                ({(() => {
+                  const pageId = typeof item.page === 'object' && item.page !== null && 'id' in item.page ? item.page.id : (item.page as string);
+                  const page = pagesData?.find((p: { id: string; translations?: Array<{ languages_code?: string | { code: string }; title?: string | null }> }) => p.id === pageId);
+                  if (!page) return 'Page';
+                  const translation = page.translations?.find((t: { languages_code?: string | { code: string }; title?: string | null }) => {
+                    const langCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string })?.code;
+                    return langCode === activeLang;
+                  });
+                  return translation?.title || page.translations?.[0]?.title || 'Page';
+                })()})
               </span>
             )}
             {item.has_children && (
@@ -633,14 +834,22 @@ export default function HeaderNavigationDialog({
                   Select Page
                 </label>
                 <Select
-                  value={item.page?.id || ''}
+                  value={(() => {
+                    if (typeof item.page === 'object' && item.page !== null && 'id' in item.page) {
+                      return item.page.id;
+                    }
+                    return (item.page && typeof item.page === 'string' ? item.page : '') || '';
+                  })()}
                   onValueChange={(value) => {
-                    const selectedPage = pagesData.find((p: any) => p.id === value);
-                    updateItem(index, 'page', selectedPage || null, undefined, path);
+                    const selectedPage = pagesData?.find((p: { id: string; translations?: Array<{ languages_code?: string | { code: string }; title?: string | null }> }) => p.id === value);
+                    updateItem(index, 'page', selectedPage ? ({ ...selectedPage, id: selectedPage.id } as Page & { id: string }) : null, undefined, path);
                     if (selectedPage) {
                       const editLang = getItemEditLang(item, index);
-                      const pageTitle = selectedPage.translations?.find((t: any) => t.languages_code === editLang)?.title || 
-                                       selectedPage.translations?.[0]?.title || '';
+                      const translation = selectedPage.translations?.find((t: { languages_code?: string | { code: string }; title?: string | null }) => {
+                        const langCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string })?.code;
+                        return langCode === editLang;
+                      });
+                      const pageTitle = translation?.title || selectedPage.translations?.[0]?.title || '';
                       if (!currentTitle(item, index)) {
                         updateItem(index, 'title', pageTitle, editLang, path);
                       }
@@ -651,9 +860,12 @@ export default function HeaderNavigationDialog({
                     <SelectValue placeholder="-- Select a page --" />
                   </SelectTrigger>
                   <SelectContent>
-                    {pagesData.map((page: any) => {
-                      const pageTitle = page.translations?.find((t: any) => t.languages_code === activeLang)?.title || 
-                                       page.translations?.[0]?.title || 'Untitled';
+                    {pagesData?.map((page: { id: string; translations?: Array<{ languages_code?: string | { code: string }; title?: string | null }> }) => {
+                      const translation = page.translations?.find((t: { languages_code?: string | { code: string }; title?: string | null }) => {
+                        const langCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string })?.code;
+                        return langCode === activeLang;
+                      });
+                      const pageTitle = translation?.title || page.translations?.[0]?.title || 'Untitled';
                       return (
                         <SelectItem key={page.id} value={page.id}>
                           {pageTitle}
@@ -855,7 +1067,10 @@ export default function HeaderNavigationDialog({
                           <Icon icon={child.icon} className="w-3.5 h-3.5 text-neutral-600" />
                         )}
                         <span className="text-xs text-neutral-700 flex-1 truncate">
-                          {child.translations?.find((t: any) => t.languages_code === activeLang)?.title || 
+                          {child.translations?.find((t: { languages_code: LanguageCode | string; title: string }) => {
+                            const langCode = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string }).code;
+                            return langCode === activeLang;
+                          })?.title || 
                            child.translations?.[0]?.title || 
                            `Child ${childIndex + 1}`}
                         </span>

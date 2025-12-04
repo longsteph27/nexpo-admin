@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useEvent } from '@/hooks/useEvents';
-import { siteApi } from '@/lib/api';
+import { siteApi } from '@/features/sites';
 import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
@@ -20,7 +20,7 @@ import {
   LanguagesCard,
   RedirectsCard,
   GlobalsCard,
-} from '@/components/sites';
+} from '@/features/sites';
 
 export default function SiteDetailPage() {
   const params = useParams();

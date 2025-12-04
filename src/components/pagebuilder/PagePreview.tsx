@@ -2,17 +2,19 @@
 
 import React from 'react';
 import { Icon } from '@iconify/react';
-import HeroBlock from '@/components/blocks/HeroBlock';
-import RichTextBlock from '@/components/blocks/RichTextBlock';
-import ColumnsBlock from '@/components/blocks/ColumnsBlock';
-import QuoteBlock from '@/components/blocks/QuoteBlock';
-import StepsBlock from '@/components/blocks/StepsBlock';
-import FaqsBlock from '@/components/blocks/FaqsBlock';
-import CtaBlock from '@/components/blocks/CtaBlock';
-import VideoBlock from '@/components/blocks/VideoBlock';
-import GalleryBlock from '@/components/blocks/GalleryBlock';
-import RawHtmlBlock from '@/components/blocks/RawHtmlBlock';
-import FormBlock from '@/components/blocks/FormBlock';
+import {
+  HeroBlock,
+  RichTextBlock,
+  ColumnsBlock,
+  QuoteBlock,
+  StepsBlock,
+  FaqsBlock,
+  CtaBlock,
+  VideoBlock,
+  GalleryBlock,
+  RawHtmlBlock,
+  FormBlock,
+} from '@/features/pages/components/blocks/preview';
 import ThemeSelector from '@/components/ui/ThemeSelector';
 
 interface Block {

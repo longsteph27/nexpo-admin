@@ -1,35 +1,43 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import '@/styles/pagebuilder.css';
 import { Icon } from '@iconify/react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button-base';
 import { toast } from 'sonner';
-import { 
-  usePageBuilderBlocks, 
-  usePageBuilderNavigation, 
-  usePageBuilderKeyboard, 
-  usePageBuilderUnsavedChanges, 
+import {
+  usePageBuilderBlocks,
+  usePageBuilderNavigation,
+  usePageBuilderKeyboard,
+  usePageBuilderUnsavedChanges,
   usePageBuilderSave,
   usePageData,
   usePageNavigations,
   usePageSiteNavigation,
-  usePageSite
+  usePageSite,
+  usePagePayloadManager
 } from '@/features/pages/hooks/usePages';
-import { useQueryClient } from '@tanstack/react-query';
-import type { Block, Page, PageTranslation, LanguageCode } from '@/features/pages/types';
+import type { Block, Page, PageTranslation } from '@/features/pages/types';
+import type {
+  PageBlock,
+  Navigation,
+  NavigationItem as DirectusNavigationItem,
+  NavigationItemTranslation,
+  NavigationUpdatePayload,
+  Site,
+  LanguageCode as DirectusLanguageCode,
+} from '@/types/directus-collections';
+import type { Tenant } from '@/lib/directus';
 import { extractLanguageCode } from '@/types/directus-collections';
 import BlockSelectorModal from './BlockSelectorModal';
 import BlockEditorModal from './BlockEditorModal';
 import PagePreview from './PagePreview';
-import NavigationEditor from './NavigationEditor';
-import HeaderNavigationDialog from './HeaderNavigationDialog';
-import FooterNavigationDialog from './FooterNavigationDialog';
+import PageMetadataDialog from './PageMetadataDialog';
+import { HeaderNavigationBlockEditor, FooterNavigationBlockEditor } from '../blocks/editor';
 import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import BlockSkeleton from '@/components/ui/BlockSkeleton';
+import { useAppContextStore } from '@/store/appContext';
 
 interface PageBuilderProps {
   eventId: string;
@@ -37,13 +45,12 @@ interface PageBuilderProps {
 }
 
 export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
-  const router = useRouter();
-  const queryClient = useQueryClient();
   const { selectedTenant } = useAuth();
-  
+  const { tenantId: ctxTenantId, eventId: ctxEventId } = useAppContextStore();
+
   // Get folder and event ID for uploads
-  const folderId = (selectedTenant as any)?.folder_files_id || undefined;
-  const uploadEventId = eventId || undefined;
+  const folderId = (selectedTenant as Tenant | null)?.folder_files_id || undefined;
+  const uploadEventId = ctxEventId ? String(ctxEventId) : (eventId || undefined);
 
   // UI State
   const [selectedBlockIndex, setSelectedBlockIndex] = useState<number | null>(null);
@@ -51,49 +58,58 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
   const [showBlockEditor, setShowBlockEditor] = useState(false);
   const [editingBlock, setEditingBlock] = useState<Block | null>(null);
   const [previewLang, setPreviewLang] = useState<'en-US' | 'vi-VN'>('en-US');
-  const [showNavEditor, setShowNavEditor] = useState(false);
   const [showHeaderDialog, setShowHeaderDialog] = useState(false);
   const [showFooterDialog, setShowFooterDialog] = useState(false);
-  const [pendingHeaderNavigation, setPendingHeaderNavigation] = useState<{ navigationId: string | null; siteId: number; headerNavigation: any; payload: any } | null>(null);
-  const [pendingFooterNavigation, setPendingFooterNavigation] = useState<{ navigationId: string | null; siteId: number; footerNavigation: any; payload: any } | null>(null);
+  const [pendingHeaderNavigation, setPendingHeaderNavigation] = useState<{
+    navigationId: string | null;
+    siteId: number;
+    headerNavigation: Navigation | null;
+    payload: NavigationUpdatePayload;
+  } | null>(null);
+  const [pendingFooterNavigation, setPendingFooterNavigation] = useState<{
+    navigationId: string | null;
+    siteId: number;
+    footerNavigation: Navigation | null;
+    payload: NavigationUpdatePayload;
+  } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [inlineEditMode, setInlineEditMode] = useState(false);
   const [hoveredSectionIndex, setHoveredSectionIndex] = useState<number | 'header' | 'footer' | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [isEditingPermalink, setIsEditingPermalink] = useState(false);
-  const [editedPermalinks, setEditedPermalinks] = useState<Record<string, string>>({});
+  const [showMetadataDialog, setShowMetadataDialog] = useState(false);
+  const [metadataDialogLang, setMetadataDialogLang] = useState<'en-US' | 'vi-VN'>('en-US');
+  const [stagedTranslations, setStagedTranslations] = useState<Array<{ languages_code: 'en-US' | 'vi-VN'; title?: string; permalink?: string; isNew: boolean }>>([]);
 
   // Fetch page data
-  const { data: page, isLoading } = usePageData(pageId);
+  const { data: page, isLoading, refetch: refetchPage } = usePageData(pageId);
 
   // Get siteId from page data
-  const siteId = (page as any)?.site_id || (page as any)?.site?.id;
+  const siteId = (page as Page | undefined)?.site_id || ((page as Page | undefined)?.site as Site | undefined)?.id;
 
   // Fetch site navigation
   const { data: navigations } = usePageNavigations(siteId, !!page);
 
   // Fetch site navigation for header/footer sections
-  const { data: siteNavigation } = usePageSiteNavigation({ 
-    siteId: siteId as number | undefined, 
-    enabled: !!page && !!siteId 
+  const { data: siteNavigation } = usePageSiteNavigation({
+    siteId: siteId as number | undefined,
+    enabled: !!page && !!siteId
   });
 
   // Fetch site data for logo
-  const { data: site } = usePageSite({ 
-    siteId: siteId as number | undefined, 
-    enabled: !!page && !!siteId 
+  const { data: site } = usePageSite({
+    siteId: siteId as number | undefined,
+    enabled: !!page && !!siteId
   });
 
   // Custom hooks
   const {
     blocks,
     isLoadingBlocks,
-    updateBlock,
     replaceBlock,
     deleteBlock,
     moveBlock,
     insertBlockAt,
-  } = usePageBuilderBlocks({ pageBlocks: (page as any)?.blocks });
+  } = usePageBuilderBlocks({ pageBlocks: (page as Page | undefined)?.blocks as PageBlock[] | undefined });
 
   const {
     headerItems,
@@ -102,148 +118,133 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
     setFooterItems,
   } = usePageBuilderNavigation({ navigations });
 
+  // Initialize PagePayloadManager
+  const {
+    removeBlock,
+    rebuildBlocks,
+    getPayload,
+    reset: resetPayload,
+    updateTranslationPermalink,
+    stagePageTranslation,
+  } = usePagePayloadManager({
+    page: page as Page | undefined,
+    eventId: Number(uploadEventId || eventId),
+    tenantId: ctxTenantId ?? (selectedTenant as Tenant | null)?.id,
+  });
+
+  const headerNavigationPreview = useMemo<(Navigation & { items?: DirectusNavigationItem[] }) | null>(() => {
+    if (headerItems && headerItems.length > 0) {
+      const normalizedItems = normalizeNavigationItems(headerItems);
+      const baseNavigation = siteNavigation?.header ?? ({} as Navigation);
+      return {
+        ...baseNavigation,
+        items: normalizedItems,
+      } as Navigation & { items?: DirectusNavigationItem[] };
+    }
+    if (siteNavigation?.header) {
+      return siteNavigation.header as Navigation & { items?: DirectusNavigationItem[] };
+    }
+    return null;
+  }, [headerItems, siteNavigation?.header]);
+
+  const footerNavigationPreview = useMemo<(Navigation & { items?: DirectusNavigationItem[] }) | null>(() => {
+    if (footerItems && footerItems.length > 0) {
+      const normalizedItems = normalizeNavigationItems(footerItems);
+      const baseNavigation = siteNavigation?.footer ?? ({} as Navigation);
+      return {
+        ...baseNavigation,
+        items: normalizedItems,
+      } as Navigation & { items?: DirectusNavigationItem[] };
+    }
+    if (siteNavigation?.footer) {
+      return siteNavigation.footer as Navigation & { items?: DirectusNavigationItem[] };
+    }
+    return null;
+  }, [footerItems, siteNavigation?.footer]);
+
+  const currentPageTranslation = useMemo(() => {
+    const pageData = page as Page | undefined;
+    return pageData?.translations?.find(
+      (translation: PageTranslation) =>
+        extractLanguageCode(translation.languages_code) === previewLang
+    );
+  }, [page, previewLang]);
+
+  const currentPageTitle = currentPageTranslation?.title || 'Untitled Page';
+  const currentPagePermalink =
+    currentPageTranslation?.permalink && currentPageTranslation.permalink.trim() !== ''
+      ? currentPageTranslation.permalink
+      : '/untitled-page';
+
+  // Track editingBlock changes
+  useEffect(() => {
+    if (editingBlock) {
+      console.log('[PageBuilder] editingBlock changed:', {
+        id: editingBlock.id,
+        isTemp: String(editingBlock.id).startsWith('temp-'),
+        collection: editingBlock.collection,
+      });
+    }
+  }, [editingBlock]);
+
+  // Track selectedBlockIndex changes
+  useEffect(() => {
+    console.log('[PageBuilder] selectedBlockIndex changed:', selectedBlockIndex);
+  }, [selectedBlockIndex]);
+
+  // Track if this is the initial load to prevent unnecessary payload rebuild
+  const isInitialLoadRef = React.useRef(true);
+  const previousBlocksRef = React.useRef<Block[]>([]);
+
+  // Rebuild blocks payload when blocks change (but not on initial load)
+  useEffect(() => {
+    if (page && blocks) {
+      // Skip rebuild on initial load
+      if (isInitialLoadRef.current) {
+        isInitialLoadRef.current = false;
+        previousBlocksRef.current = blocks;
+        return;
+      }
+
+      // Only rebuild if blocks actually changed
+      const blocksChanged =
+        blocks.length !== previousBlocksRef.current.length ||
+        blocks.some((block, index) => {
+          const prevBlock = previousBlocksRef.current[index];
+          return !prevBlock || block.id !== prevBlock.id || block !== prevBlock;
+        });
+
+      if (blocksChanged) {
+        rebuildBlocks(blocks);
+        previousBlocksRef.current = blocks;
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [blocks, (page as Page | undefined)?.id]); // Rebuild when blocks or page ID changes
+
   const { save: baseSave, isSaving } = usePageBuilderSave({
     pageId,
-    page: page as any,
-    blocks,
+    page: page as Page | undefined,
     headerItems,
     footerItems,
-    navigations: navigations as any,
-    eventId,
-    selectedTenant,
+    navigations: navigations as Navigation[] | undefined,
+    getPayload,
     onSuccess: () => {
       setHasUnsavedChanges(false);
       setPendingHeaderNavigation(null);
       setPendingFooterNavigation(null);
+      setStagedTranslations([]); // Clear staged translations after save
+      resetPayload();
+      // Return to preview mode after successful save
+      setInlineEditMode(false);
+      setHoveredSectionIndex(null);
     },
   });
 
-  // Validate and format permalink
-  const formatPermalink = useCallback((permalink: string): string => {
-    // Remove leading/trailing slashes, convert to lowercase, replace spaces with hyphens
-    return permalink
-      .trim()
-      .replace(/^\/+|\/+$/g, '') // Remove leading/trailing slashes
-      .toLowerCase()
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/[^a-z0-9\-_/]/g, '') // Remove invalid characters, keep hyphens, underscores, slashes
-      .replace(/\/+/g, '/') // Replace multiple slashes with single
-      .replace(/-+/g, '-') // Replace multiple hyphens with single
-      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
-  }, []);
-
-  const validatePermalink = useCallback((permalink: string): boolean => {
-    if (!permalink || permalink.trim() === '') {
-      return false;
-    }
-    // Check if starts with slash
-    if (!permalink.startsWith('/')) {
-      return false;
-    }
-    // Check for invalid characters after formatting
-    const formatted = formatPermalink(permalink);
-    return formatted.length > 0 && /^[a-z0-9\-_/]+$/.test(formatted);
-  }, [formatPermalink]);
-
-  // Override save to include pending header and footer navigation and permalink
+  // Override save to include pending header and footer navigation updates
   const save = useCallback(async () => {
-    const { navigationApi, siteApi } = await import('@/lib/api');
-    
-    // Save permalink if there are pending changes
-    if (Object.keys(editedPermalinks).length > 0) {
-      console.log('[PageBuilder] Starting permalink save, editedPermalinks:', editedPermalinks);
-      
-      const pageTranslations = (page as any)?.translations || [];
-      console.log('[PageBuilder] Page translations:', pageTranslations);
-      
-      const translationsPayload: any = {
-        create: [] as any[],
-        update: [] as any[],
-      };
+    const { navigationApi } = await import('@/lib/api');
 
-      let hasInvalidPermalink = false;
-      
-      pageTranslations.forEach((trans: any) => {
-        const langCode = trans.languages_code?.code || trans.languages_code;
-        console.log('[PageBuilder] Processing translation:', { trans, langCode, editedPermalinks: editedPermalinks[langCode] });
-        
-        if (editedPermalinks[langCode]) {
-          const formattedPermalink = formatPermalink(editedPermalinks[langCode]);
-          
-          if (!validatePermalink(`/${formattedPermalink}`)) {
-            toast.error(`Invalid permalink format for ${langCode}`);
-            hasInvalidPermalink = true;
-            return;
-          }
-
-          if (trans.id) {
-            // Update existing translation
-            const updateItem = {
-              id: trans.id,
-              permalink: `/${formattedPermalink}`,
-            };
-            console.log('[PageBuilder] Adding to update:', updateItem);
-            translationsPayload.update.push(updateItem);
-          } else {
-            // Create new translation (shouldn't happen normally)
-            const createItem = {
-              languages_code: { code: langCode },
-              permalink: `/${formattedPermalink}`,
-            };
-            console.log('[PageBuilder] Adding to create:', createItem);
-            translationsPayload.create.push(createItem);
-          }
-        }
-      });
-
-      // Add new translations if any
-      Object.keys(editedPermalinks).forEach((langCode) => {
-        const existingTrans = pageTranslations.find(
-          (t: any) => (t.languages_code?.code || t.languages_code) === langCode
-        );
-        if (!existingTrans) {
-          const formattedPermalink = formatPermalink(editedPermalinks[langCode]);
-          if (validatePermalink(`/${formattedPermalink}`)) {
-            translationsPayload.create.push({
-              languages_code: { code: langCode },
-              permalink: `/${formattedPermalink}`,
-            });
-          } else {
-            toast.error(`Invalid permalink format for ${langCode}`);
-            hasInvalidPermalink = true;
-          }
-        }
-      });
-      
-      if (hasInvalidPermalink) {
-        return;
-      }
-
-      if (translationsPayload.update.length > 0 || translationsPayload.create.length > 0) {
-        console.log('[PageBuilder] Saving permalink with payload:', {
-          pageId,
-          translationsPayload,
-          editedPermalinks,
-        });
-        
-        const result = await siteApi.updatePage(pageId, {
-          translations: translationsPayload,
-        });
-        
-        console.log('[PageBuilder] Save permalink result:', result);
-        
-        if (!result.success) {
-          console.error('[PageBuilder] Failed to save permalink:', result.error);
-          toast.error(`Failed to save permalink: ${result.error || 'Unknown error'}`);
-          return;
-        }
-        
-        toast.success('Permalink saved successfully!');
-        // Invalidate page query to refetch updated data
-        queryClient.invalidateQueries({ queryKey: ['page-detail', pageId] });
-      }
-    }
-    
     // Save header navigation if there are pending changes
     if (pendingHeaderNavigation) {
       // Step 1: Create navigation if it doesn't exist
@@ -252,7 +253,7 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
         navigationId = pendingHeaderNavigation.navigationId;
       } else {
         // Create new navigation
-        const navigationData: any = {
+        const navigationData: Omit<Navigation, 'id' | 'date_created' | 'date_updated' | 'user_created' | 'user_updated' | 'items'> = {
           type: 'header',
           site: pendingHeaderNavigation.siteId,
           status: 'published'
@@ -263,13 +264,19 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
           toast.error('Failed to create header navigation');
           return;
         }
-        const createdData = createResult.data as any;
-        navigationId = typeof createdData === 'string' ? createdData : (createdData?.id || createdData);
+        const createdData = createResult.data;
+        if (typeof createdData === 'string') {
+          navigationId = createdData;
+        } else if (createdData && typeof createdData === 'object' && 'id' in createdData) {
+          navigationId = createdData.id as string;
+        } else {
+          throw new Error('Failed to get navigation ID from creation response');
+        }
       }
-      
+
       // Step 2: Update navigation with items
       if (pendingHeaderNavigation.payload.items && Object.keys(pendingHeaderNavigation.payload.items).length > 0) {
-        const result = await navigationApi.updateNavigation(navigationId, pendingHeaderNavigation.payload);
+        const result = await navigationApi.updateNavigation(navigationId, pendingHeaderNavigation.payload as Record<string, unknown>);
         if (!result.success) {
           toast.error('Failed to save header navigation');
           return;
@@ -285,7 +292,7 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
         navigationId = pendingFooterNavigation.navigationId;
       } else {
         // Create new navigation
-        const navigationData: any = {
+        const navigationData: Omit<Navigation, 'id' | 'date_created' | 'date_updated' | 'user_created' | 'user_updated' | 'items'> = {
           type: 'footer',
           site: pendingFooterNavigation.siteId,
           status: 'published'
@@ -296,13 +303,19 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
           toast.error('Failed to create footer navigation');
           return;
         }
-        const createdData = createResult.data as any;
-        navigationId = typeof createdData === 'string' ? createdData : (createdData?.id || createdData);
+        const createdData = createResult.data;
+        if (typeof createdData === 'string') {
+          navigationId = createdData;
+        } else if (createdData && typeof createdData === 'object' && 'id' in createdData) {
+          navigationId = createdData.id as string;
+        } else {
+          throw new Error('Failed to get navigation ID from creation response');
+        }
       }
-      
+
       // Step 2: Update navigation with items
       if (pendingFooterNavigation.payload.items && Object.keys(pendingFooterNavigation.payload.items).length > 0) {
-        const result = await navigationApi.updateNavigation(navigationId, pendingFooterNavigation.payload);
+        const result = await navigationApi.updateNavigation(navigationId, pendingFooterNavigation.payload as Record<string, unknown>);
         if (!result.success) {
           toast.error('Failed to save footer navigation');
           return;
@@ -312,17 +325,12 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
 
     // Then save page blocks and other data
     await baseSave();
-    
-    // Clear edited permalinks after successful save
-    setEditedPermalinks({});
-    setIsEditingPermalink(false);
-  }, [pendingHeaderNavigation, pendingFooterNavigation, editedPermalinks, page, pageId, formatPermalink, validatePermalink, baseSave, queryClient]);
+  }, [pendingHeaderNavigation, pendingFooterNavigation, baseSave]);
 
   // Keyboard shortcuts
   const handleCloseModals = useCallback(() => {
-        setShowBlockSelector(false);
-        setShowBlockEditor(false);
-        setShowNavEditor(false);
+    setShowBlockSelector(false);
+    setShowBlockEditor(false);
   }, []);
 
   usePageBuilderKeyboard({
@@ -333,37 +341,29 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
     footerItems,
   });
 
-  // Unsaved changes tracking
+  // Unsaved changes tracking (disable Save when no payload)
   usePageBuilderUnsavedChanges({
-    blocks,
-    headerItems,
-    footerItems,
-    hasUnsavedChanges,
+    getPayload,
+    pendingHeaderNavigation,
+    pendingFooterNavigation,
+    watchedDeps: [blocks, stagedTranslations],
     isSaving,
     onUnsavedChange: setHasUnsavedChanges,
   });
 
-  // Add new section
-  const handleAddSection = () => {
-    setSelectedBlockIndex(blocks.length);
-    setShowBlockSelector(true);
-  };
-
-  // Insert section at specific position
-  const handleInsertSection = (index: number) => {
-    setSelectedBlockIndex(index);
-    setShowBlockSelector(true);
-  };
 
   // Select block type
   const handleBlockTypeSelected = (blockType: string) => {
-    const pageData = page as any;
+    const pageData = page as Page | undefined;
+    const siteData = pageData?.site as Site | undefined;
     console.log('[handleBlockTypeSelected] Creating new block:', {
       blockType,
-      event_id: pageData?.site?.event_id,
-      tenant_id: pageData?.site?.tenant_id,
+      event_id: siteData?.event_id,
+      tenant_id: siteData?.tenant_id,
+      ctxEventId: ctxEventId,
+      ctxTenantId: ctxTenantId,
       selectedTenant: selectedTenant?.id,
-      site: pageData?.site
+      site: siteData
     });
 
     const newBlock: Block = {
@@ -372,47 +372,59 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
       sort: selectedBlockIndex ?? blocks.length,
       item: {
         // Tự động thêm event_id và tenant_id
-        event_id: (page as any)?.site?.event_id || Number(eventId),
-        tenant_id: (page as any)?.site?.tenant_id || selectedTenant?.id,
+        event_id: siteData?.event_id || ctxEventId || Number(eventId),
+        tenant_id: siteData?.tenant_id || ctxTenantId || (selectedTenant as Tenant | null)?.id,
         translations: [
-          { languages_code: 'en-US' },
-          { languages_code: 'vi-VN' },
+          { languages_code: 'en-US' as DirectusLanguageCode },
+          { languages_code: 'vi-VN' as DirectusLanguageCode },
         ],
       },
     };
-    
+
     console.log('[handleBlockTypeSelected] New block created:', newBlock);
-    
+
     setEditingBlock(newBlock);
     setShowBlockSelector(false);
     setShowBlockEditor(true);
   };
 
   // Save block data
-  const handleBlockSaved = useCallback((blockData: any) => {
+  const handleBlockSaved = useCallback((blockData: Block['item'] | Record<string, unknown>) => {
     if (!editingBlock) {
       console.error('[handleBlockSaved] No editingBlock!');
       return;
     }
-    
+
     const blockId = String(editingBlock.id);
     const isTemp = blockId.startsWith('temp-');
-    
+
+    console.log('[handleBlockSaved] ===== SAVE BLOCK DEBUG =====');
+    console.log('[handleBlockSaved] Block ID:', blockId);
+    console.log('[handleBlockSaved] Is temp?', isTemp);
+    console.log('[handleBlockSaved] Editing block:', editingBlock);
+    console.log('[handleBlockSaved] Block data to save:', blockData);
+    console.log('[handleBlockSaved] ==============================');
+
     const updatedBlock: Block = {
       ...editingBlock,
       id: blockId,
       item: blockData,
     };
 
-    if (isTemp) {
-      // New block - insert at position
-      const insertIndex = selectedBlockIndex ?? blocks.length;
-      insertBlockAt(updatedBlock, insertIndex);
-    } else {
-      // Update existing block
+    // Determine if this block already exists in the current list
+    const existingIndex = blocks.findIndex(b => String(b.id) === blockId);
+
+    if (existingIndex >= 0) {
+      // Always replace when we are editing an existing block in the list
+      console.log('[handleBlockSaved] Replacing EXISTING block at index:', existingIndex);
       replaceBlock(blockId, updatedBlock);
+    } else {
+      // Only insert as NEW when it doesn't exist in the list (true Add Section flow)
+      const insertIndex = selectedBlockIndex ?? blocks.length;
+      console.log('[handleBlockSaved] Inserting NEW block at index:', insertIndex);
+      insertBlockAt(updatedBlock, insertIndex);
     }
-    
+
     // Clean up state
     setShowBlockEditor(false);
     setEditingBlock(null);
@@ -421,9 +433,14 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
 
   // Edit block
   const handleEditBlock = (index: number) => {
+    console.log('[handleEditBlock] ===== EDIT BLOCK =====');
     console.log('[handleEditBlock] Opening editor for block at index:', index);
+    console.log('[handleEditBlock] Block:', blocks[index]);
     console.log('[handleEditBlock] Block ID:', blocks[index].id);
-    console.log('[handleEditBlock] Clearing selectedBlockIndex');
+    console.log('[handleEditBlock] Is temp?', String(blocks[index].id).startsWith('temp-'));
+    console.log('[handleEditBlock] Current selectedBlockIndex before clear:', selectedBlockIndex);
+    console.log('[handleEditBlock] ========================');
+
     setSelectedBlockIndex(null); // Clear insert position
     setEditingBlock(blocks[index]);
     setShowBlockEditor(true);
@@ -431,8 +448,13 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
 
   // Delete block
   const handleDeleteBlock = useCallback((index: number) => {
+    const blockToDelete = blocks[index];
+    if (blockToDelete) {
+      // Track block removal in PagePayloadManager
+      removeBlock(String(blockToDelete.id));
+    }
     deleteBlock(index);
-  }, [deleteBlock]);
+  }, [deleteBlock, blocks, removeBlock]);
 
   // Move block
   const handleMoveBlock = useCallback((index: number, direction: 'up' | 'down') => {
@@ -464,7 +486,7 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
         <div className="flex items-center space-x-3">
           {!inlineEditMode ? (
             <>
-          {/* <Button
+              {/* <Button
             variant="ghost"
             size="sm"
             onClick={() => {
@@ -485,9 +507,9 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
               >
                 <Icon icon="lucide:edit-3" className="w-4 h-4 mr-2" />
                 Edit
-          </Button>
-                {hasUnsavedChanges && (
-                  <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" title="Unsaved changes" />
+              </Button>
+              {hasUnsavedChanges && (
+                <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" title="Unsaved changes" />
               )}
             </>
           ) : (
@@ -498,12 +520,6 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
                 onClick={() => {
                   setInlineEditMode(false);
                   setHoveredSectionIndex(null);
-                  // Reset permalink editing state when canceling edit mode
-                  setIsEditingPermalink(false);
-                  if (Object.keys(editedPermalinks).length > 0) {
-                    // If there are unsaved permalink changes, clear them
-                    setEditedPermalinks({});
-                  }
                 }}
               >
                 <Icon icon="lucide:x" className="w-4 h-4 mr-2" />
@@ -513,8 +529,9 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
                 variant="gradient"
                 size="sm"
                 onClick={handleSave}
-                disabled={isSaving}
+                disabled={isSaving || !hasUnsavedChanges}
                 className="text-white"
+                title={!hasUnsavedChanges ? 'No changes to save' : undefined}
               >
                 {isSaving ? (
                   <>
@@ -532,186 +549,118 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
           )}
         </div>
 
-        {/* Center Section - Permalink */}
+        {/* Center Section - Page Metadata */}
         <div className="flex-1 flex justify-center">
-          <div className="bg-neutral-100 rounded-lg px-4 py-2 flex items-center space-x-2 max-w-md group">
-            <Icon icon="lucide:link" className="w-4 h-4 text-neutral-500 flex-shrink-0" />
-            {isEditingPermalink ? (
-              <div className="flex items-center space-x-2 flex-1 min-w-0">
-                <input
-                  type="text"
-                  value={editedPermalinks[previewLang] || (page as any)?.translations?.find((t: any) => (t.languages_code?.code || t.languages_code) === previewLang)?.permalink?.replace(/^\//, '') || 'untitled-page'}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setEditedPermalinks(prev => ({
-                      ...prev,
-                      [previewLang]: value,
-                    }));
-                    setHasUnsavedChanges(true);
-                  }}
-                  onBlur={() => {
-                    // Only exit edit mode if there's a value, otherwise keep it open
-                    const currentValue = editedPermalinks[previewLang] || (page as any)?.translations?.find((t: any) => (t.languages_code?.code || t.languages_code) === previewLang)?.permalink?.replace(/^\//, '') || 'untitled-page';
-                    if (currentValue.trim() !== '') {
-                      setIsEditingPermalink(false);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.currentTarget.blur();
-                    } else if (e.key === 'Escape') {
-                      setEditedPermalinks(prev => {
-                        const newPermalinks = { ...prev };
-                        delete newPermalinks[previewLang];
-                        return newPermalinks;
-                      });
-                      setIsEditingPermalink(false);
-                    }
-                  }}
-                  className="text-sm text-neutral-700 font-medium bg-white border border-neutral-300 rounded px-2 py-1 flex-1 min-w-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  autoFocus
-                />
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    setEditedPermalinks(prev => {
-                      const newPermalinks = { ...prev };
-                      delete newPermalinks[previewLang];
-                      return newPermalinks;
-                    });
-                    setIsEditingPermalink(false);
-                  }}
-                  className="p-1 hover:bg-neutral-200 rounded flex-shrink-0"
-                  title="Cancel"
-                >
-                  <Icon icon="lucide:x" className="w-3 h-3 text-neutral-500" />
-                </Button>
-              </div>
-            ) : (
-              <>
-                <span 
-                  className={`text-sm text-neutral-700 font-medium flex-1 min-w-0 truncate ${
-                    inlineEditMode ? 'cursor-text hover:text-neutral-900' : 'cursor-default'
-                  }`}
-                  onClick={() => {
-                    if (inlineEditMode) {
-                      setIsEditingPermalink(true);
-                    }
-                  }}
-                  title={inlineEditMode ? "Click to edit permalink" : "Enter edit mode to edit permalink"}
-                >
-                  {(editedPermalinks[previewLang] !== undefined 
-                    ? `/${editedPermalinks[previewLang]}` 
-                    : (page as any)?.translations?.find((t: any) => (t.languages_code?.code || t.languages_code) === previewLang)?.permalink) || '/untitled-page'}
-                </span>
-                {inlineEditMode && (
-                  <button
-                    onClick={() => {
-                      setIsEditingPermalink(true);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-neutral-200 rounded flex-shrink-0"
-                    title="Edit permalink"
-                  >
-                    <Icon icon="lucide:edit-2" className="w-3 h-3 text-neutral-500" />
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    const permalink = (editedPermalinks[previewLang] !== undefined 
-                      ? `/${editedPermalinks[previewLang]}` 
-                      : (page as any)?.translations?.find((t: any) => (t.languages_code?.code || t.languages_code) === previewLang)?.permalink) || '/untitled-page';
-                    navigator.clipboard.writeText(permalink);
-                    toast.success('Permalink copied to clipboard');
-                  }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-neutral-200 rounded flex-shrink-0"
-                  title="Copy permalink"
-                >
-                  <Icon icon="lucide:copy" className="w-3 h-3 text-neutral-500" />
-                </button>
-              </>
-            )}
-          </div>
+          {inlineEditMode ? (
+            <div
+              className="flex flex-col items-center cursor-pointer"
+              onClick={() => {
+                setMetadataDialogLang(previewLang);
+                setShowMetadataDialog(true);
+              }}
+            >
+              <span className="text-sm font-semibold text-neutral-900">{currentPageTitle}</span>
+              <span className="text-xs text-neutral-500">{currentPagePermalink}</span>
+
+              {/* Show staged translation changes */}
+              {stagedTranslations.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {stagedTranslations.map((staged) => (
+                    <div key={staged.languages_code} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 flex items-center gap-2">
+                      <Icon icon="lucide:check-circle-2" className="w-3 h-3" />
+                      <span>
+                        {staged.isNew ? '✨ New' : 'Updated'} {staged.languages_code === 'en-US' ? 'English' : 'Vietnamese'}
+                        {staged.title && ` • "${staged.title}"`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div
+              className="flex flex-col items-center"
+            >
+              <span className="text-sm font-semibold text-neutral-900">{currentPageTitle}</span>
+              <span className="text-xs text-neutral-500">{currentPagePermalink}</span>
+            </div>
+          )
+          }
         </div>
 
         <div className="flex items-center space-x-3">
-              {/* Preview Device Buttons */}
-              <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
-                <button
-                  onClick={() => setPreviewDevice('desktop')}
-                  className={`p-2 rounded transition-colors ${
-                    previewDevice === 'desktop'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900'
-                  }`}
-                  title="Desktop"
-                >
-                  <Icon icon="lucide:monitor" className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('tablet')}
-                  className={`p-2 rounded transition-colors ${
-                    previewDevice === 'tablet'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900'
-                  }`}
-                  title="Tablet"
-                >
-                  <Icon icon="lucide:tablet" className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => setPreviewDevice('mobile')}
-                  className={`p-2 rounded transition-colors ${
-                    previewDevice === 'mobile'
-                      ? 'bg-white text-neutral-900 shadow-sm'
-                      : 'text-neutral-600 hover:text-neutral-900'
-                  }`}
-                  title="Mobile"
-                >
-                  <Icon icon="lucide:smartphone" className="w-4 h-4" />
-                </button>
-              </div>
+          {/* Preview Device Buttons */}
+          <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
+            <button
+              onClick={() => setPreviewDevice('desktop')}
+              className={`p-2 rounded transition-colors ${previewDevice === 'desktop'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+                }`}
+              title="Desktop"
+            >
+              <Icon icon="lucide:monitor" className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPreviewDevice('tablet')}
+              className={`p-2 rounded transition-colors ${previewDevice === 'tablet'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+                }`}
+              title="Tablet"
+            >
+              <Icon icon="lucide:tablet" className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPreviewDevice('mobile')}
+              className={`p-2 rounded transition-colors ${previewDevice === 'mobile'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+                }`}
+              title="Mobile"
+            >
+              <Icon icon="lucide:smartphone" className="w-4 h-4" />
+            </button>
+          </div>
 
           <div className="h-6 w-px bg-neutral-200" />
 
           {/* Language Switcher */}
           <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
             <button
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                previewLang === 'en-US'
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${previewLang === 'en-US'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+                }`}
               onClick={() => setPreviewLang('en-US')}
             >
               EN
             </button>
             <button
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                previewLang === 'vi-VN'
-                  ? 'bg-white text-neutral-900 shadow-sm'
-                  : 'text-neutral-600 hover:text-neutral-900'
-              }`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${previewLang === 'vi-VN'
+                ? 'bg-white text-neutral-900 shadow-sm'
+                : 'text-neutral-600 hover:text-neutral-900'
+                }`}
               onClick={() => setPreviewLang('vi-VN')}
             >
               VI
             </button>
           </div>
-            </div>
+        </div>
 
       </div>
 
       {/* Main Content - Split View */}
       <div className="flex-1 flex w-full overflow-hidden bg-[#fbfbfb]">
         {/* Left Panel - Sections List or Navigation Editor */}
-        
+
 
         {/* Right Panel - Live Preview */}
         <div className="flex-1 bg-neutral-100 overflow-hidden flex flex-col">
-          
+
 
           {/* Preview content với device constraints */}
-          <div 
+          <div
             className="flex-1 overflow-y-auto"
             style={{
               maxWidth: previewDevice === 'desktop' ? '100%' : previewDevice === 'tablet' ? '768px' : '375px',
@@ -731,11 +680,11 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
                   <BlockSkeleton type="columns" />
                 </div>
               ) : (
-                <PagePreview 
-                  blocks={blocks} 
-                  lang={previewLang} 
+                <PagePreview
+                  blocks={blocks}
+                  lang={previewLang}
                   siteId={siteId || undefined}
-                  siteLogo={(site as any)?.logo}
+                  siteLogo={(site as Site | undefined)?.logo || undefined}
                   isEditMode={inlineEditMode}
                   onSectionClick={(index) => handleEditBlock(index)}
                   onInsertAbove={(index) => {
@@ -760,8 +709,12 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
                       setHoveredSectionIndex(index);
                     }
                   }}
-                  headerNavigation={siteNavigation?.header}
-                  footerNavigation={siteNavigation?.footer}
+                  headerNavigation={headerNavigationPreview}
+                  footerNavigation={footerNavigationPreview}
+                  onAddFirstBlock={() => {
+                    setSelectedBlockIndex(0);
+                    setShowBlockSelector(true);
+                  }}
                 />
               )}
             </div>
@@ -795,35 +748,75 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
       />
 
       {/* Header Navigation Dialog */}
-      <HeaderNavigationDialog
+      <HeaderNavigationBlockEditor
         isOpen={showHeaderDialog}
         onClose={() => setShowHeaderDialog(false)}
         siteId={siteId as number}
-        headerNavigation={siteNavigation?.header}
+        headerNavigation={headerNavigationPreview}
         activeLang={previewLang}
         onSaveChanges={(items, preparedData) => {
-          // Store changes locally - will be saved when user clicks Save in PageBuilder
+          // Store changes locally only if there are actual diffs
+          const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
           setHeaderItems(items);
-          if (preparedData) {
-            setPendingHeaderNavigation(preparedData);
+          if (hasNavChanges) {
+            setPendingHeaderNavigation(preparedData!);
+            setHasUnsavedChanges(true);
           }
-          setHasUnsavedChanges(true);
         }}
       />
 
       {/* Footer Navigation Dialog */}
-      <FooterNavigationDialog
+      <FooterNavigationBlockEditor
         isOpen={showFooterDialog}
         onClose={() => setShowFooterDialog(false)}
         siteId={siteId as number}
-        footerNavigation={siteNavigation?.footer}
+        footerNavigation={footerNavigationPreview}
         activeLang={previewLang}
         onSaveChanges={(items, preparedData) => {
-          // Store changes locally - will be saved when user clicks Save in PageBuilder
+          // Store changes locally only if there are actual diffs
+          const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
           setFooterItems(items);
-          if (preparedData) {
-            setPendingFooterNavigation(preparedData);
+          if (hasNavChanges) {
+            setPendingFooterNavigation(preparedData!);
+            setHasUnsavedChanges(true);
           }
+        }}
+      />
+
+      <PageMetadataDialog
+        isOpen={showMetadataDialog}
+        onClose={() => setShowMetadataDialog(false)}
+        pageId={pageId}
+        page={page as Page | null}
+        defaultLanguage={metadataDialogLang}
+        onApply={(entry) => {
+          // Stage page translation changes into the payload manager
+          console.log('[PageBuilder] Staging translation:', entry);
+          stagePageTranslation(entry.languages_code, {
+            title: entry.title,
+            permalink: entry.permalink,
+            id: entry.id,
+            isSessionOnly: entry.isSessionOnly,
+          });
+
+          // Track staged translation for UI display
+          setStagedTranslations((prev) => {
+            const existingIdx = prev.findIndex(t => t.languages_code === entry.languages_code);
+            const staged = {
+              languages_code: entry.languages_code,
+              title: entry.title,
+              permalink: entry.permalink,
+              isNew: entry.isSessionOnly || entry.id === 0,
+            };
+
+            if (existingIdx >= 0) {
+              const updated = [...prev];
+              updated[existingIdx] = staged;
+              return updated;
+            }
+            return [...prev, staged];
+          });
+
           setHasUnsavedChanges(true);
         }}
       />
@@ -831,46 +824,77 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
   );
 }
 
+type NavigationItemInput = Partial<DirectusNavigationItem> & {
+  page?: string | { id: string } | Page | null;
+  children?: NavigationItemInput[];
+  translations?: Array<
+    Partial<NavigationItemTranslation> & {
+      languages_code?: string | { code: string };
+      title?: string | null;
+    }
+  >;
+};
+
+function normalizeNavigationItems(items: NavigationItemInput[]): DirectusNavigationItem[] {
+  return items.map((item, index) => {
+    const fallbackId = `temp-nav-${index}-${Math.random().toString(36).slice(2, 8)}`;
+    const itemId = typeof item.id === 'string' && item.id.length > 0 ? item.id : fallbackId;
+
+    const children = item.children ? normalizeNavigationItems(item.children) : undefined;
+
+    const translations = (item.translations ?? []).map((translation, translationIndex) => {
+      const langCode =
+        typeof translation.languages_code === 'string'
+          ? translation.languages_code
+          : translation.languages_code && typeof translation.languages_code === 'object' && 'code' in translation.languages_code
+            ? (translation.languages_code as { code: string }).code
+            : 'en-US';
+
+      const translationId =
+        typeof translation.id === 'number' ? translation.id : -1 * (translationIndex + 1);
+
+      return {
+        id: translationId,
+        navigation_items_id: translation.navigation_items_id ?? itemId,
+        languages_code: langCode,
+        title: translation.title ?? '',
+      };
+    }) as NavigationItemTranslation[];
+
+    let pageValue: string | null = null;
+    if ((item.type as 'page' | 'url' | undefined) === 'page') {
+      if (typeof item.page === 'string') {
+        pageValue = item.page;
+      } else if (item.page && typeof item.page === 'object' && 'id' in item.page) {
+        pageValue = (item.page as { id: string }).id;
+      } else if (item.page === null) {
+        pageValue = null;
+      }
+    }
+
+    return {
+      id: itemId,
+      navigation: item.navigation ?? null,
+      sort: typeof item.sort === 'number' ? item.sort : index,
+      type: (item.type as 'page' | 'url') ?? 'page',
+      url: (item.type as 'page' | 'url') === 'url' ? (item.url ?? null) : null,
+      page: pageValue,
+      open_in_new_tab: (item.type as 'page' | 'url') === 'url' ? (item.open_in_new_tab ?? false) : false,
+      has_children: item.has_children ?? (!!children && children.length > 0),
+      parent: item.parent ?? null,
+      icon: item.icon ?? null,
+      label: item.label ?? null,
+      translations,
+      children,
+      parent_item: null,
+      page_item:
+        item.page && typeof item.page === 'object' && 'id' in item.page ? (item.page as Page) : null,
+      date_created: item.date_created ?? null,
+      date_updated: item.date_updated ?? null,
+      user_created: item.user_created ?? null,
+      user_updated: item.user_updated ?? null,
+    };
+  });
+}
+
 // Helper functions
-function getBlockIcon(collection: string): string {
-  const iconMap: Record<string, string> = {
-    block_hero: 'lucide:layout-dashboard',
-    block_richtext: 'lucide:text',
-    block_columns: 'lucide:columns',
-    block_gallery: 'lucide:images',
-    block_video: 'lucide:video',
-    block_quote: 'lucide:quote',
-    block_faqs: 'lucide:help-circle',
-    block_steps: 'lucide:list-ordered',
-    block_cta: 'lucide:arrow-right-circle',
-    block_logocloud: 'lucide:cloud',
-    block_team: 'lucide:users',
-    block_testimonials: 'lucide:message-circle',
-    block_form: 'lucide:form-input',
-    block_html: 'lucide:code',
-    block_divider: 'lucide:minus',
-  };
-  return iconMap[collection] || 'lucide:box';
-}
-
-function getBlockLabel(collection: string): string {
-  const labelMap: Record<string, string> = {
-    block_hero: 'Hero',
-    block_richtext: 'Rich Text',
-    block_columns: 'Columns',
-    block_gallery: 'Gallery',
-    block_video: 'Video',
-    block_quote: 'Quote',
-    block_faqs: 'FAQs',
-    block_steps: 'Steps',
-    block_cta: 'Call to Action',
-    block_logocloud: 'Logo Cloud',
-    block_team: 'Team',
-    block_testimonials: 'Testimonials',
-    block_form: 'Form',
-    block_html: 'HTML',
-    block_divider: 'Divider',
-  };
-  return labelMap[collection] || collection;
-}
-

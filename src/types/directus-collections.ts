@@ -285,6 +285,260 @@ export interface BlockQuote extends BaseBlock {
   [key: string]: unknown;
 }
 
+// ============================================================================
+// Block Columns
+// ============================================================================
+
+export interface BlockColumnsTranslation extends BlockTranslation {
+  id?: number; // Optional for new translations
+  block_columns_id?: string; // Optional for new translations
+  title?: string | null;
+  headline?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockColumnsRowsTranslation extends BlockTranslation {
+  id?: number; // Optional for new translations
+  block_columns_rows_id?: string; // Optional for new translations
+  title?: string | null;
+  headline?: string | null;
+  content?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockButtonTranslation extends BlockTranslation {
+  id?: number; // Optional for new translations
+  block_button_id?: string; // Optional for new translations
+  label?: string | null;
+  // href is kept for backward compatibility but schema favors type/page/post/external_url
+  href?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockButton {
+  id: string; // UUID
+  button_group?: string | null; // UUID reference to block_button_group
+  sort?: number | null;
+  // Link target per schema
+  type?: 'pages' | 'posts' | 'external' | null;
+  page?: string | null; // m2o pages.id
+  post?: string | null; // m2o posts.id
+  external_url?: string | null;
+  // Style
+  variant?: 'solid' | 'outline' | 'soft' | 'ghost' | 'link' | null;
+  color?: 'primary' | 'gray' | 'black' | 'white' | null;
+  open_in_new_window?: boolean | null;
+  translations?: BlockButtonTranslation[];
+  [key: string]: unknown;
+}
+
+export interface BlockButtonGroup {
+  id: string; // UUID
+  alignment?: 'start' | 'center' | 'end' | null;
+  buttons?: BlockButton[];
+  event_id?: number | null;
+  tenant_id?: number | null;
+  [key: string]: unknown;
+}
+
+export interface BlockColumnsRows {
+  id: string; // UUID
+  block_columns?: string | null; // UUID reference to block_columns
+  sort?: number | null;
+  image?: string | null; // UUID reference to directus_files
+  image_position?: 'left' | 'right' | null;
+  button_group?: string | BlockButtonGroup | null; // UUID reference or populated object
+  translations?: BlockColumnsRowsTranslation[];
+  event_id?: number | null;
+  tenant_id?: number | null;
+  [key: string]: unknown;
+}
+
+export interface BlockColumns extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  rows?: BlockColumnsRows[];
+  translations?: BlockColumnsTranslation[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Block Steps
+// ============================================================================
+
+export interface BlockStepsTranslation extends BlockTranslation {
+  block_steps_id: string;
+  title?: string | null;
+  headline?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockStepItemTranslation {
+  id?: number;
+  block_step_items_id?: string | null; // UUID FK to block_step_items
+  languages_code: LanguageCode | string;
+  title?: string | null;
+  content?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockStepItem {
+  id?: string; // UUID - Optional for new items (Directus generates)
+  block_steps?: string | null; // UUID FK to block_steps - CRITICAL for linking
+  sort?: number | null;
+  title?: string | null;
+  content?: string | null;
+  image?: string | null; // UUID reference to directus_files
+  button_group?: string | BlockButtonGroup | null; // UUID reference to block_button_group
+  event_id?: number | null;
+  tenant_id?: number | null;
+  translations?: BlockStepItemTranslation[];
+  [key: string]: unknown;
+}
+
+export interface BlockSteps extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  alternate_image_position?: boolean | null;
+  show_step_numbers?: boolean | null;
+  steps?: BlockStepItem[]; // O2M alias - populated from block_step_items
+  translations?: BlockStepsTranslation[];
+  [key: string]: unknown;
+}
+
+// Backward compatibility aliases
+export type BlockStepItems = BlockStepItem;
+export type BlockStepItemsTranslation = BlockStepItemTranslation;
+
+// ============================================================================
+// Block Form
+// ============================================================================
+
+export interface BlockFormTranslation extends BlockTranslation {
+  block_form_id: string;
+  title?: string | null;
+  headline?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockForm extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  form?: string | null; // UUID reference to forms collection
+  translations?: BlockFormTranslation[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Block Gallery
+// ============================================================================
+
+export interface BlockGalleryTranslation extends BlockTranslation {
+  block_gallery_id: string;
+  title?: string | null;
+  headline?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockGalleryFiles {
+  id: string; // UUID
+  block_gallery?: string | null; // UUID reference to block_gallery
+  directus_files_id?: string | null; // UUID reference to directus_files
+  sort?: number | null;
+  event_id?: number | null;
+  tenant_id?: number | null;
+  [key: string]: unknown;
+}
+
+export interface BlockGallery extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  gallery_items?: BlockGalleryFiles[];
+  translations?: BlockGalleryTranslation[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Block Video
+// ============================================================================
+
+export interface BlockVideoTranslation extends BlockTranslation {
+  block_video_id: string;
+  title?: string | null;
+  headline?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockVideo extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  title?: string | null; // Legacy field, prefer translations.title
+  headline?: string | null; // Legacy field, prefer translations.headline
+  type?: 'url' | 'file' | null; // 'url' for external video, 'file' for uploaded video
+  video_url?: string | null; // URL for external video (YouTube, Vimeo, etc.)
+  video_file?: string | null; // UUID of directus_files for uploaded video
+  translations?: BlockVideoTranslation[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Block CTA
+// ============================================================================
+
+export interface BlockCtaTranslation extends BlockTranslation {
+  block_cta_id: string;
+  title?: string | null;
+  headline?: string | null;
+  content?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockCta extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  background_color?: string | null;
+  button_style?: string | null;
+  button_group?: string | BlockButtonGroup | null;
+  translations?: BlockCtaTranslation[];
+  [key: string]: unknown;
+}
+
+// ============================================================================
+// Block FAQs
+// ============================================================================
+
+export interface BlockFaqsItemsTranslation extends BlockTranslation {
+  block_faqs_items_id?: string;
+  question?: string | null;
+  answer?: string | null;
+  [key: string]: unknown;
+}
+
+export interface BlockFaqsItems {
+  id: string; // UUID
+  block_faqs?: string | null; // UUID reference to block_faqs
+  sort?: number | null;
+  translations?: BlockFaqsItemsTranslation[];
+  event_id?: number | null;
+  tenant_id?: number | null;
+  [key: string]: unknown;
+}
+
+export interface BlockFaqs extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  items?: BlockFaqsItems[];
+  translations?: BlockFaqsTranslation[];
+  [key: string]: unknown;
+}
+
 /**
  * Union type for all block types
  * Use this when you need to handle any block type
@@ -294,6 +548,12 @@ export type BlockItem =
   | BlockRichText
   | BlockFaqs
   | BlockQuote
+  | BlockColumns
+  | BlockSteps
+  | BlockForm
+  | BlockGallery
+  | BlockVideo
+  | BlockCta
   | BaseBlock; // Fallback for other block types
 
 /**
@@ -309,6 +569,7 @@ export interface PageBlockWithItem extends PageBlock {
 
 export interface PageTranslationPayload {
   create?: Array<{
+    pages_id: string; // UUID reference to pages.id
     languages_code: { code: LanguageCode | string };
     title?: string | null;
     permalink?: string | null;

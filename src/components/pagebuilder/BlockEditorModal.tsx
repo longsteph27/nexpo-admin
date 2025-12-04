@@ -236,7 +236,7 @@ function renderBlockEditor(
       return <QuoteBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
     
     case 'block_faqs':
-      return <FaqsBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
+      return <FaqsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
     
     case 'block_video':
       return <VideoBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;

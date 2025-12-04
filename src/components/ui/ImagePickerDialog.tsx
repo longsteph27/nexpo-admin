@@ -24,9 +24,10 @@ interface DirectusFile {
 interface ImagePickerDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (assetId: string) => void;
+  onSelect: (assetId: string | string[]) => void;
   folderId?: string;
-  currentValue?: string;
+  currentValue?: string | string[];
+  multiple?: boolean; // Allow multiple selection
 }
 
 export default function ImagePickerDialog({
@@ -35,11 +36,19 @@ export default function ImagePickerDialog({
   onSelect,
   folderId,
   currentValue,
+  multiple = false,
 }: ImagePickerDialogProps) {
   const [activeTab, setActiveTab] = useState<'library' | 'upload'>('library');
   const [files, setFiles] = useState<DirectusFile[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<string | null>(currentValue || null);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(() => {
+    if (multiple && Array.isArray(currentValue)) {
+      return new Set(currentValue);
+    } else if (!multiple && typeof currentValue === 'string') {
+      return new Set([currentValue]);
+    }
+    return new Set();
+  });
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,48 +85,51 @@ export default function ImagePickerDialog({
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const fileList = e.target.files;
+    if (!fileList || fileList.length === 0) return;
 
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Invalid file type', {
-        description: 'Please select an image file.',
-      });
-      return;
-    }
-
-    // Validate file size (5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('File too large', {
-        description: 'File size must be less than 5MB.',
-      });
-      return;
-    }
+    // In multiple mode, upload all files. In single mode, upload only the first one.
+    const filesToUpload = multiple ? Array.from(fileList) : [fileList[0]];
 
     setUploading(true);
     try {
-      const result = await directusHelpers.uploadFile(file, folderId);
-      if (result.success && result.data) {
-        const assetId = result.data.id;
-        // Add to library list
+      const uploadedIds: string[] = [];
+
+      for (const file of filesToUpload) {
+        try {
+          const result = await directusHelpers.uploadFile(file, folderId);
+          if (result.success && result.data) {
+            uploadedIds.push(result.data.id);
+          }
+        } catch (err) {
+          console.error(`Failed to upload ${file.name}:`, err);
+        }
+      }
+
+      if (uploadedIds.length > 0) {
+        // Reload library to show new files
         await loadLibraryFiles();
-        // Select the newly uploaded file
-        setSelectedFile(assetId);
-        // Switch to library tab to show it
+
+        if (multiple) {
+          // Add to existing selection
+          const newSelection = new Set(selectedFiles);
+          uploadedIds.forEach(id => newSelection.add(id));
+          setSelectedFiles(newSelection);
+        } else {
+          // Replace selection with first uploaded file
+          setSelectedFiles(new Set([uploadedIds[0]]));
+        }
+
+        // Switch to library tab to show them
         setActiveTab('library');
-        toast.success('Image uploaded successfully', {
-          description: 'The image has been added to your library.',
-        });
-      } else {
-        toast.error('Upload failed', {
-          description: result.error || 'Please try again.',
+        toast.success(`${uploadedIds.length} image(s) uploaded successfully`, {
+          description: 'The images have been added to your library.',
         });
       }
     } catch (error) {
       console.error('Upload error:', error);
       toast.error('Upload failed', {
-        description: error instanceof Error ? error.message : 'Failed to upload image.',
+        description: error instanceof Error ? error.message : 'Failed to upload images.',
       });
     } finally {
       setUploading(false);
@@ -128,10 +140,32 @@ export default function ImagePickerDialog({
   };
 
   const handleSelect = () => {
-    if (selectedFile) {
-      onSelect(selectedFile);
-      onClose();
+    if (multiple) {
+      if (selectedFiles.size > 0) {
+        onSelect(Array.from(selectedFiles));
+        onClose();
+      }
+    } else {
+      const firstSelected = Array.from(selectedFiles)[0];
+      if (firstSelected) {
+        onSelect(firstSelected);
+        onClose();
+      }
     }
+  };
+
+  const toggleFileSelection = (fileId: string) => {
+    const newSelection = new Set(selectedFiles);
+    if (newSelection.has(fileId)) {
+      newSelection.delete(fileId);
+    } else {
+      if (!multiple) {
+        // Single mode: clear previous selection
+        newSelection.clear();
+      }
+      newSelection.add(fileId);
+    }
+    setSelectedFiles(newSelection);
   };
 
   const getAssetUrl = (assetId: string) => {
@@ -239,42 +273,46 @@ export default function ImagePickerDialog({
                         </div>
                       ) : (
                         <div className="grid grid-cols-4 gap-4">
-                          {files.map((file) => (
-                            <button
-                              key={file.id}
-                              onClick={() => setSelectedFile(file.id)}
-                              className={`relative group rounded-lg overflow-hidden border-2 transition ${
-                                selectedFile === file.id
-                                  ? 'border-blue-600 ring-2 ring-blue-200'
-                                  : 'border-gray-200 hover:border-gray-300'
-                              }`}
-                            >
-                              <div className="aspect-square bg-gray-100 relative">
-                                <Image
-                                  src={getAssetUrl(file.id)}
-                                  alt={file.title || file.filename_download}
-                                  fill
-                                  className="object-cover"
-                                  unoptimized
-                                />
-                                {selectedFile === file.id && (
-                                  <div className="absolute inset-0 bg-blue-600 bg-opacity-20 flex items-center justify-center">
-                                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                      <Icon icon="lucide:check" className="w-5 h-5 text-white" />
+                          {files.map((file) => {
+                            const isSelected = selectedFiles.has(file.id);
+                            return (
+                              <button
+                                key={file.id}
+                                type="button"
+                                onClick={() => toggleFileSelection(file.id)}
+                                className={`relative group rounded-lg overflow-hidden border-2 transition ${
+                                  isSelected
+                                    ? 'border-blue-600 ring-2 ring-blue-200'
+                                    : 'border-gray-200 hover:border-gray-300'
+                                }`}
+                              >
+                                <div className="aspect-square bg-gray-100 relative">
+                                  <Image
+                                    src={getAssetUrl(file.id)}
+                                    alt={file.title || file.filename_download}
+                                    fill
+                                    className="object-cover"
+                                    unoptimized
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute inset-0 bg-blue-600 bg-opacity-20 flex items-center justify-center">
+                                      <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                        <Icon icon="lucide:check" className="w-5 h-5 text-white" />
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
-                              </div>
-                              <div className="p-2 bg-white">
-                                <p className="text-xs text-content-secondary truncate" title={file.filename_download}>
-                                  {file.filename_download}
-                                </p>
-                                <p className="text-xs text-content-tertiary">
-                                  {formatFileSize(file.filesize)}
-                                </p>
-                              </div>
-                            </button>
-                          ))}
+                                  )}
+                                </div>
+                                <div className="p-2 bg-white">
+                                  <p className="text-xs text-content-secondary truncate" title={file.filename_download}>
+                                    {file.filename_download}
+                                  </p>
+                                  <p className="text-xs text-content-tertiary">
+                                    {formatFileSize(file.filesize)}
+                                  </p>
+                                </div>
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
                     </>
@@ -286,6 +324,7 @@ export default function ImagePickerDialog({
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"
+                        multiple={multiple}
                         className="hidden"
                         onChange={handleFileUpload}
                         disabled={uploading}
@@ -304,10 +343,10 @@ export default function ImagePickerDialog({
                           <>
                             <Icon icon="lucide:upload-cloud" className="w-16 h-16 text-content-tertiary mb-4" />
                             <p className="text-lg font-medium text-content-primary mb-2">
-                              Click to upload image
+                              Click to upload {multiple ? 'images' : 'image'}
                             </p>
                             <p className="text-sm text-content-tertiary">
-                              PNG, JPG, WEBP, SVG up to 5MB
+                              PNG, JPG, WEBP, SVG up to 5MB {multiple ? '(multiple files allowed)' : ''}
                             </p>
                           </>
                         )}
@@ -326,10 +365,10 @@ export default function ImagePickerDialog({
                   </Button>
                   <Button
                     onClick={handleSelect}
-                    disabled={!selectedFile}
+                    disabled={selectedFiles.size === 0}
                     variant="default"
                   >
-                    Select Image
+                    Select {multiple && selectedFiles.size > 1 ? `${selectedFiles.size} Images` : 'Image'}
                   </Button>
                 </div>
               </Dialog.Panel>

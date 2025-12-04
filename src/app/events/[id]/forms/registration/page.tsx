@@ -5,9 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
-import { formsApi } from '@/lib/api';
+import { formsApi, FormCard } from '@/features/forms';
+import type { FormSummary } from '@/features/forms';
 import { useAuth } from '@/contexts/AuthContext';
-import FormCard from '@/components/forms/FormCard';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 
@@ -20,12 +20,19 @@ export default function FormsRegistrationPage() {
   const tenantId = selectedTenant?.id;
 
   // Fetch registration forms
-  const { data: forms = [], isLoading, error } = useQuery({
+  const {
+    data: forms = [],
+    isLoading,
+    error,
+  } = useQuery<FormSummary[]>({
     queryKey: ['registration-forms', eventId, tenantId],
     queryFn: async () => {
       if (!tenantId) return [];
       const result = await formsApi.getRegistrationForms(Number(eventId), tenantId);
-      return result.success ? result.data : [];
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to load registration forms');
+      }
+      return result.data ?? [];
     },
     enabled: !!eventId && !!tenantId,
   });
@@ -101,7 +108,7 @@ export default function FormsRegistrationPage() {
         </div>
       ) : (
         <Container className="grid grid-cols-1 md:grid-cols-2 bg-white h-full rounded-lg lg:grid-cols-3 gap-4">
-          {forms.map((form: any) => (
+          {forms.map((form) => (
             <FormCard
               key={form.id}
               form={form}

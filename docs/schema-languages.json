@@ -1,0 +1,190 @@
+{
+    "collections": [
+        {
+            "collection": "languages",
+            "meta": {
+                "archive_app_filter": true,
+                "hidden": true,
+                "versioning": false,
+                "singleton": false,
+                "sort": 34,
+                "note": null,
+                "item_duplication_fields": null,
+                "translations": null,
+                "preview_url": null,
+                "collapse": "open",
+                "group": null,
+                "color": null,
+                "accountability": "all",
+                "sort_field": null,
+                "unarchive_value": null,
+                "archive_value": null,
+                "archive_field": null,
+                "display_template": null,
+                "icon": null,
+                "collection": "languages"
+            },
+            "schema": {}
+        }
+    ],
+    "fields": [
+        {
+            "collection": "languages",
+            "field": "code",
+            "type": "string",
+            "schema": {
+                "name": "code",
+                "table": "languages",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": false,
+                "is_unique": true,
+                "is_indexed": false,
+                "is_primary_key": true,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "required": false,
+                "readonly": false,
+                "hidden": false,
+                "sort": 1,
+                "note": null,
+                "validation_message": null,
+                "translations": null,
+                "options": null,
+                "display_options": null,
+                "validation": null,
+                "conditions": null,
+                "group": null,
+                "width": "full",
+                "display": null,
+                "interface": "input",
+                "special": null,
+                "field": "code",
+                "collection": "languages"
+            }
+        },
+        {
+            "collection": "languages",
+            "field": "name",
+            "type": "string",
+            "schema": {
+                "name": "name",
+                "table": "languages",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "required": false,
+                "readonly": false,
+                "hidden": false,
+                "sort": 2,
+                "note": null,
+                "validation_message": null,
+                "translations": null,
+                "options": null,
+                "display_options": null,
+                "validation": null,
+                "conditions": null,
+                "group": null,
+                "width": "full",
+                "display": null,
+                "interface": "input",
+                "special": null,
+                "field": "name",
+                "collection": "languages"
+            }
+        },
+        {
+            "collection": "languages",
+            "field": "direction",
+            "type": "string",
+            "schema": {
+                "name": "direction",
+                "table": "languages",
+                "data_type": "character varying",
+                "default_value": null,
+                "generation_expression": null,
+                "max_length": 255,
+                "numeric_precision": null,
+                "numeric_scale": null,
+                "is_generated": false,
+                "is_nullable": true,
+                "is_unique": false,
+                "is_indexed": false,
+                "is_primary_key": false,
+                "has_auto_increment": false,
+                "foreign_key_schema": null,
+                "foreign_key_table": null,
+                "foreign_key_column": null,
+                "comment": null
+            },
+            "meta": {
+                "required": false,
+                "readonly": false,
+                "hidden": false,
+                "sort": 3,
+                "note": null,
+                "validation_message": null,
+                "translations": null,
+                "options": {
+                    "choices": [
+                        {
+                            "text": "Left to Right",
+                            "value": "ltr"
+                        },
+                        {
+                            "text": "Right to Left",
+                            "value": "rtl"
+                        }
+                    ]
+                },
+                "display_options": {
+                    "choices": [
+                        {
+                            "text": "Left to Right",
+                            "value": "ltr"
+                        },
+                        {
+                            "text": "Right to Left",
+                            "value": "rtl"
+                        }
+                    ]
+                },
+                "validation": null,
+                "conditions": null,
+                "group": null,
+                "width": "full",
+                "display": "labels",
+                "interface": "select-dropdown",
+                "special": null,
+                "field": "direction",
+                "collection": "languages"
+            }
+        }
+    ],
+    "relations": []
+}

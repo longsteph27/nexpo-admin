@@ -1,4 +1,5 @@
 import type { Event, User, Permission } from './directus';
+import type { LanguageCode } from '@/types/directus-collections';
 import directus, { directusHelpers } from './directus';
 import { readItems, createItem, updateItem, deleteItem } from '@directus/sdk';
 
@@ -148,9 +149,11 @@ export const eventsApi = {
 };
 
 // Re-export Forms API from dedicated file
-export { formsApi } from '@/lib/api/forms';
+export { formsApi } from '@/features/forms/api';
 
 // Site Builder API: site (one per event), pages, blocks
+const DEFAULT_SITE_LANGUAGE_CODES = ['en-US', 'vi-VN'] as const;
+
 export const siteApi = {
   getSiteByEvent: async (eventId: string): Promise<ApiResponse<{ id: number } | null>> => {
     try {
@@ -170,20 +173,101 @@ export const siteApi = {
     }
   },
 
-  getSite: async (siteId: number): Promise<ApiResponse<any>> => {
+  getSite: async (siteId: number): Promise<ApiResponse<Record<string, unknown> | null>> => {
     try {
       const res = await directusHelpers.getSite(Number(siteId));
-      return res.success ? { success: true, data: res.data } : { success: false, error: res.error };
+      if (!res.success) {
+        return { success: false, error: res.error };
+      }
+
+      const siteRecord = res.data as Record<string, unknown> | null;
+
+      if (siteRecord && typeof siteRecord === 'object' && 'id' in siteRecord) {
+        try {
+          const siteLanguages = await directus.request(
+            readItems('sites_languages' as never, {
+              filter: { sites_id: { _eq: Number(siteRecord.id) } },
+              fields: ([
+                'id',
+                'languages_code',
+                { languages_id: ['code', 'name', 'direction'] },
+              ] as unknown) as never,
+            })
+          );
+
+          (siteRecord as Record<string, unknown>).languages = siteLanguages ?? [];
+        } catch (languageError) {
+          console.error('[siteApi.getSite] Failed to fetch site languages', languageError);
+        }
+      }
+
+      return { success: true, data: siteRecord };
     } catch (error: unknown) {
       return { success: false, error: handleAxiosError(error, 'Failed to get site') };
     }
   },
 
-  // Create a site with minimal fields (event_id, slug/domain optional)
-  createSite: async (payload: { event_id: number; slug?: string; domain?: string; status?: string }): Promise<ApiResponse<unknown>> => {
+  // Create a site ensuring mandatory tenant_id & event_id and attach default languages (en-US, vi-VN)
+  createSite: async (payload: { event_id: number; tenant_id: number; slug?: string; domain?: string; status?: string }): Promise<ApiResponse<unknown>> => {
     try {
+      const { event_id, tenant_id } = payload || ({} as { event_id?: number; tenant_id?: number });
+      if (typeof event_id !== 'number' || typeof tenant_id !== 'number') {
+        return { success: false, error: 'Missing required fields: event_id and tenant_id are mandatory when creating a site.' };
+      }
+
       const res = await directusHelpers.createSite(payload);
-      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+
+      if (!res.success) {
+        return { success: false, error: res.error };
+      }
+
+      const siteRecord = res.data as { id?: number } | null;
+      const siteId = siteRecord?.id;
+
+      if (typeof siteId === 'number') {
+        try {
+          // Fetch existing attached languages to avoid duplicates
+          const existing = (await directus.request(
+            readItems('sites_languages' as never, {
+              filter: { sites_id: { _eq: siteId } },
+              fields: (['languages_code'] as unknown) as never,
+            })
+          )) as Array<{ languages_code: string }> | null;
+
+          const existingCodes = new Set((existing || []).map((e) => e.languages_code));
+          const missingCodes = DEFAULT_SITE_LANGUAGE_CODES.filter((code) => !existingCodes.has(code));
+
+          for (const code of missingCodes) {
+            try {
+              await directus.request(
+                createItem('sites_languages' as never, {
+                  sites_id: siteId,
+                  languages_code: code,
+                } as never)
+              );
+            } catch (languageError) {
+              console.error('[siteApi.createSite] Failed to attach language', code, languageError);
+            }
+          }
+        } catch (languageFetchError) {
+          console.error('[siteApi.createSite] Failed checking existing site languages', languageFetchError);
+          // fallback: attempt blind attach of defaults
+          for (const code of DEFAULT_SITE_LANGUAGE_CODES) {
+            try {
+              await directus.request(
+                createItem('sites_languages' as never, {
+                  sites_id: siteId,
+                  languages_code: code,
+                } as never)
+              );
+            } catch (languageError) {
+              console.error('[siteApi.createSite] Fallback attach language failed', code, languageError);
+            }
+          }
+        }
+      }
+
+      return { success: true, data: res.data as unknown };
     } catch (error: unknown) {
       return { success: false, error: handleAxiosError(error, 'Failed to create site') };
     }
@@ -211,9 +295,44 @@ export const siteApi = {
   },
 
   // Create a page with translations (title) for a site
-  createPage: async (payload: { site_id: number; sort?: number; translations?: { create: Array<{ languages_code: { code: string }; title?: string; permalink?: string }> } }): Promise<ApiResponse<unknown>> => {
+  // Ensures tenant_id and event_id are always filled from site when missing
+  createPage: async (payload: {
+    site_id: number;
+    sort?: number;
+    tenant_id?: number;
+    event_id?: number;
+    translations?: { create: Array<{ languages_code: { code: string }; title?: string; permalink?: string }> }
+  }): Promise<ApiResponse<unknown>> => {
     try {
-      const res = await directusHelpers.createPage(payload);
+      // Enrich payload with tenant_id and event_id from site if not provided
+      let tenantId = payload.tenant_id;
+      let eventId = payload.event_id;
+      try {
+        if (tenantId == null || eventId == null) {
+          const siteRes = await directusHelpers.getSite(Number(payload.site_id));
+          if (siteRes.success && siteRes.data) {
+            const siteData = siteRes.data as { id: number; tenant_id?: number | null; event_id?: number | null };
+            tenantId = tenantId ?? (siteData.tenant_id ?? undefined);
+            eventId = eventId ?? (siteData.event_id ?? undefined);
+          }
+        }
+      } catch (e) {
+        // Continue to validation below
+        console.warn('[createPage] Failed to fetch site for tenant/event enrichment:', e);
+      }
+
+      // Enforce: tenant_id and event_id must be present
+      if (tenantId == null || eventId == null) {
+        return { success: false, error: 'Missing tenant_id or event_id when creating page. Ensure site has these fields or pass them explicitly.' };
+      }
+
+      const finalPayload = {
+        ...payload,
+        tenant_id: tenantId,
+        event_id: eventId,
+      };
+
+      const res = await directusHelpers.createPage(finalPayload);
       return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
     } catch (error: unknown) {
       return { success: false, error: handleAxiosError(error, 'Failed to create page') };
@@ -246,6 +365,71 @@ export const siteApi = {
     }
   },
 
+  updatePageTranslations: async (
+    pageId: string,
+    translations: Array<{
+      id?: number;
+      languages_code: LanguageCode | string;
+      title?: string | null;
+      permalink?: string | null;
+    }>
+  ): Promise<ApiResponse<unknown>> => {
+    try {
+      type UpdateEntry = { id: number; title?: string | null; permalink?: string | null };
+      type CreateEntry = { pages_id?: string; languages_code: { code: string }; title?: string | null; permalink?: string | null };
+      const updates: UpdateEntry[] = [];
+      const creates: CreateEntry[] = [];
+
+      translations.forEach((translation) => {
+        const langCode =
+          typeof translation.languages_code === 'string'
+            ? translation.languages_code
+            : (translation.languages_code as { code: string }).code;
+
+        if (translation.id && typeof translation.id === 'number') {
+          // Only include fields that are explicitly provided (avoid nulling out unchanged fields)
+          const updateEntry: UpdateEntry = { id: translation.id };
+          if (Object.prototype.hasOwnProperty.call(translation, 'title')) {
+            updateEntry.title = translation.title ?? null;
+          }
+          if (Object.prototype.hasOwnProperty.call(translation, 'permalink')) {
+            updateEntry.permalink = translation.permalink ?? null;
+          }
+          // Only push if there is at least one field to update besides id
+          if (Object.keys(updateEntry).length > 1) {
+            updates.push(updateEntry);
+          }
+        } else {
+          // Create new translation for language (rare in metadata dialog, but supported)
+          const createEntry: CreateEntry = { languages_code: { code: langCode } };
+          if (Object.prototype.hasOwnProperty.call(translation, 'title')) {
+            createEntry.title = translation.title ?? null;
+          }
+          if (Object.prototype.hasOwnProperty.call(translation, 'permalink')) {
+            createEntry.permalink = translation.permalink ?? null;
+          }
+          // Directus requires pages_id for create when not using implicit nesting
+          createEntry.pages_id = pageId;
+          creates.push(createEntry);
+        }
+      });
+
+      if (updates.length === 0 && creates.length === 0) {
+        return { success: true };
+      }
+
+      const translationsPayload: Record<string, unknown> = {};
+      if (updates.length > 0) translationsPayload.update = updates;
+      if (creates.length > 0) translationsPayload.create = creates;
+
+      const payload: Record<string, unknown> = { translations: translationsPayload };
+      const res = await directusHelpers.updatePage(pageId, payload);
+      return res.success ? { success: true, data: res.data as unknown } : { success: false, error: res.error };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to update page metadata') };
+    }
+  },
+
   getBlocksByPage: async (pageId: string): Promise<ApiResponse<Array<{ id: string; collection: string; hide_block?: boolean }>>> => {
     try {
       const res = await directusHelpers.getBlocksByPage(pageId);
@@ -267,7 +451,17 @@ export const siteApi = {
   },
 
   // Update page blocks using create/update/delete structure
-  updatePageBlocks: async (pageId: string, payload: { blocks: { create: any[]; update: any[]; delete: string[] }; event_id?: number }): Promise<ApiResponse<unknown>> => {
+  updatePageBlocks: async (
+    pageId: string,
+    payload: {
+      blocks: {
+        create: Array<Record<string, unknown>>;
+        update: Array<Record<string, unknown>>;
+        delete: string[];
+      };
+      event_id?: number;
+    }
+  ): Promise<ApiResponse<unknown>> => {
     try {
       // Call Directus API to update page with blocks
       const response = await directus.request(

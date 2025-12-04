@@ -1,9 +1,11 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
     content: [
+        './src/app/**/*.{js,ts,jsx,tsx,mdx}',
         './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-        './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+        './src/features/**/*.{js,ts,jsx,tsx,mdx}',
+        './docs/**/*.{js,ts,jsx,tsx,mdx}',
     ],
     theme: {
         extend: {
@@ -23,6 +25,7 @@ module.exports = {
                 bg: {
                     hover: '#F7F7F7',
                 },
+                'content-preview': "#f9fafb",
                 
                 // CSS Variables from globals.css
                 background: "var(--background)",

@@ -206,7 +206,9 @@ export default function FooterNavigationDialog({
       const prepareItemData = (item: NavigationItem, sort: number, parentIdOverride?: string | null) => ({
         type: item.type,
         url: item.type === 'url' ? (item.url || null) : null,
-        page: item.type === 'page' ? (item.page?.id || null) : null,
+        page: item.type === 'page'
+          ? (typeof item.page === 'string' ? item.page : (item.page?.id || null))
+          : null,
         sort,
         open_in_new_tab: item.type === 'url' ? (item.open_in_new_tab || false) : false,
         icon: item.icon || null,
@@ -264,14 +266,75 @@ export default function FooterNavigationDialog({
       // Process root items first
       rootItems.forEach(({ item, sort, isNew }) => {
         const itemData = prepareItemData(item, currentSort++, null);
-        
+
         if (isNew) {
           itemsToCreate.push(itemData);
         } else if (item.id && existingItems.has(item.id)) {
-          itemsToUpdate.push({
-            id: item.id,
-            ...itemData
+          const existingItem = existingItems.get(item.id);
+          const normalize = (v: any) => (v === undefined || v === null ? null : v);
+
+          const updateFields: any = { id: item.id };
+          let hasFieldChanges = false;
+
+          const existingPageId = existingItem?.page ?? existingItem?.page_item?.id ?? null;
+          const currentPageId = itemData.page;
+          const fieldComparisons: Array<[string, any, any]> = [
+            ['type', itemData.type, existingItem?.type],
+            ['url', itemData.url, existingItem?.url ?? null],
+            ['page', currentPageId, existingPageId ?? null],
+            ['sort', itemData.sort, existingItem?.sort ?? 0],
+            ['open_in_new_tab', itemData.open_in_new_tab, existingItem?.open_in_new_tab ?? false],
+            ['icon', itemData.icon, existingItem?.icon ?? null],
+            ['label', itemData.label, existingItem?.label ?? null],
+            ['has_children', itemData.has_children, existingItem?.has_children ?? false],
+            ['parent', itemData.parent, existingItem?.parent ?? null],
+          ];
+          fieldComparisons.forEach(([key, current, prev]) => {
+            if (normalize(current) !== normalize(prev)) {
+              updateFields[key] = current;
+              hasFieldChanges = true;
+            }
           });
+
+          // Translations diff
+          const existingTranslations = existingItem?.translations || [];
+          const translationsToCreate: any[] = [];
+          const translationsToUpdate: any[] = [];
+          const translationsToDelete: number[] = [];
+          itemData.translations.forEach((t: any) => {
+            const langCode = typeof t.languages_code === 'string' ? t.languages_code : t.languages_code?.code;
+            const existing = existingTranslations.find((et: any) => {
+              const etLangCode = typeof et.languages_code === 'string' ? et.languages_code : et.languages_code?.code;
+              return etLangCode === langCode;
+            });
+            if (existing) {
+              if (normalize(existing.title) !== normalize(t.title)) {
+                translationsToUpdate.push({ id: existing.id, title: t.title });
+              }
+            } else {
+              translationsToCreate.push({ languages_code: t.languages_code, title: t.title });
+            }
+          });
+          existingTranslations.forEach((et: any) => {
+            const etLangCode = typeof et.languages_code === 'string' ? et.languages_code : et.languages_code?.code;
+            const stillExists = itemData.translations.some((t: any) => {
+              const tLangCode = typeof t.languages_code === 'string' ? t.languages_code : t.languages_code?.code;
+              return tLangCode === etLangCode;
+            });
+            if (!stillExists) translationsToDelete.push(et.id);
+          });
+
+          const translationsPayload: any = {};
+          if (translationsToCreate.length > 0) translationsPayload.create = translationsToCreate;
+          if (translationsToUpdate.length > 0) translationsPayload.update = translationsToUpdate;
+          if (translationsToDelete.length > 0) translationsPayload.delete = translationsToDelete;
+          if (Object.keys(translationsPayload).length > 0) {
+            updateFields.translations = translationsPayload;
+          }
+
+          if (hasFieldChanges || Object.keys(translationsPayload).length > 0) {
+            itemsToUpdate.push(updateFields);
+          }
         }
       });
 

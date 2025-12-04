@@ -98,9 +98,13 @@ export default function StepsBlock({ data, lang }: StepsBlockProps) {
                          {stepIdx + 1}
                       </div>
                     )}
-                    <h3 className='mt-2 font-font-display text-primary text-3xl font-semibold '>
-                      {stepTitle}
-                    </h3>
+                    {stepTitle && (
+                      <TypographyHeadline
+                        content={stepTitle}
+                        size='lg'
+                        className='mt-2 font-font-display text-primary font-semibold'
+                      />
+                    )}
                     <TypographyProse
                       content={stepContent}
                       className='mt-4 font-font-body'

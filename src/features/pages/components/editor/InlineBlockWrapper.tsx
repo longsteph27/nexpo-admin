@@ -1,8 +1,7 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import HeroInlineEditor from './HeroInlineEditor'
-import HeroBlock from '@/components/blocks/HeroBlock'
-import RichTextBlock from '@/components/blocks/RichTextBlock'
+import { HeroBlock, RichTextBlock } from '../blocks/preview'
 
 interface InlineBlockWrapperProps {
   block: {
