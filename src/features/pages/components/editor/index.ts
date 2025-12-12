@@ -6,5 +6,5 @@ export { default as NavigationEditor } from './NavigationEditor';
 export { default as InlineBlockWrapper } from './InlineBlockWrapper';
 export { default as HeroInlineEditor } from './HeroInlineEditor';
 export { RichtextBlockEditor } from '../blocks/RichText';
-
-
+export { default as LogoCloudBlock } from '../blocks/LogoCloud/editor';
+export { default as TestimonialsBlock } from '../blocks/Testimonials/editor';

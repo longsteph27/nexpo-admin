@@ -9,7 +9,7 @@ import { getDirectusMedia } from '@/lib/utils/directus-helpers';
 import type { BlockVideo, BlockVideoTranslation, LanguageCode } from '@/types/directus-collections';
 import { extractLanguageCode } from '@/types/directus-collections';
 
-export interface BlockVideoData extends BlockVideo {}
+export interface BlockVideoData extends BlockVideo { }
 
 interface VideoBlockProps {
   data: BlockVideo | Record<string, unknown>;
@@ -63,7 +63,7 @@ export default function VideoBlock({ data, lang }: VideoBlockProps) {
         <TypographyHeadline
           content={headline}
           size="xl"
-          className="font-font-display text-primary"
+          className="font-font-display text-primary justify-center flex"
         />
       )}
       <div className="relative flex justify-center items-center mt-8">

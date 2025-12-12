@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button-base';
 import { Input } from '@/components/ui/input';
 import { Icon } from '@iconify/react';
 import { toast } from 'sonner';
-import type { LanguageCode, Page, PageTranslation } from '@/types/directus-collections';
+import type { Page, PageTranslation } from '@/types/directus-collections';
 import { extractLanguageCode } from '@/types/directus-collections';
 
 
@@ -24,6 +24,7 @@ interface PageMetadataDialogProps {
   pageId: string;
   page?: Page | null;
   defaultLanguage?: LanguageOption;
+  tempMetadata?: Record<LanguageOption, { title?: string | null; permalink?: string | null }>;
   onApply?: (entry: { id?: number; languages_code: LanguageOption; title?: string | null; permalink?: string | null }) => void;
 }
 
@@ -41,20 +42,77 @@ const formatPermalinkValue = (value: string): string => {
     .replace(/^-+|-+$/g, ''); // trim hyphen edges
 };
 
-const isValidPermalink = (value: string): boolean => {
+/**
+ * Normalize permalink with these rules:
+ * - Empty/null → "/"
+ * - "/" → "/"
+ * - "/..." → "/..." (keep as-is)
+ * - "text" → "/text" (add slash prefix)
+ * - Lowercase and format the slug part
+ */
+const normalizePermalink = (value: string | null | undefined): string => {
   if (!value || value.trim() === '') {
-    return false;
+    return '/';
   }
-  return /^[a-z0-9\-_/]+$/.test(value);
+
+  let normalized = value.trim();
+
+  // If it's just "/", return as-is
+  if (normalized === '/') {
+    return '/';
+  }
+
+  // If doesn't start with "/", add it
+  if (!normalized.startsWith('/')) {
+    normalized = '/' + normalized;
+  }
+
+  // Format the slug part (everything after first "/")
+  const slashIndex = normalized.indexOf('/');
+  const slug = normalized.substring(slashIndex + 1); // everything after "/"
+
+  if (slug === '') {
+    return '/'; // "//" → "/"
+  }
+
+  // Format slug: lowercase, spaces to hyphen, remove invalid chars, collapse special chars
+  const formattedSlug = slug
+    .toLowerCase()
+    .replace(/\s+/g, '-') // spaces to hyphen
+    .replace(/[^a-z0-9\-_/]/g, '') // remove invalid chars but keep hyphen underscore slash
+    .replace(/\/+/g, '/') // collapse multiple slashes
+    .replace(/-+/g, '-') // collapse hyphen
+    .replace(/^-+|-+$/g, ''); // trim hyphen edges
+
+  if (formattedSlug === '') {
+    return '/'; // no valid slug left
+  }
+
+  return '/' + formattedSlug;
 };
+
+
 
 function getTranslationState(
   translations: PageTranslation[] | undefined,
-  lang: LanguageOption
+  lang: LanguageOption,
+  tempOverride?: { title?: string | null; permalink?: string | null }
 ): MetadataState {
   const translation = translations?.find(
     (t) => extractLanguageCode(t.languages_code) === lang
   );
+
+  // Use temp metadata if available, otherwise use original translation
+  if (tempOverride && (tempOverride.title !== undefined || tempOverride.permalink !== undefined)) {
+    return {
+      id: translation?.id,
+      title: tempOverride.title !== undefined ? (tempOverride.title || '') : (translation?.title || ''),
+      permalink: tempOverride.permalink !== undefined
+        ? (tempOverride.permalink?.replace(/^\/+/, '') || '')
+        : (translation?.permalink?.replace(/^\/+/, '') || ''),
+    };
+  }
+
   return {
     id: translation?.id,
     title: translation?.title || '',
@@ -68,40 +126,41 @@ export default function PageMetadataDialog({
   pageId,
   page,
   defaultLanguage = 'en-US',
+  tempMetadata,
   onApply,
 }: PageMetadataDialogProps) {
   const originalTranslations = (page as Page | undefined)?.translations;
   const [activeLang, setActiveLang] = useState<LanguageOption>(defaultLanguage);
 
   // Create session-only translations if original is empty
-  const getSessionTranslations = useCallback((original: PageTranslation[] | undefined): Record<LanguageOption, MetadataState & { isSessionOnly: boolean }> => {
+  const getSessionTranslations = useCallback((original: PageTranslation[] | undefined, temp?: Record<LanguageOption, { title?: string | null; permalink?: string | null }>): Record<LanguageOption, MetadataState & { isSessionOnly: boolean }> => {
     if (!original || original.length === 0) {
       console.log('[PageMetadataDialog] Original translations empty, creating session-only records');
       return {
-        'en-US': { id: 0, title: '', permalink: '', isSessionOnly: true },
-        'vi-VN': { id: 0, title: '', permalink: '', isSessionOnly: true },
+        'en-US': { ...getTranslationState(original, 'en-US', temp?.['en-US']), isSessionOnly: true },
+        'vi-VN': { ...getTranslationState(original, 'vi-VN', temp?.['vi-VN']), isSessionOnly: true },
       };
     }
 
     // If partial (only one language), create session-only for missing one
     const result: Record<LanguageOption, MetadataState & { isSessionOnly: boolean }> = {
-      'en-US': { ...getTranslationState(original, 'en-US'), isSessionOnly: false },
-      'vi-VN': { ...getTranslationState(original, 'vi-VN'), isSessionOnly: false },
+      'en-US': { ...getTranslationState(original, 'en-US', temp?.['en-US']), isSessionOnly: false },
+      'vi-VN': { ...getTranslationState(original, 'vi-VN', temp?.['vi-VN']), isSessionOnly: false },
     };
 
     // Mark missing languages as session-only
     if (!original.find(t => extractLanguageCode(t.languages_code) === 'en-US')) {
-      result['en-US'] = { id: 0, title: '', permalink: '', isSessionOnly: true };
+      result['en-US'] = { ...getTranslationState(original, 'en-US', temp?.['en-US']), isSessionOnly: true };
     }
     if (!original.find(t => extractLanguageCode(t.languages_code) === 'vi-VN')) {
-      result['vi-VN'] = { id: 0, title: '', permalink: '', isSessionOnly: true };
+      result['vi-VN'] = { ...getTranslationState(original, 'vi-VN', temp?.['vi-VN']), isSessionOnly: true };
     }
 
     return result;
   }, []);
 
   const [metadata, setMetadata] = useState<Record<LanguageOption, MetadataState & { isSessionOnly: boolean }>>(() =>
-    getSessionTranslations(originalTranslations)
+    getSessionTranslations(originalTranslations, tempMetadata)
   );
   const [slugErrors, setSlugErrors] = useState<Record<LanguageOption, string | null>>({
     'en-US': null,
@@ -112,15 +171,15 @@ export default function PageMetadataDialog({
   useEffect(() => {
     if (isOpen) {
       setActiveLang(defaultLanguage);
-      setMetadata(getSessionTranslations(originalTranslations));
+      setMetadata(getSessionTranslations(originalTranslations, tempMetadata));
       setSlugErrors({
         'en-US': null,
         'vi-VN': null,
       });
-      console.log('[PageMetadataDialog] Dialog opened, metadata initialized:', getSessionTranslations(originalTranslations));
+      console.log('[PageMetadataDialog] Dialog opened, metadata initialized:', getSessionTranslations(originalTranslations, tempMetadata));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, pageId, originalTranslations?.map((t) => `${t.id}-${t.permalink}-${t.title}`).join('|')]);
+  }, [isOpen, pageId]);
 
   const activeState = useMemo(() => metadata[activeLang], [metadata, activeLang]);
 
@@ -172,77 +231,40 @@ export default function PageMetadataDialog({
   const handleSave = useCallback(async () => {
     setIsSaving(true);
 
-    // Validate for the active language only and stage changes (do not call API here)
-    const lang = activeLang;
-    const { id, title, permalink, isSessionOnly } = metadata[lang];
+    // Apply all language metadata when user clicks Apply
+    if (onApply) {
+      LANGUAGE_OPTIONS.forEach((lang) => {
+        const langMetadata = metadata[lang];
+        const normalizedPermalink = normalizePermalink(langMetadata.permalink || '');
 
-    // Format and validate permalink
-    const formatted = formatPermalinkValue(permalink || '');
-    if (formatted && !isValidPermalink(formatted)) {
-      setSlugErrors((prev) => ({ ...prev, [lang]: 'Invalid permalink format' }));
-      toast.error('Please fix permalink errors before saving.');
-      setIsSaving(false);
-      return;
+        const entry: {
+          id?: number;
+          languages_code: LanguageOption;
+          title?: string | null;
+          permalink?: string | null;
+          isSessionOnly?: boolean;
+        } = {
+          languages_code: lang,
+          title: langMetadata.title || null,
+          permalink: normalizedPermalink,
+          isSessionOnly: langMetadata.isSessionOnly,
+        };
+
+        if (!langMetadata.isSessionOnly && langMetadata.id) {
+          entry.id = langMetadata.id;
+        } else if (langMetadata.isSessionOnly) {
+          entry.id = 0;
+        }
+
+        console.log('[PageMetadataDialog] Applying metadata for', lang, ':', entry);
+        onApply(entry);
+      });
     }
 
-    // For session-only translations, always stage (even if looks empty, it's a new translation)
-    // For existing translations, compare with original to only stage real changes
-    let hasTitleChanged = false;
-    let hasPermalinkChanged = false;
-
-    if (isSessionOnly) {
-      // Session-only: stage if user entered anything
-      hasTitleChanged = !!title;
-      hasPermalinkChanged = !!formatted;
-      console.log('[PageMetadataDialog] Session-only translation, will create: hasTitleChanged=', hasTitleChanged, 'hasPermalinkChanged=', hasPermalinkChanged);
-    } else {
-      // Existing: compare with original
-      const original = getTranslationState(originalTranslations, lang);
-      const originalPermalinkNormalized = formatPermalinkValue(original.permalink || '');
-      const currentPermalinkNormalized = formatted;
-
-      hasTitleChanged = title !== original.title;
-      hasPermalinkChanged = currentPermalinkNormalized !== originalPermalinkNormalized;
-      console.log('[PageMetadataDialog] Existing translation, changes: title=', hasTitleChanged, 'permalink=', hasPermalinkChanged);
-    }
-
-    if (!hasTitleChanged && !hasPermalinkChanged) {
-      toast.success('No changes to stage');
-      setIsSaving(false);
-      return;
-    }
-
-    // Build entry for staging
-    const entry: {
-      id?: number;
-      languages_code: LanguageOption;
-      title?: string | null;
-      permalink?: string | null;
-      isSessionOnly?: boolean;
-    } = {
-      languages_code: lang,
-    };
-
-    // For session-only, send id=0 to signal CREATE; for existing, send real id
-    if (!isSessionOnly && id) {
-      entry.id = id;
-    } else if (isSessionOnly) {
-      entry.id = 0; // Signal: this is a session-only translation to CREATE
-    }
-
-    if (hasTitleChanged) entry.title = title || null;
-    if (hasPermalinkChanged) entry.permalink = formatted ? `/${formatted}` : '/';
-    entry.isSessionOnly = isSessionOnly;
-
-    console.log('[PageMetadataDialog] Staging entry:', entry);
-
-    // Stage via onApply callback to PageBuilder (payload manager)
-    onApply?.(entry);
-
-    toast.success('Staged metadata changes');
+    toast.success('Changes applied');
     setIsSaving(false);
     onClose();
-  }, [activeLang, metadata, onApply, onClose, originalTranslations]);
+  }, [onClose, onApply, metadata]);
 
   return (
     <Dialog
@@ -279,11 +301,10 @@ export default function PageMetadataDialog({
                   <button
                     type="button"
                     onClick={() => setActiveLang(lang)}
-                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                      activeLang === lang
-                        ? 'bg-white text-neutral-900 shadow-sm'
-                        : 'text-neutral-600 hover:text-neutral-900'
-                    }`}
+                    className={`px-3 py-1 text-xs font-medium rounded transition-colors ${activeLang === lang
+                      ? 'bg-white text-neutral-900 shadow-sm'
+                      : 'text-neutral-600 hover:text-neutral-900'
+                      }`}
                   >
                     {lang === 'en-US' ? 'En' : 'Vi'}
                   </button>
@@ -333,7 +354,7 @@ export default function PageMetadataDialog({
                 <p className="mt-1 text-xs text-red-500">{slugErrors[activeLang]}</p>
               )}
               <p className="mt-1 text-xs text-neutral-500">
-                Full URL: /{activeState.permalink || 'your-page-slug'}
+                Full URL: {normalizePermalink(activeState.permalink || '')}
               </p>
             </div>
           </div>
@@ -341,7 +362,7 @@ export default function PageMetadataDialog({
 
         <DialogFooter className="flex items-center justify-end space-x-3">
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            Cancel
+            Close
           </Button>
           <Button
             variant="gradient"
@@ -352,12 +373,12 @@ export default function PageMetadataDialog({
             {isSaving ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                Saving...
+                Applying...
               </>
             ) : (
               <>
                 <Icon icon="lucide:check" className="w-4 h-4 mr-2" />
-                Save Changes
+                Apply
               </>
             )}
           </Button>

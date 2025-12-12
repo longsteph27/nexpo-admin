@@ -1,0 +1,462 @@
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { debounce } from 'lodash';
+import { Icon } from '@iconify/react';
+import { Button } from '@/components/ui/button-base';
+import Input from '@/components/ui/input';
+import ColumnRowEditor from './ColumnRowEditor';
+import SortableRowItem from './SortableRowItem';
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import type {
+  BlockColumns,
+  BlockColumnsRows,
+  BlockColumnsTranslation,
+  BlockButtonGroup,
+  BlockButton,
+  LanguageCode,
+} from '@/types/directus-collections';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { generateTempId } from '@/lib/payload';
+
+interface ColumnsBlockEditorProps {
+  formData: BlockColumns | Record<string, unknown>;
+  updateTranslation: (field: string, value: string | null) => void;
+  updateField: (field: string, value: unknown) => void;
+  currentTranslation: BlockColumnsTranslation | Record<string, unknown>;
+  folderId?: string;
+  eventId?: string;
+}
+
+// Form structure
+interface FormValues {
+  rows: BlockColumnsRows[];
+}
+
+export default function ColumnsBlockEditor({
+  formData,
+  updateTranslation,
+  updateField,
+  currentTranslation,
+  folderId,
+  eventId,
+}: ColumnsBlockEditorProps) {
+  const blockData = formData as BlockColumns;
+
+  const initialRows = useMemo(() => {
+    return (blockData.rows || []).filter(
+      (row): row is BlockColumnsRows => typeof row !== 'string'
+    );
+  }, [blockData.rows]);
+
+  // Initialize React Hook Form
+  const { control, reset, setValue, getValues } = useForm<FormValues>({
+    defaultValues: {
+      rows: initialRows,
+    },
+    mode: 'onChange',
+  });
+
+  const { fields, append, remove, move } = useFieldArray({
+    control,
+    name: 'rows',
+    keyName: 'key',
+  });
+
+  // Watch for changes
+  const formRows = useWatch({
+    control,
+    name: 'rows',
+  });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+  );
+
+  // Memoize and extract currentLangCode early
+  const currentLangCodeRaw = useMemo(
+    () => (currentTranslation as BlockColumnsTranslation).languages_code as string | { code: string },
+    [currentTranslation]
+  );
+
+  const currentLangCode = useMemo(
+    () => (typeof currentLangCodeRaw === 'string' ? currentLangCodeRaw : (currentLangCodeRaw?.code || 'en-US')),
+    [currentLangCodeRaw]
+  );
+
+  useEffect(() => {
+    const formRows = (formData as Record<string, unknown>).rows as (BlockColumnsRows | string)[] | undefined;
+    if (formRows) {
+      const validRows = formRows.filter((row): row is BlockColumnsRows => typeof row !== 'string');
+      setRows(validRows);
+      setExpanded((prev) => {
+        const next: Record<string, boolean> = { ...prev };
+        validRows.forEach((r) => {
+          if (next[r.id] === undefined) next[r.id] = false;
+        });
+        return next;
+      });
+    }
+  }, [formData]);
+
+  // Debounce updateField calls
+  const debouncedUpdateField = useCallback(
+    (newRows: BlockColumnsRows[]) => {
+      if (updateFieldTimeoutRef.current) {
+        clearTimeout(updateFieldTimeoutRef.current);
+      }
+      updateFieldTimeoutRef.current = setTimeout(() => {
+        updateField('rows', newRows);
+      }, 300);
+    },
+    [updateField]
+  );
+
+  const addRow = useCallback(() => {
+    const newRow: BlockColumnsRows = {
+      id: `temp-row-${Date.now()}`,
+      sort: rows.length,
+      translations: [
+        {
+          block_columns_rows_id: '',
+          languages_code: 'en-US' as LanguageCode,
+          title: '',
+          headline: '',
+          content: '',
+        },
+        {
+          block_columns_rows_id: '',
+          languages_code: 'vi-VN' as LanguageCode,
+          title: '',
+          headline: '',
+          content: '',
+        },
+      ],
+      image_position: 'left',
+      image: null,
+      event_id: eventId ? Number(eventId) : undefined,
+      tenant_id: undefined,
+    };
+
+    const newRows = [...rows, newRow];
+    setRows(newRows);
+    setFocusRowId(newRow.id);
+    setExpanded((prev) => ({ ...prev, [newRow.id]: true }));
+    debouncedUpdateField(newRows);
+  }, [rows, eventId, debouncedUpdateField]);
+
+  const removeRow = useCallback(
+    (index: number) => {
+      const newRows = rows.filter((_, i) => i !== index).map((r, i) => ({ ...r, sort: i }));
+      setRows(newRows);
+      setExpanded((prev) => {
+        const next = { ...prev };
+        if (rows[index]) delete next[rows[index].id];
+        return next;
+      });
+      debouncedUpdateField(newRows);
+    },
+    [rows, debouncedUpdateField]
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = rows.findIndex((r) => r.id === active.id);
+      const newIndex = rows.findIndex((r) => r.id === over.id);
+
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(rows, oldIndex, newIndex).map((r, i) => ({ ...r, sort: i }));
+      setRows(reordered);
+      debouncedUpdateField(reordered);
+    },
+    [rows, debouncedUpdateField]
+  );
+
+  const updateRow = useCallback(
+    (index: number, field: string, value: string | number | boolean | null, isTranslation = false) => {
+      const newRows = rows.map((row, i) => {
+        if (i !== index) return row;
+
+        if (isTranslation) {
+          const translations = row.translations || [
+            { block_columns_rows_id: '', languages_code: 'en-US' as LanguageCode },
+            { block_columns_rows_id: '', languages_code: 'vi-VN' as LanguageCode },
+          ];
+
+          const transIndex = translations.findIndex((t) => {
+            const tLang =
+              typeof t.languages_code === 'string'
+                ? t.languages_code
+                : ((t.languages_code as { code: string })?.code || '');
+            return tLang === currentLangCode;
+          });
+
+          const newTranslations = [...translations];
+          if (transIndex >= 0) {
+            newTranslations[transIndex] = {
+              ...newTranslations[transIndex],
+              [field]: value,
+            } as any;
+          } else {
+            newTranslations.push({
+              block_columns_rows_id: '',
+              languages_code: currentLangCode as LanguageCode,
+              [field]: value,
+            } as any);
+          }
+
+          return {
+            ...row,
+            translations: newTranslations,
+          };
+        } else {
+          return {
+            ...row,
+            [field]: value,
+          };
+        }
+      });
+
+      setRows(newRows);
+      debouncedUpdateField(newRows);
+    },
+    [rows, currentLangCode, debouncedUpdateField]
+  );
+
+  const ensureButtonGroup = useCallback(
+    (rowIndex: number): BlockButtonGroup | null => {
+      const row = rows[rowIndex];
+      if (!row) return null;
+
+      let buttonGroup =
+        typeof row.button_group === 'object' && row.button_group !== null
+          ? (row.button_group as BlockButtonGroup)
+          : null;
+
+      if (!buttonGroup) {
+        buttonGroup = {
+          id: `temp-button-group-${Date.now()}`,
+          buttons: [],
+          alignment: 'start',
+          event_id: eventId ? Number(eventId) : undefined,
+          tenant_id: undefined,
+        };
+
+        const newRows = rows.map((r, i) =>
+          i === rowIndex ? { ...r, button_group: buttonGroup } : r
+        );
+
+        setRows(newRows);
+        debouncedUpdateField(newRows);
+      }
+
+      return buttonGroup;
+    },
+    [rows, eventId, debouncedUpdateField]
+  );
+
+  const handleAddButton = useCallback(
+    (rowIndex: number) => {
+      const buttonGroup = ensureButtonGroup(rowIndex);
+      if (!buttonGroup) return;
+
+      const buttons = buttonGroup.buttons || [];
+      const newButton: BlockButton = {
+        id: `temp-button-${Date.now()}`,
+        sort: buttons.length,
+        variant: 'solid',
+        color: 'primary',
+        open_in_new_window: false,
+        translations: [
+          { block_button_id: '', languages_code: 'en-US' as LanguageCode, label: '', href: '' },
+          { block_button_id: '', languages_code: 'vi-VN' as LanguageCode, label: '', href: '' },
+        ],
+      };
+
+      const newRows = rows.map((row, i) => {
+        if (i !== rowIndex) return row;
+
+        if (row.button_group && typeof row.button_group === 'object') {
+          return {
+            ...row,
+            button_group: {
+              ...(row.button_group as BlockButtonGroup),
+              buttons: [...buttons, newButton],
+            },
+          };
+        }
+        return row;
+      });
+
+      setRows(newRows);
+      debouncedUpdateField(newRows);
+    },
+    [rows, ensureButtonGroup, debouncedUpdateField]
+  );
+
+  const handleUpdateButton = useCallback(
+    (rowIndex: number, buttonIndex: number, field: string, value: unknown) => {
+      const newRows = rows.map((row, i) => {
+        if (i !== rowIndex) return row;
+
+        const buttonGroup = row.button_group;
+        if (!buttonGroup || typeof buttonGroup !== 'object' || !buttonGroup.buttons) return row;
+
+        const buttons = [...buttonGroup.buttons];
+        const button = buttons[buttonIndex];
+        if (!button) return row;
+
+        if (field === 'label' || field === 'href') {
+          const translations = button.translations || [
+            { block_button_id: '', languages_code: 'en-US' as LanguageCode, label: '', href: '' },
+            { block_button_id: '', languages_code: 'vi-VN' as LanguageCode, label: '', href: '' },
+          ];
+
+          const transIndex = translations.findIndex((t) => {
+            const tLang = typeof t.languages_code === 'string'
+              ? t.languages_code
+              : ((t.languages_code as { code: string })?.code || '');
+            return tLang === currentLangCode;
+          });
+
+          const newTranslations = [...translations];
+          if (transIndex >= 0) {
+            newTranslations[transIndex] = {
+              ...newTranslations[transIndex],
+              [field]: value,
+            } as any;
+          }
+
+          buttons[buttonIndex] = {
+            ...button,
+            translations: newTranslations,
+          };
+        } else {
+          buttons[buttonIndex] = {
+            ...button,
+            [field]: value,
+          };
+        }
+
+        return {
+          ...row,
+          button_group: {
+            ...buttonGroup,
+            buttons,
+          },
+        };
+      });
+
+      setRows(newRows);
+      debouncedUpdateField(newRows);
+    },
+    [rows, currentLangCode, debouncedUpdateField]
+  );
+
+  const handleRemoveButton = useCallback(
+    (rowIndex: number, buttonId: string) => {
+      const newRows = rows.map((row, i) => {
+        if (i !== rowIndex) return row;
+
+        const buttonGroup = row.button_group;
+        if (!buttonGroup || typeof buttonGroup !== 'object' || !buttonGroup.buttons) return row;
+
+        return {
+          ...row,
+          button_group: {
+            ...buttonGroup,
+            buttons: buttonGroup.buttons.filter((btn) => btn.id !== buttonId),
+          },
+        };
+      });
+
+      setRows(newRows);
+      debouncedUpdateField(newRows);
+    },
+    [rows, debouncedUpdateField]
+  );
+
+  const toggleExpand = useCallback(
+    (rowId: string) => {
+      setExpanded((prev) => ({ ...prev, [rowId]: !prev[rowId] }));
+    },
+    []
+  );
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">Block Title</label>
+        <Input
+          value={((currentTranslation as Record<string, unknown>).title as string) || ''}
+          onChange={(event) => updateTranslation('title', event.target.value)}
+          placeholder="Optional block title..."
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">Block Headline</label>
+        <RichTextEditor
+          value={((currentTranslation as Record<string, unknown>).headline as string) || ''}
+          onChange={(value) => updateTranslation('headline', value)}
+          placeholder="Optional block headline..."
+        />
+      </div>
+
+      <div className="border-t border-neutral-200 pt-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-semibold text-neutral-900">Columns / Rows</h3>
+          <Button size="sm" variant="outline" onClick={addRow}>
+            <Icon icon="lucide:plus" className="w-4 h-4 mr-1" />
+            Add Row
+          </Button>
+        </div>
+
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={rows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+            <div className="space-y-3">
+              {rows.map((row, index) => (
+                <SortableRowItem
+                  key={row.id}
+                  row={row}
+                  index={index}
+                  isExpanded={!!expanded[row.id]}
+                  currentLangCode={currentLangCode}
+                  currentTranslation={currentTranslation}
+                  folderId={folderId}
+                  focusRowId={focusRowId}
+                  onToggleExpand={() => toggleExpand(row.id)}
+                  onRemove={() => removeRow(index)}
+                  onUpdate={(field, value, isTranslation) => updateRow(index, field, value as any, isTranslation)}
+                  onAddButton={() => handleAddButton(index)}
+                  onUpdateButton={(buttonIndex, field, value) => handleUpdateButton(index, buttonIndex, field, value)}
+                  onRemoveButton={(buttonId) => handleRemoveButton(index, buttonId)}
+                />
+              ))}
+
+              {rows.length === 0 && (
+                <div className="text-center py-8 text-neutral-500 text-sm">
+                  No rows. Click &quot;Add Row&quot; to create one.
+                </div>
+              )}
+            </div>
+          </SortableContext>
+        </DndContext>
+      </div>
+    </div>
+  );
+}

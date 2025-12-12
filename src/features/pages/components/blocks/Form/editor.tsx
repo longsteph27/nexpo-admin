@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { debounce } from 'lodash';
 import { Icon } from '@iconify/react';
 import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/input';
@@ -28,19 +30,61 @@ export default function FormBlockEditor({
 
   const { data: availableForms = [], isLoading, error } = useFormsByEvent(eventId || '');
 
+  // -- RHF Setup --
+  const { control, setValue, watch } = useForm({
+    defaultValues: {
+      title: (currentTranslation.title as string) || '',
+      headline: (currentTranslation.headline as string) || '',
+      form: (formData.form as string) || '',
+    },
+    mode: 'onChange',
+  });
+
+  // Sync with external props
   useEffect(() => {
-    if ((formData as Record<string, unknown>).form && availableForms.length > 0) {
+    setValue('title', (currentTranslation.title as string) || '');
+    setValue('headline', (currentTranslation.headline as string) || '');
+    setValue('form', (formData.form as string) || '');
+  }, [currentTranslation, formData, setValue]);
+
+  // Sync selectedForm state when formData.form changes or availableForms loads
+  useEffect(() => {
+    if (formData.form && availableForms.length > 0) {
       const form = availableForms.find(
         (item: Record<string, unknown>) => item.id === (formData as Record<string, unknown>).form
       );
       if (form) {
         setSelectedForm(form);
       }
+    } else if (!formData.form) {
+      setSelectedForm(null);
     }
-  }, [(formData as Record<string, unknown>).form, availableForms]);
+  }, [formData.form, availableForms]);
+
+  // -- Debounced Updaters --
+  const debouncedUpdateTranslation = useMemo(
+    () =>
+      debounce((field: string, value: string | null) => {
+        updateTranslation(field, value);
+      }, 500),
+    [updateTranslation]
+  );
+
+  // -- Handlers --
+  const handleTitleChange = (val: string) => {
+    setValue('title', val);
+    debouncedUpdateTranslation('title', val);
+  };
+
+  const handleHeadlineChange = (val: string) => {
+    setValue('headline', val);
+    debouncedUpdateTranslation('headline', val);
+  };
 
   const handleFormSelect = (formId: string) => {
+    setValue('form', formId);
     updateField('form', formId);
+
     const form = availableForms.find((item: Record<string, unknown>) => item.id === formId);
     setSelectedForm(form || null);
   };
@@ -62,8 +106,8 @@ export default function FormBlockEditor({
           Section Title
         </label>
         <Input
-          value={((currentTranslation as Record<string, unknown>).title as string) || ''}
-          onChange={(event) => updateTranslation('title', event.target.value)}
+          value={watch('title')}
+          onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Contact Us / Registration Form..."
         />
       </div>
@@ -73,8 +117,8 @@ export default function FormBlockEditor({
           Section Headline
         </label>
         <Input
-          value={((currentTranslation as Record<string, unknown>).headline as string) || ''}
-          onChange={(event) => updateTranslation('headline', event.target.value)}
+          value={watch('headline')}
+          onChange={(e) => handleHeadlineChange(e.target.value)}
           placeholder="Get in touch with us..."
         />
       </div>
@@ -99,7 +143,7 @@ export default function FormBlockEditor({
             <div className="relative">
               <select
                 className="w-full px-3 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                value={((formData as Record<string, unknown>).form as string) || ''}
+                value={watch('form')}
                 onChange={(event) => handleFormSelect(event.target.value)}
               >
                 <option value="">Select a form...</option>

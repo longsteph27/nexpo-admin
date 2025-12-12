@@ -1,9 +1,8 @@
 import { DirectusFile, DirectusUsers } from '@/directus/types'
 
 export function getDirectusURL(path = '') {
-  return `${
-    process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055'
-  }${path}`
+  return `${process.env.NEXT_PUBLIC_DIRECTUS_URL || 'http://localhost:8055'
+    }${path}`
 }
 
 export function getDirectusMedia(
@@ -24,9 +23,8 @@ export function getDirectusMedia(
 }
 
 export function getStrapiURL(path = '') {
-  return `${
-    process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337'
-  }${path}`
+  return `${process.env.NEXT_PUBLIC_STRAPI_API_URL || 'http://localhost:1337'
+    }${path}`
 }
 
 export function getStrapiMedia(url: string | null) {

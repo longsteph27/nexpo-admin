@@ -11,6 +11,8 @@ export { CtaBlock } from '../Cta';
 export { RawHtmlBlock } from '../Html';
 export { DividerBlock } from '../Divider';
 export { FormBlock } from '../Form';
+export { TeamBlock } from '../Team';
+export { default as LogoCloudBlock } from '../LogoCloud/preview';
 export { default as HeaderNavigationBlock } from './HeaderNavigationBlock';
 export { default as FooterNavigationBlock } from './FooterNavigationBlock';
-
+export { default as TestimonialsBlock } from '../Testimonials/preview';

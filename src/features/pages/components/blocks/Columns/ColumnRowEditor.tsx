@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { Icon } from '@iconify/react';
 import Input from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -26,7 +26,7 @@ interface ColumnRowEditorProps {
   frameless?: boolean; // Hide outer container and header when used inside collapsible wrapper
 }
 
-export default function ColumnRowEditor({
+function ColumnRowEditor({
   row,
   rowIndex,
   currentTranslation,
@@ -178,6 +178,7 @@ export default function ColumnRowEditor({
   );
 }
 
-
+// Export with React.memo to prevent re-renders when props haven't changed
+export default memo(ColumnRowEditor);
 
 

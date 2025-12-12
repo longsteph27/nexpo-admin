@@ -25,7 +25,7 @@ export function usePagePayloadManager({
     if (page) {
       payloadManagerRef.current = new PagePayloadManager(page);
     }
-  }, [page?.id]); // Only re-init when page ID changes
+  }, [page]); // Re-init when page data changes (e.g. after refetch)
 
   // Update translation permalink (kept for compatibility)
   const updateTranslationPermalink = useCallback((

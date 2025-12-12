@@ -22,6 +22,7 @@ export interface BlockFaqsData {
   id: string;
   title?: string;
   headline?: string;
+  alignment?: 'left' | 'center';
   translations?: FaqTranslation[];
 }
 
@@ -37,23 +38,17 @@ export default function FaqsBlock({ data, lang }: FaqsBlockProps) {
   const title = translation?.title || data.title || '';
   const headline = translation?.headline || data.headline || '';
   const faqItems = useMemo(() => translation?.faqs || [], [translation?.faqs]);
+  const alignment = data.alignment || 'center';
 
   useEffect(() => {
-    console.log('\n=== FAQs Block Data ===');
-    console.log('Block Data:', {
-      id: data.id,
-      title,
-      headline,
-      faqsCount: faqItems.length,
-    });
-    console.log('FAQs:', faqItems.map((faq) => ({ title: faq.title, answer: faq.answer })));
+    // ... console logs ...
   }, [data, title, headline, faqItems]);
 
   return (
     <BlockContainer className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-      <div className="mx-auto max-w-4xl text-center">
+      <div className={`mx-auto max-w-4xl ${alignment === 'left' ? 'text-left' : 'text-center'}`}>
         {title && (
-          <TypographyTitle className="font-font-display text-gray">
+          <TypographyTitle className="font-[var(--font-display)] text-[var(--color-gray)]">
             {title}
           </TypographyTitle>
         )}
@@ -61,7 +56,7 @@ export default function FaqsBlock({ data, lang }: FaqsBlockProps) {
           <TypographyHeadline
             content={headline}
             size="xl"
-            className="font-font-display font-semibold text-primary"
+            className="font-[var(--font-display)] font-semibold w-full text-[var(--color-primary)] flex justify-center"
           />
         )}
         <div className="mt-6 pt-6">

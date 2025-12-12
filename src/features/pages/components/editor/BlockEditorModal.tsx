@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button-base';
@@ -12,12 +12,15 @@ import {
   FaqsBlockEditor,
   VideoBlockEditor,
   GalleryBlockEditor,
+  LogoCloudBlockEditor,
   StepsBlockEditor,
   CtaBlockEditor,
   HtmlBlockEditor,
   DividerBlockEditor,
   FormBlockEditor,
+  TestimonialsBlockEditor,
   GenericBlockEditor,
+  TeamBlockEditor,
 } from '../blocks/editor';
 import type {
   BlockItem,
@@ -115,38 +118,52 @@ export default function BlockEditorModal({
     onSave(formData);
   };
 
-  const updateTranslation = (field: string, value: string | null) => {
+  const updateTranslation = useCallback((field: string, value: string | null) => {
     setFormData((prev: BlockItem | Record<string, unknown>) => {
       const baseBlock = prev as BaseBlock;
-      const translations: BlockTranslation[] = baseBlock.translations || [
-        { id: 0, languages_code: 'en-US' as LanguageCode },
-        { id: 0, languages_code: 'vi-VN' as LanguageCode },
-      ];
-      
-      const updatedTranslations = translations.map((t: BlockTranslation) => {
-        const langCode = typeof t.languages_code === 'string' 
-          ? t.languages_code 
+      const translations = baseBlock.translations || [];
+      const hasTranslation = translations.some((t: BlockTranslation) => {
+        const langCode = typeof t.languages_code === 'string'
+          ? t.languages_code
           : ((t.languages_code as { code: string })?.code || '');
-        return langCode === activeLang 
-          ? { ...t, [field]: value } 
-          : t;
+        return langCode === activeLang;
       });
+
+      let updatedTranslations;
+      if (!hasTranslation) {
+        // Add new translation
+        updatedTranslations = [
+          ...translations,
+          {
+            languages_code: activeLang,
+            [field]: value,
+          } as unknown as BlockTranslation,
+        ];
+      } else {
+        // Update existing
+        updatedTranslations = translations.map((t: BlockTranslation) => {
+          const langCode = typeof t.languages_code === 'string'
+            ? t.languages_code
+            : ((t.languages_code as { code: string })?.code || '');
+          return langCode === activeLang
+            ? { ...t, [field]: value }
+            : t;
+        });
+      }
 
       return {
         ...prev,
         translations: updatedTranslations,
       };
     });
-  };
+  }, [activeLang]);
 
-  const updateField = (field: string, value: unknown) => {
-    console.log('[BlockEditorModal] updateField called:', { field, value, currentFormData: formData });
+  const updateField = useCallback((field: string, value: unknown) => {
     setFormData((prev: BlockItem | Record<string, unknown>) => {
       const updated = { ...prev, [field]: value };
-      console.log('[BlockEditorModal] formData updated:', updated);
       return updated;
     });
-  };
+  }, []);
 
   const getCurrentTranslation = (): BlockTranslation | Record<string, unknown> => {
     const baseBlock = formData as BaseBlock;
@@ -219,11 +236,10 @@ export default function BlockEditorModal({
                   {(['en-US', 'vi-VN'] as const).map(lang => (
                     <button
                       key={lang}
-                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${
-                        activeLang === lang
-                          ? 'bg-nexpo-gray text-white'
-                          : 'text-neutral-600 hover:bg-neutral-200'
-                      }`}
+                      className={`px-3 py-1 rounded-md text-xs font-medium transition-colors ${activeLang === lang
+                        ? 'bg-nexpo-gray text-white'
+                        : 'text-neutral-600 hover:bg-neutral-200'
+                        }`}
                       onClick={() => setActiveLang(lang)}
                     >
                       {lang === 'en-US' ? 'English' : 'Tiếng Việt'}
@@ -242,7 +258,7 @@ export default function BlockEditorModal({
                 <Button variant="ghost" onClick={onClose}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                   onClick={handleSave}
                 >
@@ -271,28 +287,31 @@ function renderBlockEditor(
   switch (collection) {
     case 'block_hero':
       return <HeroBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
-    
+
     case 'block_richtext':
       return <RichtextBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
-    
+
     case 'block_columns':
       return <ColumnsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
-    
+
     case 'block_quote':
       return <QuoteBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
-    
+
     case 'block_faqs':
       return <FaqsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
-    
+
     case 'block_video':
       return <VideoBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
-    
+
     case 'block_gallery':
       return <GalleryBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
-    
+
+    case 'block_logocloud':
+      return <LogoCloudBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
+
     case 'block_steps':
       return <StepsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
-    
+
     case 'block_cta':
       return (
         <CtaBlockEditor
@@ -305,14 +324,20 @@ function renderBlockEditor(
       );
 
     case 'block_html':
-      return <HtmlBlockEditor formData={formData} updateTranslation={updateTranslation} currentTranslation={currentTranslation} />;
-    
+      return <HtmlBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} />;
+
     case 'block_divider':
       return <DividerBlockEditor formData={formData} updateField={updateField} />;
-    
+
     case 'block_form':
       return <FormBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} eventId={eventId} />;
-    
+
+    case 'block_testimonials':
+      return <TestimonialsBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
+
+    case 'block_team':
+      return <TeamBlockEditor formData={formData} updateTranslation={updateTranslation} updateField={updateField} currentTranslation={currentTranslation} folderId={folderId} eventId={eventId} />;
+
     default:
       return <GenericBlockEditor collection={collection} />;
   }

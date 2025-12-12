@@ -1,36 +1,32 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useForm, useFieldArray, useWatch } from 'react-hook-form';
+import { debounce } from 'lodash';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
 import Input from '@/components/ui/input';
-import ColumnRowEditor from './ColumnRowEditor';
+import SortableRowItem from './SortableRowItem';
 import {
   DndContext,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
+  type DragEndEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
 } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import type {
   BlockColumns,
   BlockColumnsRows,
   BlockColumnsTranslation,
-  BlockColumnsRowsTranslation,
-  BlockButtonGroup,
-  BlockButton,
-  BlockButtonTranslation,
   LanguageCode,
 } from '@/types/directus-collections';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
-import type { DragEndEvent } from '@dnd-kit/core';
+import { generateTempId } from '@/lib/payload';
 
 interface ColumnsBlockEditorProps {
   formData: BlockColumns | Record<string, unknown>;
@@ -39,6 +35,11 @@ interface ColumnsBlockEditorProps {
   currentTranslation: BlockColumnsTranslation | Record<string, unknown>;
   folderId?: string;
   eventId?: string;
+}
+
+// Form structure
+interface FormValues {
+  rows: BlockColumnsRows[];
 }
 
 export default function ColumnsBlockEditor({
@@ -51,344 +52,295 @@ export default function ColumnsBlockEditor({
 }: ColumnsBlockEditorProps) {
   const blockData = formData as BlockColumns;
 
-  // Filter out string references (UUID) - only use full objects
-  const initialRows = (blockData.rows || []).filter(
-    (row): row is BlockColumnsRows => typeof row !== 'string'
-  );
+  // Initial data parsing
+  const initialRows = useMemo(() => {
+    return (blockData.rows || [])
+      .filter((row): row is BlockColumnsRows => typeof row !== 'string')
+      .map(row => ({
+        ...row,
+        id: row.id ? String(row.id) : generateTempId()
+      }))
+      .sort((a, b) => (a.sort || 0) - (b.sort || 0));
+  }, [blockData.rows]);
 
-  const [rows, setRows] = useState<BlockColumnsRows[]>(initialRows);
+  // Initialize React Hook Form
+  const { control, reset, setValue, getValues } = useForm<FormValues>({
+    defaultValues: {
+      rows: initialRows,
+    },
+    mode: 'onChange',
+  });
+
+  const { fields, append, remove, move } = useFieldArray({
+    control,
+    name: 'rows',
+    keyName: 'key',
+  });
+
+  // Watch for changes
+  const formRows = useWatch({
+    control,
+    name: 'rows',
+  });
+
+  // Local state for UI only
   const [focusRowId, setFocusRowId] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  // DnD sensors
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
   );
 
-  // Sync rows from formData and initialize expanded map (default collapsed)
+  const currentLangCodeRaw = useMemo(
+    () => (currentTranslation as BlockColumnsTranslation).languages_code as string | { code: string },
+    [currentTranslation]
+  );
+
+  const currentLangCode = useMemo(
+    () => (typeof currentLangCodeRaw === 'string' ? currentLangCodeRaw : (currentLangCodeRaw?.code || 'en-US')),
+    [currentLangCodeRaw]
+  );
+
+  // Track initialization to prevent loops
+  const hasInitialized = useRef(false);
+
+  // Initialize form when rows data becomes available
+  // IMPORTANT: Watch length, not formData object to avoid loop
+  const rowsLength = useMemo(() => {
+    const rows = (formData as Record<string, unknown>).rows as (BlockColumnsRows | string)[] | undefined;
+    return rows?.length || 0;
+  }, [formData]);
+
   useEffect(() => {
-    if ((formData as Record<string, unknown>).rows) {
-      const formRows = (formData as Record<string, unknown>).rows as (BlockColumnsRows | string)[];
-      const validRows = formRows.filter(
-        (row): row is BlockColumnsRows => typeof row !== 'string'
-      );
-      setRows(validRows);
+    // Only init once when data becomes available
+    if (hasInitialized.current || rowsLength === 0) return;
+
+    const formRowsData = (formData as Record<string, unknown>).rows as (BlockColumnsRows | string)[] | undefined;
+
+    if (formRowsData && formRowsData.length > 0) {
+      const validRows = formRowsData
+        .filter((row): row is BlockColumnsRows => typeof row !== 'string')
+        .map(row => ({
+          ...row,
+          id: row.id ? String(row.id) : generateTempId()
+        }))
+        .sort((a, b) => (a.sort || 0) - (b.sort || 0));
+
+      reset({ rows: validRows });
+
       setExpanded((prev) => {
         const next: Record<string, boolean> = { ...prev };
         validRows.forEach((r) => {
-          if (next[r.id] === undefined) next[r.id] = false; // default collapsed
+          if (next[r.id] === undefined) next[r.id] = false;
         });
         return next;
       });
-    }
-  }, [(formData as Record<string, unknown>).rows]);
 
-  const addRow = () => {
+      hasInitialized.current = true;
+    }
+  }, [rowsLength, formData, reset]); // Only re-run if length changes from 0 to N
+
+  // Debounced update to parent form
+  // Debounced update to parent form
+  const debouncedUpdate = useMemo(
+    () => debounce((currentRows: BlockColumnsRows[]) => {
+      // Map to correct payload structure with sort index
+      const payload = currentRows.map((row, idx) => ({
+        ...row,
+        sort: idx,
+      }));
+      updateField('rows', payload);
+    }, 500),
+    [updateField]
+  );
+
+  // Trigger update when form data changes
+  useEffect(() => {
+    if (formRows) {
+      debouncedUpdate(formRows);
+    }
+  }, [formRows, debouncedUpdate]);
+
+  const addRow = useCallback(() => {
+    const newRowId = generateTempId();
+
     const newRow: BlockColumnsRows = {
-      id: `temp-row-${Date.now()}`,
-      sort: rows.length,
+      id: newRowId,
+      sort: fields.length,
       translations: [
-        { block_columns_rows_id: '', languages_code: 'en-US' as LanguageCode, title: '', headline: '', content: '' },
-        { block_columns_rows_id: '', languages_code: 'vi-VN' as LanguageCode, title: '', headline: '', content: '' },
+        {
+          block_columns_rows_id: '',
+          languages_code: 'en-US' as LanguageCode,
+          title: '',
+          headline: '',
+          content: '',
+        },
+        {
+          block_columns_rows_id: '',
+          languages_code: 'vi-VN' as LanguageCode,
+          title: '',
+          headline: '',
+          content: '',
+        },
       ],
       image_position: 'left',
       image: null,
       event_id: eventId ? Number(eventId) : undefined,
       tenant_id: undefined,
     };
-    const newRows = [...rows, newRow];
-    setRows(newRows);
-    setFocusRowId(newRow.id);
-    setExpanded((prev) => ({ ...prev, [newRow.id]: true })); // expand new row
-    updateField('rows', newRows);
-  };
 
-  const removeRow = (index: number) => {
-    const removedId = rows[index]?.id;
-    const newRows = rows.filter((_, i) => i !== index).map((r, i) => ({ ...r, sort: i }));
-    setRows(newRows);
-    setExpanded((prev) => {
-      const next = { ...prev };
-      if (removedId) delete next[removedId];
-      return next;
-    });
-    updateField('rows', newRows);
-  };
+    append(newRow);
+    setFocusRowId(newRowId);
+    setExpanded((prev) => ({ ...prev, [newRowId]: true }));
+  }, [append, fields.length, eventId]);
 
-  const currentLangCodeRaw = (currentTranslation as BlockColumnsTranslation).languages_code as string | { code: string };
-  const currentLangCode = typeof currentLangCodeRaw === 'string' ? currentLangCodeRaw : (currentLangCodeRaw?.code || 'en-US');
-
-  const updateRow = (
-    index: number,
-    field: string,
-    value: string | number | boolean | null,
-    isTranslation = false
-  ) => {
-    const newRows = [...rows];
-
-    // Safety check: if row is a string (UUID reference), convert to object
-    if (typeof newRows[index] === 'string') {
-      console.warn(`[ColumnsBlockEditor] Row ${index} is a string reference (${newRows[index]}), converting to object`);
-      newRows[index] = {
-        id: newRows[index] as unknown as string,
-        sort: index,
-        translations: [
-          { block_columns_rows_id: '', languages_code: 'en-US' as LanguageCode, title: '', headline: '', content: '' },
-          { block_columns_rows_id: '', languages_code: 'vi-VN' as LanguageCode, title: '', headline: '', content: '' },
-        ],
-        image_position: 'left',
-        image: null,
-      };
+  const removeRow = useCallback((index: number) => {
+    const rowToRemove = fields[index];
+    if (rowToRemove) {
+      setExpanded((prev) => {
+        const next = { ...prev };
+        delete next[rowToRemove.id];
+        return next;
+      });
     }
+    remove(index);
+  }, [fields, remove]);
 
-    if (isTranslation) {
-      if (!newRows[index].translations) {
-        newRows[index].translations = [
-          { block_columns_rows_id: '', languages_code: 'en-US' as LanguageCode },
-          { block_columns_rows_id: '', languages_code: 'vi-VN' as LanguageCode },
-        ];
-      }
-
-      const translationIndex =
-        newRows[index].translations?.findIndex((translation) => {
-          const translationLang =
-            typeof translation.languages_code === 'string'
-              ? translation.languages_code
-              : ((translation.languages_code as { code: string })?.code || '');
-          return translationLang === currentLangCode;
-        }) ?? -1;
-
-      if (translationIndex >= 0 && newRows[index].translations) {
-        newRows[index].translations[translationIndex] = {
-          ...newRows[index].translations[translationIndex],
-          [field]: value,
-        } as any;
-      } else {
-        if (!newRows[index].translations) {
-          newRows[index].translations = [] as any;
-        }
-        (newRows[index].translations as any).push({
-          block_columns_rows_id: '',
-          languages_code: currentLangCode as LanguageCode,
-          [field]: value,
-        } as any);
-      }
-    } else {
-      (newRows[index] as Record<string, unknown>)[field] = value;
-    }
-
-    setRows(newRows);
-    updateField('rows', newRows);
-  };
-
-  // Drag end reorder
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
-    const oldIndex = rows.findIndex((r) => r.id === active.id);
-    const newIndex = rows.findIndex((r) => r.id === over.id);
-    if (oldIndex === -1 || newIndex === -1) return;
-    const reordered = arrayMove(rows, oldIndex, newIndex).map((r, i) => ({ ...r, sort: i }));
-    setRows(reordered);
-    updateField('rows', reordered);
-  };
 
-  // Ensure button group exists on a row
-  const ensureButtonGroup = (rowIndex: number): BlockButtonGroup => {
-    const newRows = [...rows];
-    if (typeof newRows[rowIndex] === 'string') {
-      newRows[rowIndex] = {
-        id: newRows[rowIndex] as unknown as string,
-        sort: rowIndex,
-        translations: [
-          { block_columns_rows_id: '', languages_code: 'en-US' as LanguageCode, title: '', headline: '', content: '' },
-          { block_columns_rows_id: '', languages_code: 'vi-VN' as LanguageCode, title: '', headline: '', content: '' },
-        ],
-        image_position: 'left',
-        image: null,
-      };
+    // Use explicit string conversion for comparison to handle potential number/string mismatches
+    const oldIndex = fields.findIndex((f) => String(f.id) === String(active.id));
+    const newIndex = fields.findIndex((f) => String(f.id) === String(over.id));
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      move(oldIndex, newIndex);
     }
+  }, [fields, move]);
 
-    let buttonGroup =
-      typeof newRows[rowIndex].button_group === 'object' && newRows[rowIndex].button_group !== null
-        ? (newRows[rowIndex].button_group as BlockButtonGroup)
-        : null;
+  const toggleExpand = useCallback((rowId: string) => {
+    setExpanded(prev => ({ ...prev, [rowId]: !prev[rowId] }));
+  }, []);
 
-    if (!buttonGroup || typeof buttonGroup === 'string') {
+  // Update row field (translations or direct fields)
+  const updateRow = useCallback((index: number, field: string, value: unknown, isTranslation = false) => {
+    if (isTranslation) {
+      const currentRow = getValues(`rows.${index}`);
+      const translations = currentRow.translations || [];
+
+      const transIndex = translations.findIndex(t => {
+        const code = typeof t.languages_code === 'string'
+          ? t.languages_code
+          : (t.languages_code as { code: string })?.code;
+        return code === currentLangCode;
+      });
+
+      if (transIndex >= 0) {
+        setValue(`rows.${index}.translations.${transIndex}.${field}` as any, value, { shouldDirty: true });
+      } else {
+        // Add new translation if missing
+        const newTrans = {
+          block_columns_rows_id: '',
+          languages_code: currentLangCode,
+          title: '',
+          headline: '',
+          content: '',
+          [field]: value
+        };
+        setValue(`rows.${index}.translations`, [...translations, newTrans], { shouldDirty: true });
+      }
+    } else {
+      setValue(`rows.${index}.${field}` as any, value, { shouldDirty: true });
+    }
+  }, [setValue, getValues, currentLangCode]);
+
+  // Button group operations
+  const ensureButtonGroup = useCallback((rowIndex: number) => {
+    const currentRow = getValues(`rows.${rowIndex}`);
+    let buttonGroup = typeof currentRow.button_group === 'object' && currentRow.button_group !== null
+      ? currentRow.button_group
+      : null;
+
+    if (!buttonGroup) {
       buttonGroup = {
-        id: `temp-button-group-${Date.now()}`,
+        id: generateTempId(),
         buttons: [],
         alignment: 'start',
         event_id: eventId ? Number(eventId) : undefined,
         tenant_id: undefined,
       };
-      newRows[rowIndex].button_group = buttonGroup;
-      setRows(newRows);
-      updateField('rows', newRows);
+      setValue(`rows.${rowIndex}.button_group` as any, buttonGroup, { shouldDirty: true });
     }
 
     return buttonGroup;
-  };
+  }, [getValues, setValue, eventId]);
 
-  // Button handlers
-  const handleAddButton = (rowIndex: number) => {
+  const handleAddButton = useCallback((rowIndex: number) => {
     const buttonGroup = ensureButtonGroup(rowIndex);
     const buttons = buttonGroup.buttons || [];
-    const newButton: BlockButton = {
-      id: `temp-button-${Date.now()}`,
+
+    const newButton = {
+      id: generateTempId(),
       sort: buttons.length,
       variant: 'solid',
       color: 'primary',
       open_in_new_window: false,
       translations: [
-        { block_button_id: '', languages_code: 'en-US' as LanguageCode, label: '' },
-        { block_button_id: '', languages_code: 'vi-VN' as LanguageCode, label: '' },
+        { block_button_id: '', languages_code: 'en-US' as LanguageCode, label: '', href: '' },
+        { block_button_id: '', languages_code: 'vi-VN' as LanguageCode, label: '', href: '' },
       ],
     };
-    buttonGroup.buttons = [...buttons, newButton];
-    const newRows = [...rows];
-    newRows[rowIndex].button_group = buttonGroup;
-    setRows(newRows);
-    updateField('rows', newRows);
-  };
 
-  const handleUpdateButton = (rowIndex: number, buttonIndex: number, field: string, value: unknown) => {
-    const newRows = [...rows];
-    const buttonGroup =
-      typeof newRows[rowIndex].button_group === 'object' && newRows[rowIndex].button_group !== null
-        ? (newRows[rowIndex].button_group as BlockButtonGroup)
-        : null;
-    if (!buttonGroup || !buttonGroup.buttons || !buttonGroup.buttons[buttonIndex]) return;
+    setValue(`rows.${rowIndex}.button_group.buttons` as any, [...buttons, newButton], { shouldDirty: true });
+  }, [ensureButtonGroup, setValue]);
+
+  const handleUpdateButton = useCallback((rowIndex: number, buttonIndex: number, field: string, value: unknown) => {
+    const currentRow = getValues(`rows.${rowIndex}`);
+    const buttonGroup = currentRow.button_group;
+    if (!buttonGroup || typeof buttonGroup !== 'object' || !buttonGroup.buttons) return;
+
+    const button = buttonGroup.buttons[buttonIndex];
+    if (!button) return;
 
     if (field === 'label' || field === 'href') {
-      const translations = buttonGroup.buttons[buttonIndex].translations || [];
-      const translationIndex =
-        translations.findIndex((translation) => {
-          const translationLang =
-            typeof translation.languages_code === 'string'
-              ? translation.languages_code
-              : ((translation.languages_code as { code: string })?.code || '');
-          return translationLang === currentLangCode;
-        }) ?? -1;
-
-      if (translationIndex >= 0) {
-        translations[translationIndex] = {
-          ...translations[translationIndex],
-          [field]: value,
-        } as BlockButtonTranslation;
-      } else {
-        translations.push({
-          block_button_id: '',
-          languages_code: currentLangCode as LanguageCode,
-          label: field === 'label' ? (value as string) : '',
-          href: field === 'href' ? (value as string) : '',
-        });
-      }
-      buttonGroup.buttons[buttonIndex].translations = translations;
-    } else {
-      (buttonGroup.buttons[buttonIndex] as Record<string, unknown>)[field] = value;
-    }
-
-    newRows[rowIndex].button_group = buttonGroup;
-    setRows(newRows);
-    updateField('rows', newRows);
-  };
-
-  const handleRemoveButton = (rowIndex: number, buttonId: string) => {
-    const newRows = [...rows];
-    const buttonGroup =
-      typeof newRows[rowIndex].button_group === 'object' && newRows[rowIndex].button_group !== null
-        ? (newRows[rowIndex].button_group as BlockButtonGroup)
-        : null;
-    if (buttonGroup && buttonGroup.buttons) {
-      buttonGroup.buttons = buttonGroup.buttons.filter((button) => button.id !== buttonId);
-      newRows[rowIndex].button_group = buttonGroup;
-      setRows(newRows);
-      updateField('rows', newRows);
-    }
-  };
-
-  // Sortable row wrapper
-  function SortableRow({ row, index }: { row: BlockColumnsRows; index: number }) {
-    const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: row.id });
-    const style = {
-      transform: CSS.Transform.toString(transform),
-      transition,
-    } as React.CSSProperties;
-
-    const rowTitle = (() => {
-      const trans = row.translations?.find((t) => {
-        const code = typeof t.languages_code === 'string' ? t.languages_code : (t.languages_code as { code: string })?.code;
+      const translations = button.translations || [];
+      const transIndex = translations.findIndex(t => {
+        const code = typeof t.languages_code === 'string'
+          ? t.languages_code
+          : (t.languages_code as { code: string })?.code;
         return code === currentLangCode;
-      }) as any;
-      return (trans?.title || trans?.headline || '').toString();
-    })();
+      });
 
-    const isExpanded = !!expanded[row.id];
+      if (transIndex >= 0) {
+        setValue(
+          `rows.${rowIndex}.button_group.buttons.${buttonIndex}.translations.${transIndex}.${field}` as any,
+          value,
+          { shouldDirty: true }
+        );
+      }
+    } else {
+      setValue(
+        `rows.${rowIndex}.button_group.buttons.${buttonIndex}.${field}` as any,
+        value,
+        { shouldDirty: true }
+      );
+    }
+  }, [getValues, setValue, currentLangCode]);
 
-    return (
-      <div ref={setNodeRef} style={style} className={`border rounded-lg bg-white shadow-sm ${isDragging ? 'ring-2 ring-blue-400' : ''}`}>
-        <div className="flex items-center justify-between px-3 py-2 border-b bg-neutral-50 rounded-t-lg">
-          <div className="flex items-center gap-2">
-            <button
-              className="cursor-grab active:cursor-grabbing p-1 text-neutral-500 hover:text-neutral-700"
-              aria-label="Drag handle"
-              {...attributes}
-              {...listeners}
-            >
-              <Icon icon="lucide:grip-vertical" className="w-4 h-4" />
-            </button>
-            <span className="text-xs font-semibold text-neutral-700">Row {index + 1}</span>
-            {rowTitle && <span className="text-xs text-neutral-500 truncate max-w-[240px]">— {rowTitle}</span>}
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className="p-1 text-neutral-500 hover:text-neutral-700"
-              onClick={() => setExpanded((prev) => ({ ...prev, [row.id]: !prev[row.id] }))}
-              aria-label={isExpanded ? 'Collapse' : 'Expand'}
-            >
-              <Icon icon="lucide:chevron-down" className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
-            </button>
-            <button
-              type="button"
-              className="p-1 text-red-600 hover:text-red-700"
-              onClick={() => removeRow(index)}
-              aria-label="Remove row"
-            >
-              <Icon icon="lucide:trash-2" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-        {isExpanded && (
-          <div className="p-4">
-            <ColumnRowEditor
-              row={row}
-              rowIndex={index}
-              currentTranslation={currentTranslation}
-              folderId={folderId}
-              onUpdate={(field, value, isTranslation) =>
-                updateRow(index, field, value as string | number | boolean | null, isTranslation)
-              }
-              onRemove={() => removeRow(index)}
-              onAddButton={() => handleAddButton(index)}
-              onUpdateButton={(buttonIndex, field, value) => handleUpdateButton(index, buttonIndex, field, value)}
-              onRemoveButton={(buttonId) => handleRemoveButton(index, buttonId)}
-              autoFocus={row.id === focusRowId}
-              frameless
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
+  const handleRemoveButton = useCallback((rowIndex: number, buttonId: string) => {
+    const currentRow = getValues(`rows.${rowIndex}`);
+    const buttonGroup = currentRow.button_group;
+    if (!buttonGroup || typeof buttonGroup !== 'object' || !buttonGroup.buttons) return;
+
+    const newButtons = buttonGroup.buttons.filter(btn => btn.id !== buttonId);
+    setValue(`rows.${rowIndex}.button_group.buttons` as any, newButtons, { shouldDirty: true });
+  }, [getValues, setValue]);
 
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Block Title
-        </label>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">Block Title</label>
         <Input
           value={((currentTranslation as Record<string, unknown>).title as string) || ''}
           onChange={(event) => updateTranslation('title', event.target.value)}
@@ -397,9 +349,7 @@ export default function ColumnsBlockEditor({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-neutral-700 mb-2">
-          Block Headline
-        </label>
+        <label className="block text-sm font-medium text-neutral-700 mb-2">Block Headline</label>
         <RichTextEditor
           value={((currentTranslation as Record<string, unknown>).headline as string) || ''}
           onChange={(value) => updateTranslation('headline', value)}
@@ -417,13 +367,36 @@ export default function ColumnsBlockEditor({
         </div>
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={rows.map((r) => r.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext items={fields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
             <div className="space-y-3">
-              {rows.map((row, index) => (
-                <SortableRow key={row.id} row={row} index={index}>
-                  {/* content rendered inside SortableRow */}
-                </SortableRow>
-              ))}
+              {fields.map((field, index) => {
+                const rowData = formRows?.[index] || field;
+
+                return (
+                  <SortableRowItem
+                    key={field.key}
+                    row={rowData}
+                    index={index}
+                    isExpanded={!!expanded[rowData.id]}
+                    currentLangCode={currentLangCode}
+                    currentTranslation={currentTranslation}
+                    folderId={folderId}
+                    focusRowId={focusRowId}
+                    onToggleExpand={() => toggleExpand(rowData.id)}
+                    onRemove={() => removeRow(index)}
+                    onUpdate={(f, v, t) => updateRow(index, f, v, t)}
+                    onAddButton={() => handleAddButton(index)}
+                    onUpdateButton={(btnIdx, f, v) => handleUpdateButton(index, btnIdx, f, v)}
+                    onRemoveButton={(btnId) => handleRemoveButton(index, btnId)}
+                  />
+                );
+              })}
+
+              {fields.length === 0 && (
+                <div className="text-center py-8 text-neutral-500 text-sm">
+                  No rows. Click &quot;Add Row&quot; to create one.
+                </div>
+              )}
             </div>
           </SortableContext>
         </DndContext>
@@ -431,7 +404,3 @@ export default function ColumnsBlockEditor({
     </div>
   );
 }
-
-
-
-

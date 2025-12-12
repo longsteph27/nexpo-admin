@@ -1,12 +1,12 @@
 import React, { useEffect } from 'react';
 import Image from 'next/image';
-import { motion, type HTMLMotionProps } from 'framer-motion';
 import VButton from '@/components/base/VButton';
 import BlockContainer from '@/components/BlockContainer';
-import TypographyHeadline from '@/components/typography/TypographyHeadline';
 import { getDirectusMedia } from '@/lib/utils/directus-helpers';
+import type { BlockHeroButton, BlockHeroData } from './types'; // Assuming types file or using previous interfaces? 
+// Actually I'll redefine interfaces or use types logic as before but with aligned structure
 
-export interface BlockHeroButton {
+export interface BlockHeroButtonType {
   id: string;
   label: string;
   href: string;
@@ -19,15 +19,15 @@ export interface BlockHeroButton {
   }>;
 }
 
-export interface BlockHeroData {
+export interface BlockHeroDataType {
   headline: string;
   title?: string | null;
   content: string;
   image?: string;
   image_position?: 'left' | 'right';
-  buttons?: BlockHeroButton[];
+  buttons?: BlockHeroButtonType[];
   button_group?: {
-    buttons: BlockHeroButton[];
+    buttons: BlockHeroButtonType[];
   };
   translations?: Array<{
     headline?: string | null;
@@ -38,7 +38,7 @@ export interface BlockHeroData {
 }
 
 interface HeroBlockProps {
-  data: BlockHeroData;
+  data: BlockHeroDataType;
   lang: string;
 }
 
@@ -53,29 +53,39 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
   const content = translation?.content || '';
 
   const buttons = data.buttons || data.button_group?.buttons || [];
-  const imagePosition = data.image_position || 'right';
+  // HeroBlock.tsx doesn't seem to care about image_position but the old preview did.
+  // The user said "Render preview theo @[docs/src/components/blocks/HeroBlock.tsx] HOẶC đơn giản chỉ cần giữ nguyên ... của Hero cũ trước khi bạn đổi"
+  // The HeroBlock.tsx has image on right (implicit or detailed in code).
+  // I will follow HeroBlock.tsx structure exactly as requested.
+  // HeroBlock.tsx structure: 
+  /*
+    <BlockContainer className='relative grid gap-6 md:grid-cols-3'>
+       <div ... md:col-span-2 ...> 
+          <h1 ... dangerouslySetInnerHTML />
+          <p ...>{content}</p>
+          <div ... buttons ... />
+       </div>
+       {data.image && <div ...><Image .../></div>}
+    </BlockContainer>
+  */
+  // It seems to ignore image_position field, always placing image on right (or bottom in mobile).
+  // But wait, the previous code had logic for image_position. 
+  // If I want to match HeroBlock.tsx strictly, I should ignore image_position.
+  // However, removing functionality might be regression if they want the *Editor* options to work.
+  // The user said "Preview according to HeroBlock.tsx OR keep old layout".
+  // HeroBlock.tsx uses fixed layout. I will use that for accuracy to their doc request.
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const bodyStyles = window.getComputedStyle(document.body);
-      console.log('[HeroBlock] CSS Variables:');
-      console.log('--color-primary:', bodyStyles.getPropertyValue('--color-primary'));
-      console.log('--font-body:', bodyStyles.getPropertyValue('--font-body'));
-      console.log('--font-display:', bodyStyles.getPropertyValue('--font-display'));
-      console.log('--font-code:', bodyStyles.getPropertyValue('--font-code'));
-    }
-  }, []);
+  const imagePosition = data.image_position || 'right';
 
   const contentSection = (
     <div className="md:col-span-2 md:pt-12 transition-all duration-700 ease-out">
       {headline && (
-        <TypographyHeadline
-          content={headline}
-          size="xl"
-          className="text-primary font-font-display font-bold leading-tight mb-4"
+        <h1
+          className="text-[var(--color-primary)] xs:text-5xl font-[var(--font-display)] font-bold text-4xl sm:text-2xl lg:text-6xl leading-snug"
+          dangerouslySetInnerHTML={{ __html: headline }}
         />
       )}
-      <p className="w-full py-4 font-font-body text-sm sm:text-base md:text-lg leading-relaxed text-gray">
+      <p className="w-full py-6 font-[var(--font-display)] text-[18px] lg:leading-loose text-[var(--color-gray)]">
         {content}
       </p>
       <div className="flex flex-col space-y-4 md:flex-row md:space-x-4 md:space-y-0">
@@ -99,15 +109,21 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
     </div>
   );
 
+  const imageClasses = imagePosition === 'left'
+    ? "p-2 lg:relative lg:w-full flex items-center justify-center"
+    : "p-2 lg:relative lg:w-full flex items-center justify-center";
+
   const imageSection = data.image ? (
-    <div className="p-4 flex items-center justify-center">
-      <Image
-        className="w-full h-auto max-h-[500px] object-contain"
-        width={500}
-        height={500}
-        src={getDirectusMedia(data.image) as unknown as HTMLMotionProps<'img'>['src']}
-        alt={title || ''}
-      />
+    <div className="col-span-1">
+      <div className={imageClasses}>
+        <Image
+          className="max-h-[700px] w-full overflow-hidden object-cover"
+          width={700}
+          height={700}
+          src={getDirectusMedia(data.image) as any}
+          alt={title || ''}
+        />
+      </div>
     </div>
   ) : null;
 

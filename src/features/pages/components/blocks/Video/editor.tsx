@@ -1,6 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
+import { useForm } from 'react-hook-form';
+import { debounce } from 'lodash';
 import { Icon } from '@iconify/react';
 import Input from '@/components/ui/input';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
@@ -23,11 +25,74 @@ export default function VideoBlockEditor({
   currentTranslation,
   folderId,
 }: VideoBlockEditorProps) {
-  const videoType = (formData as BlockVideo).type || '';
-  const videoUrl = (formData as BlockVideo).video_url || '';
-  const videoFile = (formData as BlockVideo).video_file || null;
-  const title = (currentTranslation as BlockVideoTranslation).title || '';
-  const headline = (currentTranslation as BlockVideoTranslation).headline || '';
+  const blockData = formData as BlockVideo;
+
+  // -- RHF Setup --
+  const { control, setValue, watch } = useForm({
+    defaultValues: {
+      title: (currentTranslation.title as string) || '',
+      headline: (currentTranslation.headline as string) || '',
+      type: blockData.type || 'url',
+      video_url: blockData.video_url || '',
+      video_file: blockData.video_file || '',
+    },
+    mode: 'onChange',
+  });
+
+  // Sync with external props
+  useEffect(() => {
+    setValue('title', (currentTranslation.title as string) || '');
+    setValue('headline', (currentTranslation.headline as string) || '');
+    setValue('type', blockData.type || 'url');
+    setValue('video_url', blockData.video_url || '');
+    setValue('video_file', blockData.video_file || '');
+  }, [currentTranslation, blockData, setValue]);
+
+  // -- Debounced Updaters --
+  const debouncedUpdateTranslation = useMemo(
+    () =>
+      debounce((field: string, value: string | null) => {
+        updateTranslation(field, value);
+      }, 500),
+    [updateTranslation]
+  );
+
+  const debouncedUpdateField = useMemo(
+    () =>
+      debounce((field: string, value: unknown) => {
+        updateField(field, value);
+      }, 500),
+    [updateField]
+  );
+
+  // -- Handlers --
+  const handleTitleChange = (val: string) => {
+    setValue('title', val);
+    debouncedUpdateTranslation('title', val);
+  };
+
+  const handleHeadlineChange = (val: string | null) => {
+    setValue('headline', val || '');
+    debouncedUpdateTranslation('headline', val);
+  };
+
+  const handleTypeChange = (val: 'url' | 'file') => {
+    setValue('type', val);
+    updateField('type', val);
+  };
+
+  const handleVideoUrlChange = (val: string) => {
+    setValue('video_url', val);
+    debouncedUpdateField('video_url', val);
+  };
+
+  const handleVideoFileChange = (val: string | string[]) => {
+    const value = Array.isArray(val) ? val[0] : val;
+    setValue('video_file', value);
+    updateField('video_file', value);
+  };
+
+  const videoType = watch('type');
 
   return (
     <div className="space-y-6">
@@ -36,8 +101,8 @@ export default function VideoBlockEditor({
           Title
         </label>
         <Input
-          value={title}
-          onChange={(event) => updateTranslation('title', event.target.value || null)}
+          value={watch('title')}
+          onChange={(e) => handleTitleChange(e.target.value)}
           placeholder="Video title..."
         />
       </div>
@@ -47,8 +112,8 @@ export default function VideoBlockEditor({
           Headline
         </label>
         <RichTextEditor
-          value={headline}
-          onChange={(value) => updateTranslation('headline', value || null)}
+          value={watch('headline')}
+          onChange={handleHeadlineChange}
           placeholder="Enter video headline..."
         />
         <p className="text-xs text-neutral-500 mt-1">
@@ -68,12 +133,11 @@ export default function VideoBlockEditor({
             <button
               key={option.value}
               type="button"
-              className={`flex-1 py-2 px-4 border-2 rounded-lg transition-all ${
-                videoType === option.value
+              className={`flex-1 py-2 px-4 border-2 rounded-lg transition-all ${videoType === option.value
                   ? 'border-blue-500 bg-blue-50 text-blue-700'
                   : 'border-neutral-200 hover:border-neutral-300'
-              }`}
-              onClick={() => updateField('type', option.value)}
+                }`}
+              onClick={() => handleTypeChange(option.value as 'url' | 'file')}
             >
               <div className="flex items-center justify-center space-x-2">
                 <Icon icon={option.icon} className="w-4 h-4" />
@@ -90,8 +154,8 @@ export default function VideoBlockEditor({
             Video URL <span className="text-red-500">*</span>
           </label>
           <Input
-            value={videoUrl}
-            onChange={(event) => updateField('video_url', event.target.value || null)}
+            value={watch('video_url')}
+            onChange={(e) => handleVideoUrlChange(e.target.value)}
             placeholder="https://www.youtube.com/watch?v=... or https://vimeo.com/..."
           />
           <p className="text-xs text-neutral-500 mt-1">
@@ -106,8 +170,8 @@ export default function VideoBlockEditor({
             Video File <span className="text-red-500">*</span>
           </label>
           <ImageUpload
-            value={videoFile as string | null}
-            onChange={(fileId) => updateField('video_file', fileId || null)}
+            value={(watch('video_file') as string) || ''}
+            onChange={handleVideoFileChange}
             folderId={folderId}
           />
           <p className="text-xs text-neutral-500 mt-1">

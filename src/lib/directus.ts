@@ -21,19 +21,19 @@ const createAuthenticatedFetch = () => {
   return async (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
     // Make the initial request
     const response = await fetch(url, options);
-    
+
     // If not 401, return the response as is
     if (response.status !== 401) {
       return response;
     }
-    
+
     console.log('[Directus Interceptor] 401 detected, attempting token refresh...');
-    
+
     // Handle 401 - need to refresh token
     // Get the refresh token from storage
     const getRefreshTokenFromStorage = (): string | null => {
       if (typeof window === 'undefined') return null;
-      
+
       try {
         const authStorage = localStorage.getItem('nexpo-auth-storage');
         if (authStorage) {
@@ -45,9 +45,9 @@ const createAuthenticatedFetch = () => {
       }
       return null;
     };
-    
+
     const refreshToken = getRefreshTokenFromStorage();
-    
+
     if (!refreshToken) {
       console.log('[Directus Interceptor] No refresh token available, clearing auth...');
       // No refresh token available, need to logout
@@ -59,10 +59,10 @@ const createAuthenticatedFetch = () => {
       }
       return response;
     }
-    
+
     // Wait for any ongoing refresh or start a new one
     let newAccessToken: string | null = null;
-    
+
     if (isRefreshing && refreshPromise) {
       // Wait for the ongoing refresh
       console.log('[Directus Interceptor] Waiting for ongoing refresh...');
@@ -82,7 +82,7 @@ const createAuthenticatedFetch = () => {
               refresh_token: refreshToken,
             }),
           });
-          
+
           if (!refreshResponse.ok) {
             console.log('[Directus Interceptor] Refresh failed, clearing auth...');
             // Refresh failed, clear auth
@@ -94,13 +94,13 @@ const createAuthenticatedFetch = () => {
             resolve(null);
             return;
           }
-          
+
           const refreshData = await refreshResponse.json();
           const newToken = refreshData.data?.access_token || null;
           const newRefreshToken = refreshData.data?.refresh_token || null;
-          
+
           console.log('[Directus Interceptor] Token refresh successful');
-          
+
           // Update tokens in store and token manager (without triggering re-render)
           if (typeof window !== 'undefined' && newToken) {
             import('@/store/auth').then(({ useAuthStore }) => {
@@ -110,7 +110,7 @@ const createAuthenticatedFetch = () => {
               tokenManager.setAccessToken(newToken);
             });
           }
-          
+
           resolve(newToken);
         } catch (error) {
           console.error('[Directus Interceptor] Refresh error:', error);
@@ -125,28 +125,28 @@ const createAuthenticatedFetch = () => {
           refreshPromise = null;
         }
       });
-      
+
       newAccessToken = await refreshPromise;
     }
-    
+
     // Process the queue
     processQueue(newAccessToken);
-    
+
     if (!newAccessToken) {
       console.log('[Directus Interceptor] No new token available, returning original response');
       return response;
     }
-    
+
     // Retry the original request with the new token
     console.log('[Directus Interceptor] Retrying request with new token...');
     const newHeaders = new Headers(options.headers);
     newHeaders.set('Authorization', `Bearer ${newAccessToken}`);
-    
+
     const retryResponse = await fetch(url, {
       ...options,
       headers: newHeaders,
     });
-    
+
     return retryResponse;
   };
 };
@@ -417,7 +417,7 @@ export const refreshWithToken = async (refreshToken: string) => {
       throw new Error(`Refresh failed: ${response.status}`);
     }
 
-    const {data} = await response.json();
+    const { data } = await response.json();
     return data;
   } catch (error) {
     console.error('Failed to refresh with token:', error);
@@ -459,20 +459,22 @@ export const directusHelpers = {
         console.error('[getForm] ERROR: formId is not a string!', { formId, type: typeof formId });
         return { success: false, error: 'Invalid formId: must be a string' };
       }
-      
+
       console.log('[getForm] Fetching form with ID:', formId);
-      
+
       const form = await directus.request(readItem('forms', formId, {
         fields: ([
           'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'event_id',
-          { translations: ['id','languages_code','title','submit_label','success_message'] },
-          { fields: [
-            'id','name','type','width','sort','is_required','validation','conditions','is_group_field',
-            { translations: ['id','languages_code','label','placeholder','help','options'] }
-          ]}
+          { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
+          {
+            fields: [
+              'id', 'name', 'type', 'width', 'sort', 'is_required', 'validation', 'conditions', 'is_group_field',
+              { translations: ['id', 'languages_code', 'label', 'placeholder', 'help', 'options'] }
+            ]
+          }
         ]) as unknown as never,
       }));
-      
+
       return { success: true, data: form };
     } catch (error) {
       console.error('[getForm] Error:', error);
@@ -486,8 +488,8 @@ export const directusHelpers = {
         filter: { form_id: { _eq: formId } },
         sort: ['sort'],
         fields: ([
-          'id','name','type','width','sort','is_required','validation','conditions','is_group_field','form_id',
-          { translations: ['id','languages_code','label','placeholder','help','options'] }
+          'id', 'name', 'type', 'width', 'sort', 'is_required', 'validation', 'conditions', 'is_group_field', 'form_id',
+          { translations: ['id', 'languages_code', 'label', 'placeholder', 'help', 'options'] }
         ]) as unknown as never,
       }));
       return { success: true, data: fields };
@@ -502,8 +504,8 @@ export const directusHelpers = {
         filter: { event_id: { _eq: Number(eventId) } },
         limit: 1,
         fields: ([
-          'id','event_id','status','on_success','redirect_url','template_email',
-          { translations: ['id','languages_code','title','submit_label','success_message'] },
+          'id', 'event_id', 'status', 'on_success', 'redirect_url', 'template_email',
+          { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
         ]) as unknown as never,
       }));
       return { success: true, data: forms?.[0] };
@@ -517,8 +519,8 @@ export const directusHelpers = {
       const forms = await directus.request(readItems('forms', {
         filter: { event_id: { _eq: Number(eventId) } },
         fields: ([
-          'id','event_id','status','on_success','redirect_url','template_email','is_registration',
-          { translations: ['id','languages_code','title','submit_label','success_message'] },
+          'id', 'event_id', 'status', 'on_success', 'redirect_url', 'template_email', 'is_registration',
+          { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
         ]) as unknown as never,
         sort: ['date_created'],
       }));
@@ -531,15 +533,15 @@ export const directusHelpers = {
   async getRegistrationForms(eventId: number, tenantId: number) {
     try {
       const forms = await directus.request(readItems('forms' as never, {
-        filter: { 
+        filter: {
           event_id: { _eq: eventId },
           tenant_id: { _eq: tenantId },
           is_registration: { _eq: true }
         },
         sort: (['-date_created'] as unknown) as never,
         fields: ([
-          'id','status','is_registration','date_created','date_updated',
-          { translations: ['languages_code','title','submit_label'] },
+          'id', 'status', 'is_registration', 'date_created', 'date_updated',
+          { translations: ['languages_code', 'title', 'submit_label'] },
           { fields: ['id'] },
           { submissions: ['id'] }
         ] as unknown) as never,
@@ -553,7 +555,7 @@ export const directusHelpers = {
   async getOtherForms(eventId: number, tenantId: number) {
     try {
       const forms = await directus.request(readItems('forms' as never, {
-        filter: { 
+        filter: {
           event_id: { _eq: eventId },
           tenant_id: { _eq: tenantId },
           _or: [
@@ -563,8 +565,8 @@ export const directusHelpers = {
         },
         sort: (['-date_created'] as unknown) as never,
         fields: ([
-          'id','status','is_registration','date_created','date_updated',
-          { translations: ['languages_code','title','submit_label'] },
+          'id', 'status', 'is_registration', 'date_created', 'date_updated',
+          { translations: ['languages_code', 'title', 'submit_label'] },
           { fields: ['id'] },
           { submissions: ['id'] }
         ] as unknown) as never,
@@ -682,7 +684,7 @@ export const directusHelpers = {
     status: 'draft' | 'published' | 'archived';
     on_success: 'redirect' | 'message';
     redirect_url?: string;
-    
+
     // Form translations
     translations: {
       'en-US': {
@@ -696,7 +698,7 @@ export const directusHelpers = {
         success_message: string;
       };
     };
-    
+
     // Form fields
     fields: Array<{
       id?: string;
@@ -707,7 +709,7 @@ export const directusHelpers = {
       is_required: boolean;
       validation?: string;
       conditions?: Record<string, unknown>;
-      
+
       // Field translations
       translations: {
         'en-US': {
@@ -751,7 +753,7 @@ export const directusHelpers = {
 
         // Try to update existing translation first, then create if not exists
         const existingTranslations = await directus.request(readItems('forms_translations' as never, {
-          filter: { 
+          filter: {
             forms_id: { _eq: formId },
             languages_code: { _eq: langCode }
           },
@@ -819,7 +821,7 @@ export const directusHelpers = {
 
           // Try to update existing translation first, then create if not exists
           const existingFieldTranslations = await directus.request(readItems('form_fields_translations' as never, {
-            filter: { 
+            filter: {
               form_fields_id: { _eq: fieldId },
               languages_code: { _eq: langCode }
             },
@@ -851,7 +853,7 @@ export const directusHelpers = {
     template_email_group?: string;
     event_id: number;
     tenant_id: number;
-    
+
     // Form translations with create/update/delete structure
     translations?: {
       create: Array<{
@@ -869,7 +871,7 @@ export const directusHelpers = {
       }>;
       delete: string[];
     };
-    
+
     // Form fields with create/update/delete structure
     fields: {
       create: Array<{
@@ -952,7 +954,7 @@ export const directusHelpers = {
         template_email_group: formData.template_email_group,
         event_id: formData.event_id,
         tenant_id: formData.tenant_id,
-        
+
         // Form translations with deep query structure
         ...(formData.translations && {
           translations: {
@@ -961,7 +963,7 @@ export const directusHelpers = {
             delete: formData.translations.delete,
           },
         }),
-        
+
         // Form fields with deep query structure
         fields: {
           create: formData.fields.create,
@@ -1057,7 +1059,7 @@ export const directusHelpers = {
       if (!user.success || !user.data || !user.data.tenants) {
         return { success: true, data: [] };
       }
-      
+
       const tenants = user.data.tenants.map((t: { tenants_id: Tenant }) => t.tenants_id);
       return { success: true, data: tenants };
     } catch (error) {
@@ -1071,16 +1073,16 @@ export const directusHelpers = {
     try {
       const baseFilter = tenantId ? { tenant_id: { _eq: tenantId } } : {};
       const combinedFilter = filters ? { _and: [baseFilter, filters] } : baseFilter;
-      
+
       const events = await directus.request(
         readItems('events', {
           fields: ((fields && fields.length > 0)
             ? ([...fields, { forms: ['id'] }] as unknown as never)
             : ([
-                '*',
-                { tenant: ['id', 'name', 'logo', 'status', 'folder_files_id'] },
-                { forms: ['id'] }
-              ] as unknown as never)
+              '*',
+              { tenant: ['id', 'name', 'logo', 'status', 'folder_files_id'] },
+              { forms: ['id'] }
+            ] as unknown as never)
           ),
           filter: Object.keys(combinedFilter).length > 0 ? combinedFilter : undefined,
           sort: ['-start_date'],
@@ -1144,9 +1146,9 @@ export const directusHelpers = {
   async uploadFile(file: File, folderId?: string, eventId?: string) {
     try {
       console.log('[uploadFile] Starting upload:', { fileName: file.name, folderId, eventId });
-      
+
       const formData = new FormData();
-      
+
       // Add folder FIRST if provided (before file)
       if (folderId) {
         console.log('[uploadFile] Adding folder to FormData:', folderId);
@@ -1154,25 +1156,25 @@ export const directusHelpers = {
       } else {
         console.warn('[uploadFile] No folderId provided - file will upload to root');
       }
-      
+
       // Add event_id metadata if provided (before file)
       if (eventId) {
         console.log('[uploadFile] Adding event_id to FormData:', eventId);
         formData.append('event_id', eventId);
       }
-      
+
       // Add file LAST
       formData.append('file', file);
-      
+
       // Get auth token from tokenManager
       const { tokenManager } = await import('./tokenManager');
       const token = tokenManager.getBestAvailableToken();
       console.log('[uploadFile] Token available:', !!token);
-      
+
       if (!token) {
         throw new Error('Authentication required. Please log in.');
       }
-      
+
       // Authenticated upload with Bearer token
       const response = await fetch('https://app.nexpo.vn/files', {
         method: 'POST',
@@ -1200,14 +1202,14 @@ export const directusHelpers = {
   async getFilesByFolder(folderId: string, limit: number = 50) {
     try {
       console.log('[getFilesByFolder] Fetching files from folder:', folderId);
-      
+
       const { tokenManager } = await import('./tokenManager');
       const token = tokenManager.getBestAvailableToken();
-      
+
       if (!token) {
         throw new Error('Authentication required. Please log in.');
       }
-      
+
       // Fetch files from Directus with filter
       const response = await fetch(`https://app.nexpo.vn/files?filter[folder][_eq]=${folderId}&limit=${limit}&sort[]=-uploaded_on`, {
         method: 'GET',
@@ -1238,7 +1240,7 @@ export const directusHelpers = {
       const sites = await directus.request(readItems('sites' as never, {
         filter: { event_id: { _eq: Number(eventId) } },
         limit: 1,
-        fields: (['id','event_id','slug','domain','status'] as unknown) as never,
+        fields: (['id', 'event_id', 'slug', 'domain', 'status'] as unknown) as never,
       }));
       return { success: true, data: sites?.[0] || null };
     } catch (error) {
@@ -1271,14 +1273,14 @@ export const directusHelpers = {
           'logo',
           'favicon',
           'tenant_id',
-          { 
-            translations: ['id', 'languages_code', 'title', 'description'] 
+          {
+            translations: ['id', 'languages_code', 'title', 'description']
           },
-          { 
-            pages: ['id', 'status'] 
+          {
+            pages: ['id', 'status']
           },
-          { 
-            navigation: ['id', 'type', 'status'] 
+          {
+            navigation: ['id', 'type', 'status']
           },
           {
             categories: ['id']
@@ -1309,10 +1311,10 @@ export const directusHelpers = {
           'logo',
           'favicon',
           'tenant_id',
-          { 
+          {
             posts: [
-              'id', 
-              'title', 
+              'id',
+              'title',
               'slug',
               'status',
               'type',
@@ -1320,42 +1322,42 @@ export const directusHelpers = {
               'summary',
               { category: ['id', { translations: ['title'] }] },
               { author: ['id', 'name'] }
-            ] 
+            ]
           },
-          { 
+          {
             testimonials: [
-              'id', 
-              'title', 
+              'id',
+              'title',
               'subtitle',
               'status',
               'company',
               'content'
-            ] 
+            ]
           },
-          { 
+          {
             team: [
-              'id', 
-              'name', 
+              'id',
+              'name',
               'status',
               'image',
               { translations: ['languages_code', 'job_title', 'bio'] }
-            ] 
+            ]
           },
-          { 
+          {
             redirects: [
-              'id', 
-              'url_old', 
+              'id',
+              'url_old',
               'url_new',
               'response_code'
-            ] 
+            ]
           },
-          { 
+          {
             navigation: [
-              'id', 
-              'status', 
+              'id',
+              'status',
               'type',
               { translations: ['id', 'languages_code', 'title'] },
-              { 
+              {
                 items: [
                   'id',
                   'type',
@@ -1363,46 +1365,46 @@ export const directusHelpers = {
                   { translations: ['languages_code', 'title'] }
                 ]
               }
-            ] 
+            ]
           },
-          { 
-            translations: ['id', 'languages_code', 'title', 'description'] 
+          {
+            translations: ['id', 'languages_code', 'title', 'description']
           },
-          { 
+          {
             pages: [
-              'id', 
-              'sort', 
+              'id',
+              'sort',
               'status',
               'date_created',
               'date_updated',
               { translations: ['id', 'languages_code', 'title', 'permalink'] },
               { blocks: ['id', 'collection'] }
-            ] 
+            ]
           },
-          { 
+          {
             categories: [
-              'id', 
+              'id',
               'color',
               'sort',
               { translations: ['id', 'languages_code', 'title'] }
-            ] 
+            ]
           },
-          { 
+          {
             globals: [
-              'id', 
-              'title', 
+              'id',
+              'title',
               'url',
               'tagline',
               'description',
               'email',
               'phone'
-            ] 
+            ]
           },
-          { 
+          {
             languages: [
               'id',
               { languages_id: ['code', 'name'] }
-            ] 
+            ]
           }
         ] as unknown) as never,
       }));
@@ -1435,7 +1437,7 @@ export const directusHelpers = {
   }>) {
     try {
       console.log('[updateSite] Updating site:', siteId, 'with payload:', payload);
-      
+
       const site = await directus.request(updateItem('sites' as never, siteId as never, payload as never));
       return { success: true, data: site };
     } catch (error) {
@@ -1460,23 +1462,51 @@ export const directusHelpers = {
         filter: { id: { _eq: pageId } },
         limit: 1,
         fields: ([
-          'id','sort','status','site_id','date_created','date_updated',
-          { translations: ['id','languages_code','title','permalink'] },
-          { site: ['id','event_id','tenant_id'] },
-          { blocks: [
-            'id','collection','sort','hide_block',
-            { item: [
-              '*',
-              { translations: ['*'] },
-              { form: ['id','status','on_success','redirect_url', { translations: ['*'] }, { fields: ['*', { translations: ['*'] }] }] },
-              { rows: ['*', { translations: ['*'] }, { button_group: ['*', { buttons: ['*', { translations: ['*'] }] }] }] },
-              { button_group: ['*', { buttons: ['*', { translations: ['*'] }] }] },
-              { buttons: ['*', { translations: ['*'] }] },
-              { steps: ['*', { translations: ['*'] }] },
-              { faqs: ['*', { translations: ['*'] }] },
-              { gallery_items: ['id', 'sort', { directus_files_id: ['id', 'type', 'title', 'modified_on', 'filename_download'] }] },
-            ] }
-          ] }
+          'id', 'sort', 'status', 'site_id', 'date_created', 'date_updated',
+          { translations: ['id', 'languages_code', 'title', 'permalink'] },
+          { site: ['id', 'event_id', 'tenant_id'] },
+          {
+            blocks: [
+              'id', 'collection', 'sort', 'hide_block',
+              {
+                item: [
+                  '*',
+                  { translations: ['*'] },
+                  { form: ['id', 'status', 'on_success', 'redirect_url', { translations: ['*'] }, { fields: ['*', { translations: ['*'] }] }] },
+                  { rows: ['*', { translations: ['*'] }, { button_group: ['*', { buttons: ['*', { translations: ['*'] }] }] }] },
+                  { button_group: ['*', { buttons: ['*', { translations: ['*'] }] }] },
+                  { buttons: ['*', { translations: ['*'] }] },
+                  { steps: ['*', { translations: ['*'] }] },
+                  { faqs: ['*', { translations: ['*'] }] },
+                  { gallery_items: ['id', 'sort', { directus_files_id: ['id', 'type', 'title', 'modified_on', 'filename_download'] }] },
+                  // Logos
+                  { logos: ['id', 'sort', { directus_files_id: ['id', 'type', 'title', 'modified_on', 'filename_download'] }] },
+                  // Testimonials
+                  {
+                    testimonials: [
+                      'id', 'sort',
+                      {
+                        testimonials_id: [
+                          'id', 'status', 'company', 'link', 'title', 'subtitle', 'content',
+                          { company_logo: ['id', 'type', 'title', 'modified_on', 'filename_download'] },
+                          { image: ['id', 'type', 'title', 'modified_on', 'filename_download'] },
+                          { translations: ['*'] }
+                        ]
+                      }
+                    ]
+                  },
+                  // Team
+                  {
+                    team: [
+                      'id', 'sort', 'name', 'social_media',
+                      { image: ['id', 'type', 'title', 'modified_on', 'filename_download'] },
+                      { translations: ['*'] }
+                    ]
+                  },
+                ]
+              }
+            ]
+          }
         ] as unknown) as never,
       }));
       return { success: true, data: pages?.[0] || null };
@@ -1488,9 +1518,9 @@ export const directusHelpers = {
   async updatePage(pageId: string, payload: Record<string, unknown>) {
     try {
       console.log('[updatePage] Updating page:', pageId, 'with payload:', JSON.stringify(payload, null, 2));
-      
+
       const page = await directus.request(updateItem('pages' as never, pageId as never, payload as never));
-      
+
       console.log('[updatePage] Update result:', page);
       return { success: true, data: page };
     } catch (error) {
@@ -1505,7 +1535,7 @@ export const directusHelpers = {
     try {
       const blocks = await directus.request(readItems('page_blocks' as never, {
         filter: { pages_id: { _eq: pageId } },
-        fields: (['id','collection','hide_block','sort'] as unknown) as never,
+        fields: (['id', 'collection', 'hide_block', 'sort'] as unknown) as never,
         sort: (['sort'] as unknown) as never
       }));
       return { success: true, data: blocks };
@@ -1538,20 +1568,24 @@ export const directusHelpers = {
         filter: { site: { _eq: Number(siteId) } },
         limit: 1,
         fields: ([
-          'id','status','type','site',
-          { translations: ['languages_code','title'] },
-          { items: [
-            'id','sort','type','url','open_in_new_tab','has_children',
-            { translations: ['languages_code','title'] },
-            { page: ['id', { translations: ['title'] }] },
-            { parent: ['id'] },
-            { children: [
-              'id','sort','type','url','open_in_new_tab','has_children',
-              { translations: ['languages_code','title'] },
+          'id', 'status', 'type', 'site',
+          { translations: ['languages_code', 'title'] },
+          {
+            items: [
+              'id', 'sort', 'type', 'url', 'open_in_new_tab', 'has_children',
+              { translations: ['languages_code', 'title'] },
               { page: ['id', { translations: ['title'] }] },
-              { parent: ['id'] }
-            ]}
-          ] }
+              { parent: ['id'] },
+              {
+                children: [
+                  'id', 'sort', 'type', 'url', 'open_in_new_tab', 'has_children',
+                  { translations: ['languages_code', 'title'] },
+                  { page: ['id', { translations: ['title'] }] },
+                  { parent: ['id'] }
+                ]
+              }
+            ]
+          }
         ] as unknown) as never,
       }));
       return { success: true, data: nav?.[0] || null };
@@ -1565,20 +1599,24 @@ export const directusHelpers = {
       const list = await directus.request(readItems('navigation' as never, {
         filter: { site: { _eq: Number(siteId) } },
         fields: ([
-          'id','status','type','site',
-          { translations: ['languages_code','title'] },
-          { items: [
-            'id','sort','type','url','open_in_new_tab','has_children',
-            { translations: ['languages_code','title'] },
-            { page: ['id', { translations: ['title'] }] },
-            { parent: ['id'] },
-            { children: [
-              'id','sort','type','url','open_in_new_tab','has_children',
-              { translations: ['languages_code','title'] },
+          'id', 'status', 'type', 'site',
+          { translations: ['languages_code', 'title'] },
+          {
+            items: [
+              'id', 'sort', 'type', 'url', 'open_in_new_tab', 'has_children',
+              { translations: ['languages_code', 'title'] },
               { page: ['id', { translations: ['title'] }] },
-              { parent: ['id'] }
-            ]}
-          ] }
+              { parent: ['id'] },
+              {
+                children: [
+                  'id', 'sort', 'type', 'url', 'open_in_new_tab', 'has_children',
+                  { translations: ['languages_code', 'title'] },
+                  { page: ['id', { translations: ['title'] }] },
+                  { parent: ['id'] }
+                ]
+              }
+            ]
+          }
         ] as unknown) as never,
       }));
       return { success: true, data: list };
@@ -1639,8 +1677,8 @@ export const directusHelpers = {
       if (!tenantId || !options) {
         const filter: DirectusFilter = { event_id: { _eq: eventId } };
         const fields = ([
-          'id','slug','domain','status','date_updated',
-          { translations: ['languages_code','title','description'] },
+          'id', 'slug', 'domain', 'status', 'date_updated',
+          { translations: ['languages_code', 'title', 'description'] },
         ] as unknown) as never;
         const items = await directus.request(
           readItems('sites' as never, {
@@ -1663,8 +1701,8 @@ export const directusHelpers = {
         filter._or = orFilters;
       }
       const fields = ([
-        'id','slug','domain','status','date_updated',
-        { translations: ['languages_code','title','description'] },
+        'id', 'slug', 'domain', 'status', 'date_updated',
+        { translations: ['languages_code', 'title', 'description'] },
         { pages: ['id'] },
         { navigation: ['id'] },
         { categories: ['id'] },
@@ -1687,8 +1725,8 @@ export const directusHelpers = {
       if (!options) {
         const filter: DirectusFilter = { site_id: { _eq: siteId } };
         const fields = ([
-          'id','status','site_id','date_updated',
-          { translations: ['languages_code','title','permalink'] },
+          'id', 'status', 'site_id', 'date_updated',
+          { translations: ['languages_code', 'title', 'permalink'] },
         ] as unknown) as never;
         const items = await directus.request(
           readItems('pages' as never, {
@@ -1710,8 +1748,8 @@ export const directusHelpers = {
         filter._or = orFilters;
       }
       const fields = ([
-        'id','status','site_id','date_updated',
-        { translations: ['languages_code','title','permalink'] },
+        'id', 'status', 'site_id', 'date_updated',
+        { translations: ['languages_code', 'title', 'permalink'] },
         { blocks: ['id'] },
       ] as unknown) as never;
       const result = await this.getPaginatedItems<Page>('pages', filter, fields, { page, limit, sort });
@@ -1790,7 +1828,7 @@ export const directusHelpers = {
       } = options ?? {};
 
       console.log(`[getPaginatedItems] Fetching ${collection}:`, { page, limit, sort });
-      
+
       // Calculate offset
       const offset = (page - 1) * limit;
 
@@ -1819,13 +1857,13 @@ export const directusHelpers = {
           offset,
         })
       ) as T[];
-      
+
       const totalPages = Math.ceil(totalCount / limit);
-      
+
       console.log(`[getPaginatedItems] Found ${items.length} items (page ${page}/${totalPages})`);
-      
-      return { 
-        success: true, 
+
+      return {
+        success: true,
         data: {
           items,
           pagination: {
@@ -1909,10 +1947,10 @@ export const directusHelpers = {
       } = options || {};
 
       console.log('[getRegistrationsByEvent] Fetching registrations:', { eventId, page, limit, sort, search });
-      
+
       // Build filter
       const filter: DirectusFilter = { event_id: { _eq: eventId } };
-      
+
       // Add search filter if provided
       if (search) {
         const orFilters: DirectusFilter[] = [
@@ -1986,7 +2024,7 @@ export const directusHelpers = {
   async getRegistrationIdsForCheckin(eventId: number, tenantId: number, qrCodeId: string) {
     try {
       console.log('[getRegistrationIdsForCheckin] Fetching registration IDs:', { eventId, tenantId, qrCodeId });
-      
+
       const registrations = await directus.request(
         readItems('registrations' as never, {
           filter: {
@@ -2000,7 +2038,7 @@ export const directusHelpers = {
           fields: ['id'] as unknown as never,
         })
       );
-      
+
       console.log(`[getRegistrationIdsForCheckin] Found ${registrations.length} registrations to check in`);
       return { success: true, data: registrations };
     } catch (error) {

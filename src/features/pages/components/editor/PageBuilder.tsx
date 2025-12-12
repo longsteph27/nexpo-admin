@@ -38,6 +38,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import BlockSkeleton from '@/components/ui/BlockSkeleton';
 import { useAppContextStore } from '@/store/appContext';
+import ThemeSelector from '@/components/ui/ThemeSelector';
 
 interface PageBuilderProps {
   eventId: string;
@@ -76,9 +77,15 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
   const [inlineEditMode, setInlineEditMode] = useState(false);
   const [hoveredSectionIndex, setHoveredSectionIndex] = useState<number | 'header' | 'footer' | null>(null);
   const [previewDevice, setPreviewDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [previewScale, setPreviewScale] = useState(1);
   const [showMetadataDialog, setShowMetadataDialog] = useState(false);
   const [metadataDialogLang, setMetadataDialogLang] = useState<'en-US' | 'vi-VN'>('en-US');
   const [stagedTranslations, setStagedTranslations] = useState<Array<{ languages_code: 'en-US' | 'vi-VN'; title?: string; permalink?: string; isNew: boolean }>>([]);
+  // Track temporary metadata changes (title/permalink) before saving
+  const [tempMetadata, setTempMetadata] = useState<Record<'en-US' | 'vi-VN', { title?: string | null; permalink?: string | null }>>({
+    'en-US': {},
+    'vi-VN': {},
+  });
 
   // Fetch page data
   const { data: page, isLoading, refetch: refetchPage } = usePageData(pageId);
@@ -109,6 +116,7 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
     deleteBlock,
     moveBlock,
     insertBlockAt,
+    reorderBlocks,
   } = usePageBuilderBlocks({ pageBlocks: (page as Page | undefined)?.blocks as PageBlock[] | undefined });
 
   const {
@@ -170,11 +178,16 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
     );
   }, [page, previewLang]);
 
-  const currentPageTitle = currentPageTranslation?.title || 'Untitled Page';
-  const currentPagePermalink =
-    currentPageTranslation?.permalink && currentPageTranslation.permalink.trim() !== ''
+  // Use temporary metadata if available, otherwise use original translation
+  const currentPageTitle = tempMetadata[previewLang]?.title !== undefined
+    ? (tempMetadata[previewLang].title || 'Untitled Page')
+    : (currentPageTranslation?.title || 'Untitled Page');
+
+  const currentPagePermalink = tempMetadata[previewLang]?.permalink !== undefined
+    ? (tempMetadata[previewLang].permalink || '/untitled-page')
+    : (currentPageTranslation?.permalink && currentPageTranslation.permalink.trim() !== ''
       ? currentPageTranslation.permalink
-      : '/untitled-page';
+      : '/untitled-page');
 
   // Track editingBlock changes
   useEffect(() => {
@@ -234,7 +247,11 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
       setPendingHeaderNavigation(null);
       setPendingFooterNavigation(null);
       setStagedTranslations([]); // Clear staged translations after save
+      setTempMetadata({ 'en-US': {}, 'vi-VN': {} }); // Clear temporary metadata
       resetPayload();
+      // Refetch page data to get the latest state (including new IDs)
+      // This will triger usePagePayloadManager to re-init with clean data
+      refetchPage();
       // Return to preview mode after successful save
       setInlineEditMode(false);
       setHoveredSectionIndex(null);
@@ -481,7 +498,7 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
   return (
     <div className="h-full flex flex-col relative">
       {/* Top Bar - SquareSpace style */}
-      <div className="bg-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-50">
+      <div className="bg-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-30">
         {/* Left Section - Edit/Cancel/Save buttons */}
         <div className="flex items-center space-x-3">
           {!inlineEditMode ? (
@@ -520,6 +537,15 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
                 onClick={() => {
                   setInlineEditMode(false);
                   setHoveredSectionIndex(null);
+                  // Clear payload and pending changes when canceling
+                  resetPayload();
+                  setPendingHeaderNavigation(null);
+                  setPendingFooterNavigation(null);
+                  setStagedTranslations([]);
+                  setTempMetadata({ 'en-US': {}, 'vi-VN': {} }); // Clear temporary metadata
+                  setHasUnsavedChanges(false);
+                  // Refetch page to restore original state
+                  refetchPage();
                 }}
               >
                 <Icon icon="lucide:x" className="w-4 h-4 mr-2" />
@@ -561,21 +587,6 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
             >
               <span className="text-sm font-semibold text-neutral-900">{currentPageTitle}</span>
               <span className="text-xs text-neutral-500">{currentPagePermalink}</span>
-
-              {/* Show staged translation changes */}
-              {stagedTranslations.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {stagedTranslations.map((staged) => (
-                    <div key={staged.languages_code} className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 flex items-center gap-2">
-                      <Icon icon="lucide:check-circle-2" className="w-3 h-3" />
-                      <span>
-                        {staged.isNew ? '✨ New' : 'Updated'} {staged.languages_code === 'en-US' ? 'English' : 'Vietnamese'}
-                        {staged.title && ` • "${staged.title}"`}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             <div
@@ -589,6 +600,13 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
         </div>
 
         <div className="flex items-center space-x-3">
+          {/* Theme Selector */}
+          {siteId && (
+            <ThemeSelector
+              onThemeSelect={() => { }}
+              siteId={siteId}
+            />
+          )}
           {/* Preview Device Buttons */}
           <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
             <button
@@ -646,6 +664,33 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
               VI
             </button>
           </div>
+
+          <div className="h-6 w-px bg-neutral-200" />
+
+          {/* Zoom Controls */}
+          <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
+            <button
+              onClick={() => setPreviewScale((s) => Math.max(0.5, s - 0.1))}
+              className="p-2 rounded transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-white hover:shadow-sm"
+              title="Zoom Out"
+            >
+              <Icon icon="lucide:minus" className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setPreviewScale(1)}
+              className="px-2 py-1.5 text-xs font-medium min-w-[3rem] text-center rounded transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-white hover:shadow-sm"
+              title="Reset Zoom"
+            >
+              {Math.round(previewScale * 100)}%
+            </button>
+            <button
+              onClick={() => setPreviewScale((s) => Math.min(1.5, s + 0.1))}
+              className="p-2 rounded transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-white hover:shadow-sm"
+              title="Zoom In"
+            >
+              <Icon icon="lucide:plus" className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
       </div>
@@ -660,166 +705,164 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
 
 
           {/* Preview content với device constraints */}
-          <div
-            className="flex-1 overflow-y-auto"
-            style={{
-              maxWidth: previewDevice === 'desktop' ? '100%' : previewDevice === 'tablet' ? '768px' : '375px',
-              margin: previewDevice !== 'desktop' ? '0 auto' : '0',
-            }}
-          >
-            <div className="w-full bg-white rounded-lg shadow-lg" style={{ overflow: 'visible' }}>
-              {isLoadingBlocks ? (
-                <div className="space-y-8">
-                  <div className="flex items-center justify-center py-12">
-                    <div className="text-center">
-                      <LoadingSpinner size="lg" className="mb-4" />
-                      <p className="text-content-tertiary text-sm">Loading blocks...</p>
+          <div className="flex-1 overflow-y-auto bg-neutral-100 p-8">
+            <div
+              style={{
+                width: previewDevice === 'desktop' ? '100%' : previewDevice === 'tablet' ? '768px' : '375px',
+                margin: '0 auto',
+                // Use zoom for layout-correct scaling
+                // @ts-ignore - zoom is non-standard but widely supported
+                zoom: previewScale,
+                transition: 'width 0.2s ease-out',
+              }}
+            >
+              <div className="w-full bg-white rounded-lg shadow-lg" style={{ overflow: 'visible' }}>
+                {isLoadingBlocks ? (
+                  <div className="space-y-8">
+                    <div className="flex items-center justify-center py-12">
+                      <div className="text-center">
+                        <LoadingSpinner size="lg" className="mb-4" />
+                        <p className="text-content-tertiary text-sm">Loading blocks...</p>
+                      </div>
                     </div>
+                    <BlockSkeleton type="hero" />
+                    <BlockSkeleton type="columns" />
                   </div>
-                  <BlockSkeleton type="hero" />
-                  <BlockSkeleton type="columns" />
-                </div>
-              ) : (
-                <PagePreview
-                  blocks={blocks}
-                  lang={previewLang}
-                  siteId={siteId || undefined}
-                  siteLogo={(site as Site | undefined)?.logo || undefined}
-                  isEditMode={inlineEditMode}
-                  onSectionClick={(index) => handleEditBlock(index)}
-                  onInsertAbove={(index) => {
-                    setSelectedBlockIndex(index);
-                    setShowBlockSelector(true);
-                  }}
-                  onInsertBelow={(index) => {
-                    setSelectedBlockIndex(index + 1);
-                    setShowBlockSelector(true);
-                  }}
-                  onDeleteSection={(index) => handleDeleteBlock(index)}
-                  onMoveSection={(index, direction) => handleMoveBlock(index, direction)}
-                  onEditHeader={() => {
-                    setShowHeaderDialog(true);
-                  }}
-                  onEditFooter={() => {
-                    setShowFooterDialog(true);
-                  }}
-                  hoveredSectionIndex={hoveredSectionIndex}
-                  onSectionHover={(index) => {
-                    if (typeof index === 'number' || index === 'header' || index === 'footer') {
-                      setHoveredSectionIndex(index);
-                    }
-                  }}
-                  headerNavigation={headerNavigationPreview}
-                  footerNavigation={footerNavigationPreview}
-                  onAddFirstBlock={() => {
-                    setSelectedBlockIndex(0);
-                    setShowBlockSelector(true);
-                  }}
-                />
-              )}
+                ) : (
+                  <PagePreview
+                    blocks={blocks}
+                    lang={previewLang}
+                    siteId={siteId || undefined}
+                    siteLogo={(site as Site | undefined)?.logo || undefined}
+                    isEditMode={inlineEditMode}
+                    onSectionClick={(index) => handleEditBlock(index)}
+                    onInsertAbove={(index) => {
+                      setSelectedBlockIndex(index);
+                      setShowBlockSelector(true);
+                    }}
+                    onInsertBelow={(index) => {
+                      setSelectedBlockIndex(index + 1);
+                      setShowBlockSelector(true);
+                    }}
+                    onDeleteSection={(index) => handleDeleteBlock(index)}
+                    onMoveSection={(index, direction) => handleMoveBlock(index, direction)}
+                    onReorderSection={(oldIndex, newIndex) => reorderBlocks(oldIndex, newIndex)}
+                    onEditHeader={() => {
+                      setShowHeaderDialog(true);
+                    }}
+                    onEditFooter={() => {
+                      setShowFooterDialog(true);
+                    }}
+                    hoveredSectionIndex={hoveredSectionIndex}
+                    onSectionHover={(index) => {
+                      if (typeof index === 'number' || index === 'header' || index === 'footer') {
+                        setHoveredSectionIndex(index);
+                      }
+                    }}
+                    headerNavigation={headerNavigationPreview}
+                    footerNavigation={footerNavigationPreview}
+                    onAddFirstBlock={() => {
+                      setSelectedBlockIndex(0);
+                      setShowBlockSelector(true);
+                    }}
+                  />
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Block Selector Modal */}
-      <BlockSelectorModal
-        isOpen={showBlockSelector}
-        onClose={() => {
-          setShowBlockSelector(false);
-          setSelectedBlockIndex(null);
-        }}
-        onSelectBlock={handleBlockTypeSelected}
-      />
+        {/* Block Selector Modal */}
+        <BlockSelectorModal
+          isOpen={showBlockSelector}
+          onClose={() => {
+            setShowBlockSelector(false);
+            setSelectedBlockIndex(null);
+          }}
+          onSelectBlock={handleBlockTypeSelected}
+        />
 
-      {/* Block Editor Modal */}
-      <BlockEditorModal
-        isOpen={showBlockEditor}
-        onClose={() => {
-          setShowBlockEditor(false);
-          setEditingBlock(null);
-          setSelectedBlockIndex(null);
-        }}
-        block={editingBlock}
-        onSave={handleBlockSaved}
-        activeLang={previewLang}
-        folderId={folderId}
-        eventId={uploadEventId}
-      />
+        {/* Block Editor Modal */}
+        <BlockEditorModal
+          isOpen={showBlockEditor}
+          onClose={() => {
+            setShowBlockEditor(false);
+            setEditingBlock(null);
+            setSelectedBlockIndex(null);
+          }}
+          block={editingBlock}
+          onSave={handleBlockSaved}
+          activeLang={previewLang}
+          folderId={folderId}
+          eventId={uploadEventId}
+        />
 
-      {/* Header Navigation Dialog */}
-      <HeaderNavigationBlockEditor
-        isOpen={showHeaderDialog}
-        onClose={() => setShowHeaderDialog(false)}
-        siteId={siteId as number}
-        headerNavigation={headerNavigationPreview}
-        activeLang={previewLang}
-        onSaveChanges={(items, preparedData) => {
-          // Store changes locally only if there are actual diffs
-          const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
-          setHeaderItems(items);
-          if (hasNavChanges) {
-            setPendingHeaderNavigation(preparedData!);
-            setHasUnsavedChanges(true);
-          }
-        }}
-      />
+        {/* Header Navigation Dialog */}
+        <HeaderNavigationBlockEditor
+          isOpen={showHeaderDialog}
+          onClose={() => setShowHeaderDialog(false)}
+          siteId={siteId as number}
+          headerNavigation={headerNavigationPreview}
+          activeLang={previewLang}
+          onSaveChanges={(items, preparedData) => {
+            // Store changes locally only if there are actual diffs
+            const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
+            setHeaderItems(items);
+            if (hasNavChanges) {
+              setPendingHeaderNavigation(preparedData!);
+              setHasUnsavedChanges(true);
+            }
+          }}
+        />
 
-      {/* Footer Navigation Dialog */}
-      <FooterNavigationBlockEditor
-        isOpen={showFooterDialog}
-        onClose={() => setShowFooterDialog(false)}
-        siteId={siteId as number}
-        footerNavigation={footerNavigationPreview}
-        activeLang={previewLang}
-        onSaveChanges={(items, preparedData) => {
-          // Store changes locally only if there are actual diffs
-          const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
-          setFooterItems(items);
-          if (hasNavChanges) {
-            setPendingFooterNavigation(preparedData!);
-            setHasUnsavedChanges(true);
-          }
-        }}
-      />
+        {/* Footer Navigation Dialog */}
+        <FooterNavigationBlockEditor
+          isOpen={showFooterDialog}
+          onClose={() => setShowFooterDialog(false)}
+          siteId={siteId as number}
+          footerNavigation={footerNavigationPreview}
+          activeLang={previewLang}
+          onSaveChanges={(items, preparedData) => {
+            // Store changes locally only if there are actual diffs
+            const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
+            setFooterItems(items);
+            if (hasNavChanges) {
+              setPendingFooterNavigation(preparedData!);
+              setHasUnsavedChanges(true);
+            }
+          }}
+        />
 
-      <PageMetadataDialog
-        isOpen={showMetadataDialog}
-        onClose={() => setShowMetadataDialog(false)}
-        pageId={pageId}
-        page={page as Page | null}
-        defaultLanguage={metadataDialogLang}
-        onApply={(entry) => {
-          // Stage page translation changes into the payload manager
-          console.log('[PageBuilder] Staging translation:', entry);
-          stagePageTranslation(entry.languages_code, {
-            title: entry.title,
-            permalink: entry.permalink,
-            id: entry.id,
-            isSessionOnly: entry.isSessionOnly,
-          });
-
-          // Track staged translation for UI display
-          setStagedTranslations((prev) => {
-            const existingIdx = prev.findIndex(t => t.languages_code === entry.languages_code);
-            const staged = {
-              languages_code: entry.languages_code,
+        <PageMetadataDialog
+          isOpen={showMetadataDialog}
+          onClose={() => setShowMetadataDialog(false)}
+          pageId={pageId}
+          page={page as Page | null}
+          defaultLanguage={metadataDialogLang}
+          tempMetadata={tempMetadata}
+          onApply={(entry) => {
+            // Stage page translation changes into the payload manager
+            console.log('[PageBuilder] Staging translation:', entry);
+            stagePageTranslation(entry.languages_code, {
               title: entry.title,
               permalink: entry.permalink,
-              isNew: entry.isSessionOnly || entry.id === 0,
-            };
+              id: entry.id,
+              isSessionOnly: entry.isSessionOnly,
+            });
 
-            if (existingIdx >= 0) {
-              const updated = [...prev];
-              updated[existingIdx] = staged;
-              return updated;
-            }
-            return [...prev, staged];
-          });
+            // Update temporary metadata for immediate preview
+            setTempMetadata((prev) => ({
+              ...prev,
+              [entry.languages_code]: {
+                title: entry.title,
+                permalink: entry.permalink,
+              },
+            }));
 
-          setHasUnsavedChanges(true);
-        }}
-      />
+            setHasUnsavedChanges(true);
+          }}
+        />
+      </div>
     </div>
   );
 }

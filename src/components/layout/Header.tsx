@@ -39,7 +39,7 @@ export default function Header({ onMobileMenuClick, actions, eventId }: HeaderPr
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 relative z-30">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
       <div className={clsx("", isEventDetailPage ? 'px-4 sm:px-6 lg:pr-8 lg:pl-2' : 'px-4 sm:px-6 lg:px-8')}>
         <div className="flex items-center justify-between h-16">
           {/* Mobile menu button */}

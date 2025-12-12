@@ -264,6 +264,26 @@ export interface BlockFaqs extends BaseBlock {
 }
 
 /**
+ * Block Html Translation
+ */
+export interface BlockHtmlTranslation extends BlockTranslation {
+  block_html_id: string;
+  // No specific translated fields in current schema, but structure exists
+  [key: string]: unknown;
+}
+
+/**
+ * Block Html
+ */
+export interface BlockHtml extends BaseBlock {
+  id: string; // UUID
+  event_id?: number | null;
+  tenant_id?: number | null;
+  raw_html?: string | null; // Root field for HTML
+  translations?: BlockHtmlTranslation[];
+}
+
+/**
  * Block Quote Translation
  */
 export interface BlockQuoteTranslation extends BlockTranslation {
@@ -543,9 +563,10 @@ export interface BlockFaqs extends BaseBlock {
  * Union type for all block types
  * Use this when you need to handle any block type
  */
-export type BlockItem = 
+export type BlockItem =
   | BlockHero
   | BlockRichText
+  | BlockHtml
   | BlockFaqs
   | BlockQuote
   | BlockColumns

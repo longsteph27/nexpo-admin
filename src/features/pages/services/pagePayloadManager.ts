@@ -21,6 +21,7 @@ import type {
   LanguageCode,
 } from '@/types/directus-collections';
 import { extractLanguageCode } from '@/types/directus-collections';
+import { processM2M, processO2M, BlockTestimonialsSchema, BlockColumnsSchema, BlockLogocloudSchema, BlockGallerySchema, BlockStepsSchema } from '@/lib/payload';
 import type { Block } from '../types';
 
 interface PageTranslationOriginal {
@@ -406,8 +407,8 @@ export class PagePayloadManager {
         ? ((originalBlock.item as unknown as Record<string, unknown>)?.rows as Array<Record<string, unknown>> | undefined) || []
         : [];
 
-      const rowsPayload = this.processBlockColumnsRows(
-        block.id,
+      // Use new payload utility for O2M processing
+      const rowsPayload = this.processBlockColumnsRowsWithUtility(
         block.item.rows as Array<Record<string, unknown>>,
         originalRows
       );
@@ -418,6 +419,26 @@ export class PagePayloadManager {
         // Remove rows if no changes and it's an update
         if (!isTemp) {
           delete itemData.rows;
+        }
+      }
+    }
+
+    // Process block_steps: steps O2M relationship
+    if (block.collection === 'block_steps' && block.item?.steps) {
+      const originalSteps = originalBlock?.item
+        ? ((originalBlock.item as unknown as Record<string, unknown>)?.steps as Array<Record<string, unknown>> | undefined) || []
+        : [];
+
+      const stepsPayload = this.processBlockStepsWithUtility(
+        block.item.steps as Array<Record<string, unknown>>,
+        originalSteps
+      );
+
+      if (stepsPayload) {
+        itemData.steps = stepsPayload;
+      } else {
+        if (!isTemp) {
+          delete itemData.steps;
         }
       }
     }
@@ -458,7 +479,8 @@ export class PagePayloadManager {
           ? ((originalBlock.item as unknown as Record<string, unknown>)?.gallery_items as Array<Record<string, unknown>> | undefined) || []
           : [];
 
-        const galleryPayload = this.processGalleryItems(
+        // Use new payload utility for M2M processing
+        const galleryPayload = this.processBlockGalleryWithUtility(
           block.item?.gallery_items as Array<Record<string, unknown>> || [],
           originalGalleryItems
         );
@@ -474,31 +496,93 @@ export class PagePayloadManager {
       }
     }
 
+    // Process block_logocloud: Handle logos junction table with create/update/delete structure
+    if (block.collection === 'block_logocloud') {
+      if (isTemp && 'id' in itemData) {
+        // Remove temp ID for new block_logocloud (Directus will generate UUID)
+        delete itemData.id;
+      }
+
+      // logos is a many-to-many relationship through block_logocloud_logos junction table
+      if ('logos' in itemData) {
+        const originalLogos = originalBlock?.item
+          ? ((originalBlock.item as unknown as Record<string, unknown>)?.logos as Array<Record<string, unknown>> | undefined) || []
+          : [];
+
+        // Use new payload utility for M2M processing
+        const logosPayload = this.processBlockLogoCloudWithUtility(
+          block.item?.logos as Array<Record<string, unknown>> || [],
+          originalLogos
+        );
+
+        if (logosPayload) {
+          itemData.logos = logosPayload;
+        } else {
+          // Remove logos if no changes
+          if (!isTemp) {
+            delete itemData.logos;
+          }
+        }
+      }
+    }
+
+    // Process block_testimonials: Handle testimonials junction table with create/update/delete structure
+    if (block.collection === 'block_testimonials') {
+      if (isTemp && 'id' in itemData) {
+        // Remove temp ID for new block_testimonials (Directus will generate UUID)
+        delete itemData.id;
+      }
+
+      // testimonials is a many-to-many relationship through block_testimonial_slider_items junction table
+      if ('testimonials' in itemData) {
+        // The testimonials field contains junction objects with nested testimonials_id
+        const currentTestimonials = ((itemData as Record<string, unknown>).testimonials as Array<Record<string, unknown>> | undefined) || [];
+        const originalTestimonials = originalBlock?.item
+          ? ((originalBlock.item as unknown as Record<string, unknown>)?.testimonials as Array<Record<string, unknown>> | undefined) || []
+          : [];
+
+        // Use new payload utility for M2M processing
+        const testimonialsPayload = this.processBlockTestimonialsWithUtility(
+          currentTestimonials,
+          originalTestimonials
+        );
+
+        if (testimonialsPayload) {
+          itemData.testimonials = testimonialsPayload;
+        } else {
+          // Remove testimonials if no changes
+          if (!isTemp) {
+            delete itemData.testimonials;
+          }
+        }
+      }
+    }
+
     if (isTemp) {
       // New block - add to create
       // Remove from update if accidentally added
       this.state.blocks.update = this.state.blocks.update.filter(u => u.id !== block.id);
 
 
-	      // Normalize item-level button_group for create (e.g., CTA)
-	      if ('button_group' in itemData) {
-	        const currentBG = (itemData as Record<string, unknown>).button_group as unknown;
-	        if (typeof currentBG === 'string') {
-	          // Existing reference
-	          // keep as is
-	        } else if (typeof currentBG === 'object' && currentBG !== null) {
-	          const bgObj = currentBG as Record<string, unknown>;
-	          const buttonsPayload = this.processBlockButtons(
-	            ((bgObj.buttons as Array<Record<string, unknown>>) || []),
-	            []
-	          );
-	          // Remove id/event_id/tenant_id for inline create
-	          const { id: _bgId, event_id: _e, tenant_id: _t, ...rest } = bgObj;
-	          (itemData as Record<string, unknown>).button_group = buttonsPayload
-	            ? { ...rest, buttons: buttonsPayload }
-	            : { ...rest };
-	        }
-	      }
+      // Normalize item-level button_group for create (e.g., CTA)
+      if ('button_group' in itemData) {
+        const currentBG = (itemData as Record<string, unknown>).button_group as unknown;
+        if (typeof currentBG === 'string') {
+          // Existing reference
+          // keep as is
+        } else if (typeof currentBG === 'object' && currentBG !== null) {
+          const bgObj = currentBG as Record<string, unknown>;
+          const buttonsPayload = this.processBlockButtons(
+            ((bgObj.buttons as Array<Record<string, unknown>>) || []),
+            []
+          );
+          // Remove id/event_id/tenant_id for inline create
+          const { id: _bgId, event_id: _e, tenant_id: _t, ...rest } = bgObj;
+          (itemData as Record<string, unknown>).button_group = buttonsPayload
+            ? { ...rest, buttons: buttonsPayload }
+            : { ...rest };
+        }
+      }
 
       const createEntry = {
         collection: block.collection,
@@ -1042,20 +1126,21 @@ export class PagePayloadManager {
 
         // Update fields that changed
         Object.keys(row).forEach(key => {
-          // Ignore special fields that are handled separately
+          // Ignore special fields that are handled separately or system fields
+          // IMPORTANT: 'sort' is NOT excluded - it must be included to track row order changes
           if (key === 'id' ||
-              key === 'block_columns' ||
-              key === 'translations' ||
-              key === 'button_group' ||
-              key === 'date_created' ||
-              key === 'date_updated' ||
-              key === 'user_created' ||
-              key === 'user_updated' ||
-              key === 'sort') {
+            key === 'block_columns' ||
+            key === 'translations' ||
+            key === 'button_group' ||
+            key === 'date_created' ||
+            key === 'date_updated' ||
+            key === 'user_created' ||
+            key === 'user_updated') {
             return;
           }
 
           // Only add if value actually changed (using normalized comparison)
+          // This includes: sort, image, image_position, and any other row fields
           if (!this.isEqual(row[key], original[key])) {
             updateData[key] = row[key];
           }
@@ -1220,13 +1305,13 @@ export class PagePayloadManager {
         Object.keys(button).forEach(key => {
           // Ignore special fields that are handled separately
           if (key === 'id' ||
-              key === 'button_group' ||
-              key === 'translations' ||
-              key === 'date_created' ||
-              key === 'date_updated' ||
-              key === 'user_created' ||
-              key === 'user_updated' ||
-              key === 'sort') {
+            key === 'button_group' ||
+            key === 'translations' ||
+            key === 'date_created' ||
+            key === 'date_updated' ||
+            key === 'user_created' ||
+            key === 'user_updated' ||
+            key === 'sort') {
             return;
           }
 
@@ -1360,6 +1445,329 @@ export class PagePayloadManager {
 
     return payload;
   }
+
+  /**
+   * Process logo cloud logos (junction table) with create/update/delete structure
+   * Similar to gallery items but for block_logocloud_logos junction table
+   */
+  private processLogoCloudLogos(
+    currentLogos: Array<Record<string, unknown>>,
+    originalLogos: Array<Record<string, unknown>>
+  ): {
+    create: Array<Record<string, unknown>>;
+    update: Array<Record<string, unknown>>;
+    delete: string[];
+  } | undefined {
+    if (!currentLogos || currentLogos.length === 0) {
+      // If no current logos, check if we should delete all original
+      if (originalLogos.length > 0) {
+        // Delete all original logos (by their junction table IDs)
+        return {
+          create: [],
+          update: [],
+          delete: originalLogos
+            .map(logo => logo.id as string)
+            .filter((id): id is string => typeof id === 'string' && !id.startsWith('temp-')),
+        };
+      }
+      return undefined;
+    }
+
+    const payload = {
+      create: [] as Array<Record<string, unknown>>,
+      update: [] as Array<Record<string, unknown>>,
+      delete: [] as string[],
+    };
+
+    // Create a map of original logos by ID for quick lookup
+    const originalLogosMap = new Map<string, Record<string, unknown>>();
+    originalLogos.forEach(logo => {
+      const id = logo.id as string | undefined;
+      if (id) {
+        originalLogosMap.set(id, logo);
+      }
+    });
+
+    // Process current logos
+    currentLogos.forEach((logo, index) => {
+      const logoId = logo.id as string | undefined;
+      const fileId = logo.directus_files_id as string | undefined;
+
+      if (!fileId) return; // Skip if no file ID
+
+      if (!logoId || logoId.startsWith('temp-')) {
+        // New logo - add to create
+        payload.create.push({
+          block_logocloud_id: '+', // Reference to current block
+          directus_files_id: {
+            id: fileId,
+          },
+          sort: index,
+        });
+      } else {
+        // Existing logo - check if changed
+        const original = originalLogosMap.get(logoId);
+        const originalFileId = original?.directus_files_id as string | undefined;
+        const originalSort = original?.sort as number | undefined;
+
+        if (!original || originalFileId !== fileId || originalSort !== index) {
+          // Logo changed - add to update
+          payload.update.push({
+            id: logoId,
+            directus_files_id: {
+              id: fileId,
+            },
+            sort: index,
+          });
+        }
+        // Mark as processed
+        originalLogosMap.delete(logoId);
+      }
+    });
+
+    // Remaining original logos should be deleted
+    originalLogosMap.forEach((logo) => {
+      const id = logo.id as string | undefined;
+      if (id && !id.startsWith('temp-')) {
+        payload.delete.push(id);
+      }
+    });
+
+    // Only return if there are changes
+    if (payload.create.length === 0 && payload.update.length === 0 && payload.delete.length === 0) {
+      return undefined;
+    }
+
+    return payload;
+  }
+
+  /**
+   * Process block testimonials items (M2M junction table) with create/update/delete structure
+   * Handles nested testimonials_id objects and strips temp IDs
+   */
+  private processBlockTestimonialsItems(
+    currentItems: Array<Record<string, unknown>>,
+    originalItems: Array<Record<string, unknown>>
+  ): {
+    create: Array<Record<string, unknown>>;
+    update: Array<Record<string, unknown>>;
+    delete: string[];
+  } | undefined {
+    if (!currentItems || currentItems.length === 0) {
+      // If no current items, check if we should delete all original
+      if (originalItems.length > 0) {
+        // Delete all original junction items (by their junction table IDs)
+        return {
+          create: [],
+          update: [],
+          delete: originalItems
+            .map(item => item.id as string)
+            .filter((id): id is string => typeof id === 'string' && !id.startsWith('temp-')),
+        };
+      }
+      return undefined;
+    }
+
+    const payload = {
+      create: [] as Array<Record<string, unknown>>,
+      update: [] as Array<Record<string, unknown>>,
+      delete: [] as string[],
+    };
+
+    // Create a map of original items by junction ID for quick lookup
+    const originalItemsMap = new Map<string, Record<string, unknown>>();
+    originalItems.forEach(item => {
+      const id = item.id as string | undefined;
+      if (id && !id.startsWith('temp-')) {
+        originalItemsMap.set(id, item);
+      }
+    });
+
+    // Process current items
+    currentItems.forEach((junctionItem, index) => {
+      const junctionId = junctionItem.id as string | undefined;
+      const isNewJunction = !junctionId || junctionId.startsWith('temp-');
+
+      // Get the nested testimonials_id object
+      const testimonialData = junctionItem.testimonials_id as Record<string, unknown> | undefined;
+      if (!testimonialData) return; // Skip if no nested data
+
+      const testimonialId = testimonialData.id as string | undefined;
+      const isNewTestimonial = !testimonialId || testimonialId.toString().startsWith('temp-');
+
+      if (isNewJunction) {
+        // New junction - create with nested testimonial
+        const cleanTestimonial: Record<string, unknown> = {
+          status: testimonialData.status,
+          company: testimonialData.company,
+          company_logo: testimonialData.company_logo,
+          link: testimonialData.link,
+          sort: testimonialData.sort,
+          image: testimonialData.image,
+        };
+
+        // Only include testimonial ID if it's not temp
+        if (!isNewTestimonial) {
+          cleanTestimonial.id = testimonialId;
+        }
+
+        // Process translations - strip temp IDs
+        if (Array.isArray(testimonialData.translations)) {
+          cleanTestimonial.translations = {
+            create: testimonialData.translations.map((trans: Record<string, unknown>) => {
+              const transId = trans.id;
+              const isNewTrans = !transId || transId.toString().startsWith('temp-');
+
+              const cleanTrans: Record<string, unknown> = {
+                languages_code: trans.languages_code,
+                title: trans.title || '',
+                subtitle: trans.subtitle || '',
+                content: trans.content || '',
+              };
+
+              // Only include translation ID if it's not temp
+              if (!isNewTrans) {
+                cleanTrans.id = transId;
+              }
+
+              return cleanTrans;
+            }),
+            update: [],
+            delete: [],
+          };
+        }
+
+        payload.create.push({
+          sort: index,
+          testimonials_id: cleanTestimonial,
+        });
+      } else {
+        // Existing junction - check for changes
+        const original = originalItemsMap.get(junctionId);
+        const originalSort = original?.sort as number | undefined;
+
+        // Build update only if something changed
+        const hasChanges = originalSort !== index; // Check if sort changed
+
+        if (hasChanges) {
+          payload.update.push({
+            id: junctionId,
+            sort: index,
+          });
+        }
+
+        // Mark as processed
+        originalItemsMap.delete(junctionId);
+      }
+    });
+
+    // Remaining original items should be deleted
+    originalItemsMap.forEach((item) => {
+      const id = item.id as string | undefined;
+      if (id && !id.startsWith('temp-')) {
+        payload.delete.push(id);
+      }
+    });
+
+    // Only return if there are changes
+    if (payload.create.length === 0 && payload.update.length === 0 && payload.delete.length === 0) {
+      return undefined;
+    }
+
+    return payload;
+  }
+
+  /**
+   * Process block testimonials items using new payload utility (processM2M)
+   * This refactored version uses the centralized payload processing library
+   */
+  private processBlockTestimonialsWithUtility(
+    block: Array<Record<string, unknown>>,
+    originalBlock: Array<Record<string, unknown>>
+  ) {
+    return processM2M(
+      block,
+      originalBlock,
+      BlockTestimonialsSchema,
+      'testimonials'
+    );
+  }
+
+  private processBlockLogoCloudWithUtility(
+    block: Array<Record<string, unknown>>,
+    originalBlock: Array<Record<string, unknown>>
+  ) {
+    return processM2M(
+      block,
+      originalBlock,
+      BlockLogocloudSchema,
+      'logos'
+    );
+  }
+
+  private processBlockGalleryWithUtility(
+    block: Array<Record<string, unknown>>,
+    originalBlock: Array<Record<string, unknown>>
+  ) {
+    return processM2M(
+      block,
+      originalBlock,
+      BlockGallerySchema,
+      'gallery_items'
+    );
+  }
+
+  /**
+   * Process block columns rows using new payload utility (processO2M)
+   * This refactored version uses the centralized payload processing library
+   */
+  private processBlockColumnsRowsWithUtility(
+    currentRows: Array<Record<string, unknown>>,
+    originalRows: Array<Record<string, unknown>>
+  ): {
+    create: Array<Record<string, unknown>>;
+    update: Array<Record<string, unknown>>;
+    delete: string[];
+  } | undefined {
+    // Get the rows relationship definition from the schema
+    const rowsRel = BlockColumnsSchema.relationships?.find(
+      r => r.field === 'rows'
+    );
+
+    if (!rowsRel) {
+      console.error('[PagePayloadManager] Rows relationship not found in BlockColumnsSchema');
+      return undefined;
+    }
+
+    // Use the centralized processO2M utility
+    const payload = processO2M(currentRows, originalRows, rowsRel);
+
+    // processO2M returns undefined if no changes
+    return payload;
+  }
+
+  private processBlockStepsWithUtility(
+    currentSteps: Array<Record<string, unknown>>,
+    originalSteps: Array<Record<string, unknown>>
+  ): {
+    create: Array<Record<string, unknown>>;
+    update: Array<Record<string, unknown>>;
+    delete: string[];
+  } | undefined {
+    // Get the steps relationship definition from the schema
+    const stepsRel = BlockStepsSchema.relationships?.find(
+      r => r.field === 'steps'
+    );
+
+    if (!stepsRel) {
+      console.error('[PagePayloadManager] Steps relationship not found in BlockStepsSchema');
+      return undefined;
+    }
+
+    return processO2M(currentSteps, originalSteps, stepsRel);
+  }
+
+
 
   /**
    * Get final payload ready for API submission

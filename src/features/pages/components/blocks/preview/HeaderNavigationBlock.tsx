@@ -165,7 +165,7 @@ export default function HeaderNavigationBlock({
 
       {isEditMode && (
         <motion.div
-          className="absolute inset-0 bg-neutral-400/20 z-50 flex items-center justify-center"
+          className="absolute inset-0 bg-neutral-400/20 z-40 flex items-center justify-center"
           initial={{ opacity: 0 }}
           animate={{ opacity: hovered ? 1 : 0 }}
           transition={{ duration: 0.2 }}

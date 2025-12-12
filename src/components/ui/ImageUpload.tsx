@@ -47,7 +47,7 @@ export function ImageUpload({ value, onChange, className = '', folderId, multipl
       <>
         <div className={className}>
           {imageUrl ? (
-            <div className="relative group">
+            <div className="relative group overflow-hidden">
               <Image
                 src={imageUrl}
                 alt="Upload preview"
@@ -63,7 +63,7 @@ export function ImageUpload({ value, onChange, className = '', folderId, multipl
                   onClick={() => setShowPicker(true)}
                 >
                   <Icon icon="lucide:refresh-cw" className="w-4 h-4 inline mr-1" />
-                  Change
+                  {/* Change */}
                 </Button>
                 <Button
                   variant="ghost"
@@ -72,7 +72,7 @@ export function ImageUpload({ value, onChange, className = '', folderId, multipl
                   onClick={() => handleRemove()}
                 >
                   <Icon icon="lucide:trash-2" className="w-4 h-4 inline mr-1" />
-                  Remove
+                  {/* Remove */}
                 </Button>
               </div>
             </div>

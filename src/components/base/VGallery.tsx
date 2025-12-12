@@ -2,7 +2,8 @@
 /* eslint-disable react/no-unescaped-entities */
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable @next/next/no-img-element */
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import BlockContainer from '@/components/BlockContainer'
 import VIcon from '@/components/base/VIcon'
 import Image from 'next/image'
@@ -21,6 +22,15 @@ interface GalleryProps {
 function VGallery({ items }: GalleryProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [currentItemIdx, setCurrentItemIdx] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [themeColor, setThemeColor] = useState('')
+
+  useEffect(() => {
+    if (isOpen && containerRef.current) {
+      const color = getComputedStyle(containerRef.current).getPropertyValue('--color-primary')
+      if (color) setThemeColor(color.trim())
+    }
+  }, [isOpen])
 
   const currentItem = useMemo(() => {
     return items[currentItemIdx]
@@ -66,7 +76,7 @@ function VGallery({ items }: GalleryProps) {
     <>
       <BlockContainer>
         {/* Gallery */}
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        <div ref={containerRef} className="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
           {items.map((item, itemIdx) => (
             <button
               key={itemIdx}
@@ -74,7 +84,7 @@ function VGallery({ items }: GalleryProps) {
                 setCurrentItemIdx(itemIdx)
                 toggle()
               }}
-              className="group relative block w-full overflow-hidden rounded-2xl shadow-lg bg-gradient-to-br from-gray-50 to-gray-200"
+              className="group relative block w-full overflow-hidden rounded-2xl shadow-lg bg-gradient-to-br from-gray-50 to-gray-200 hover:scale-105 transition-transform duration-300 ease-in-out"
               style={{ aspectRatio: '4/3' }}
               data-gallery-card
             >
@@ -113,12 +123,15 @@ function VGallery({ items }: GalleryProps) {
         </div>
       </BlockContainer>
       {/* Gallery Modal */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/90 backdrop-blur-sm animate-fade-in">
+      {isOpen && createPortal(
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/90 backdrop-blur-sm animate-fade-in"
+          style={{ '--color-primary': themeColor } as React.CSSProperties}
+        >
           {/* Tags - theme-aware badge colors */}
           <div className="absolute bottom-4 right-4 z-50 flex flex-wrap gap-2 font-mono text-white">
             {currentItem?.tags?.map((tag, tagIdx) => (
-              <VBadge key={tagIdx} size="lg" className="rounded-xl border border-white/20 text-white bg-black/60 backdrop-blur">
+              <VBadge key={tagIdx} size="lg" className="rounded-xl text-white bg-black/60 backdrop-blur">
                 {tag}
               </VBadge>
             ))}
@@ -130,7 +143,7 @@ function VGallery({ items }: GalleryProps) {
               onClick={toggle}
               className="absolute right-4 top-4 z-50 rounded-xl bg-[var(--color-primary)] p-4 text-2xl text-white shadow-lg transition-all duration-300 hover:bg-opacity-80 hover:scale-110"
             >
-              <span className="sr-only">Close</span>
+              {/* <span className="sr-only">Close</span> */}
               <VIcon icon="heroicons:x-mark" className="h-6 w-6" />
             </button>
 
@@ -178,7 +191,8 @@ function VGallery({ items }: GalleryProps) {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   )

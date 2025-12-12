@@ -16,7 +16,7 @@ export function usePageBuilderBlocks({ pageBlocks }: UsePageBuilderBlocksProps) 
     if (pageBlocks) {
       setIsLoadingBlocks(true);
       console.log('[usePageBuilderBlocks] Blocks from server:', pageBlocks.map(b => ({ id: b.id, collection: b.collection })));
-      
+
       // Simulate loading time for better UX
       setTimeout(() => {
         const sortedBlocks = pageBlocks
@@ -28,7 +28,7 @@ export function usePageBuilderBlocks({ pageBlocks }: UsePageBuilderBlocksProps) 
             sort: block.sort,
             item: block.item,
           }));
-        
+
         setBlocks(sortedBlocks);
         setIsLoadingBlocks(false);
       }, 500);
@@ -88,11 +88,11 @@ export function usePageBuilderBlocks({ pageBlocks }: UsePageBuilderBlocksProps) 
     setBlocks(prevBlocks => {
       const newBlocks = [...prevBlocks];
       const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      
+
       if (targetIndex < 0 || targetIndex >= newBlocks.length) {
         return prevBlocks;
       }
-      
+
       [newBlocks[index], newBlocks[targetIndex]] = [newBlocks[targetIndex], newBlocks[index]];
       return newBlocks.map((b, i) => ({ ...b, sort: i }));
     });
@@ -102,6 +102,15 @@ export function usePageBuilderBlocks({ pageBlocks }: UsePageBuilderBlocksProps) 
     setBlocks(prevBlocks => {
       const newBlocks = [...prevBlocks];
       newBlocks.splice(index, 0, block);
+      return newBlocks.map((b, i) => ({ ...b, sort: i }));
+    });
+  }, []);
+
+  const reorderBlocks = useCallback((oldIndex: number, newIndex: number) => {
+    setBlocks(prevBlocks => {
+      const newBlocks = [...prevBlocks];
+      const [movedBlock] = newBlocks.splice(oldIndex, 1);
+      newBlocks.splice(newIndex, 0, movedBlock);
       return newBlocks.map((b, i) => ({ ...b, sort: i }));
     });
   }, []);
@@ -116,6 +125,7 @@ export function usePageBuilderBlocks({ pageBlocks }: UsePageBuilderBlocksProps) 
     deleteBlock,
     moveBlock,
     insertBlockAt,
+    reorderBlocks,
   };
 }
 

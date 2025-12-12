@@ -19,7 +19,8 @@ export default function RawHtmlBlock({ data, lang }: RawHtmlBlockProps) {
   const directusLang = lang === 'en' ? 'en-US' : 'vi-VN';
   const translations = Array.isArray(data.translations) ? data.translations : [];
   const translation = translations.find((item) => item.languages_code === directusLang) || translations[0];
-  const rawHtml = translation?.raw_html || data.raw_html || '';
+  // Prioritize root raw_html, then translation, then empty
+  const rawHtml = data.raw_html || translation?.raw_html || '';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
