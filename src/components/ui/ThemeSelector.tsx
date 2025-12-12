@@ -97,7 +97,7 @@ const themeTemplates: ThemeTemplate[] = [
       }
     }
   },
-  
+
   // PLAYFUL
   {
     id: 'playful-creative',
@@ -156,7 +156,7 @@ const themeTemplates: ThemeTemplate[] = [
       }
     }
   },
-  
+
   // SOPHISTICATED
   {
     id: 'sophisticated-elegant',
@@ -242,7 +242,7 @@ const themeTemplates: ThemeTemplate[] = [
       }
     }
   },
-  
+
   // Additional themes
   {
     id: 'professional-tech',
@@ -352,7 +352,7 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
   // Match current theme with templates
   useEffect(() => {
     if (currentTheme) {
-      const matchedTheme = themeTemplates.find(template => 
+      const matchedTheme = themeTemplates.find(template =>
         template.theme.primary === currentTheme.primary &&
         template.theme.secondary === currentTheme.secondary &&
         template.theme.borderRadius === currentTheme.borderRadius
@@ -365,14 +365,14 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
 
   const loadCurrentTheme = async () => {
     if (!siteId) return;
-    
+
     try {
       const response = await globalApi.getGlobal(siteId);
       if (response.success && response.data) {
         setCurrentGlobalData(response.data);
         // If theme exists in global data, use it
         if (response.data.theme && typeof response.data.theme === 'object') {
-          const matchedTheme = themeTemplates.find(template => 
+          const matchedTheme = themeTemplates.find(template =>
             template.theme.primary === response.data.theme.primary &&
             template.theme.secondary === response.data.theme.secondary &&
             template.theme.borderRadius === response.data.theme.borderRadius
@@ -390,7 +390,7 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
   const handleThemeSelect = async (theme: ThemeTemplate) => {
     setSelectedTheme(theme);
     setIsUpdating(true);
-    
+
     try {
       if (!siteId) {
         // Fallback to parent callback
@@ -407,17 +407,17 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
 
       if (globalRes.data && typeof globalRes.data === 'object' && 'id' in globalRes.data) {
         // Update existing global with new theme
-        const updateRes = await globalApi.updateGlobal(String(globalRes.data.id), { 
-          theme: theme.theme 
+        const updateRes = await globalApi.updateGlobal(String(globalRes.data.id), {
+          theme: theme.theme
         });
         if (!updateRes.success) {
           throw new Error(updateRes.error || 'Failed to update theme');
         }
       } else {
         // Create new global with theme
-        const createRes = await globalApi.createGlobal({ 
-          site_id: siteId, 
-          theme: theme.theme 
+        const createRes = await globalApi.createGlobal({
+          site_id: siteId,
+          theme: theme.theme
         });
         if (!createRes.success) {
           throw new Error(createRes.error || 'Failed to create theme');
@@ -425,15 +425,15 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
       }
 
       toast.success('Theme updated successfully!');
-      
+
       // Update parent component
       onThemeSelect(theme.theme);
-      
+
       // Refresh page to apply new theme
       setTimeout(() => {
         window.location.reload();
       }, 1000);
-      
+
     } catch (error) {
       console.error('Theme update error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to update theme');
@@ -457,17 +457,17 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
         <Button
           variant="outline"
           size="sm"
-          className="fixed top-4 right-4 z-50 bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white"
+          className="z-50 bg-white/90 backdrop-blur-sm hover:bg-white"
           disabled={isUpdating}
         >
-          <Icon 
-            icon={isUpdating ? "lucide:loader-2" : "lucide:palette"} 
-            className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`} 
+          <Icon
+            icon={isUpdating ? "lucide:loader-2" : "lucide:palette"}
+            className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`}
           />
           {isUpdating ? 'Updating...' : selectedTheme ? selectedTheme.name : 'Theme'}
         </Button>
       </DialogTrigger>
-      
+
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -475,7 +475,7 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
             Choose Your Theme
           </DialogTitle>
         </DialogHeader>
-        
+
         {/* Current Theme Section */}
         {selectedTheme && (
           <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
@@ -496,7 +496,7 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
             </div>
           </div>
         )}
-        
+
         <div className="space-y-8">
           {Object.entries(groupedThemes).map(([category, themes]) => (
             <div key={category}>
@@ -506,7 +506,7 @@ export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: T
                 </Badge>
                 <div className="flex-1 h-px bg-gray-200"></div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {themes.map((theme) => (
                   <ThemeCard
@@ -535,18 +535,16 @@ interface ThemeCardProps {
 
 function ThemeCard({ theme, isSelected, onSelect, isUpdating }: ThemeCardProps) {
   const { preview } = theme;
-  
+
   return (
     <div
-      className={`relative p-4 rounded-lg border-2 transition-all ${
-        isUpdating 
-          ? 'cursor-not-allowed opacity-50' 
-          : 'cursor-pointer hover:shadow-md'
-      } ${
-        isSelected 
-          ? 'border-blue-500 bg-blue-50' 
+      className={`relative p-4 rounded-lg border-2 transition-all ${isUpdating
+        ? 'cursor-not-allowed opacity-50'
+        : 'cursor-pointer hover:shadow-md'
+        } ${isSelected
+          ? 'border-blue-500 bg-blue-50'
           : 'border-gray-200 bg-white hover:border-gray-300'
-      }`}
+        }`}
       onClick={isUpdating ? undefined : onSelect}
     >
       {/* Theme Preview */}
@@ -557,7 +555,7 @@ function ThemeCard({ theme, isSelected, onSelect, isUpdating }: ThemeCardProps) 
             Aa
           </span>
         </div>
-        
+
         {/* Color Palette */}
         <div className="flex gap-1 mb-3">
           {preview.colorPalette.map((color, index) => (
@@ -567,7 +565,7 @@ function ThemeCard({ theme, isSelected, onSelect, isUpdating }: ThemeCardProps) 
             />
           ))}
         </div>
-        
+
         {/* Button Preview */}
         <div className="flex justify-center">
           <div
@@ -577,12 +575,12 @@ function ThemeCard({ theme, isSelected, onSelect, isUpdating }: ThemeCardProps) 
           </div>
         </div>
       </div>
-      
+
       {/* Theme Name */}
       <h3 className="text-sm font-semibold text-gray-900 text-center">
         {theme.name}
       </h3>
-      
+
       {/* Selection Indicator */}
       {isSelected && (
         <div className="absolute top-2 right-2">
