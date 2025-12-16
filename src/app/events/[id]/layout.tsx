@@ -7,6 +7,8 @@ import { cn } from '@/lib/utils';
 import EventSidebar from '@/components/layout/EventSidebar';
 import { useAppContextStore } from '@/store/appContext';
 
+import { usePathname } from 'next/navigation';
+
 export default function EventLayout({
   children,
   params,
@@ -14,7 +16,14 @@ export default function EventLayout({
   children: React.ReactNode;
   params: { id: string };
 }) {
+  const pathname = usePathname();
   const { setEventId } = useAppContextStore();
+
+  // Check if current page is Page Builder ( /events/:id/pages/:pageId ) but not create or list
+  const isBuilderPage = pathname?.includes('/pages/') &&
+    !pathname?.endsWith('/pages') &&
+    !pathname?.endsWith('/create');
+
   useEffect(() => {
     const n = Number(params.id);
     setEventId(Number.isFinite(n) ? n : null);
@@ -60,10 +69,16 @@ export default function EventLayout({
         </motion.div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="flex-1 overflow-y-auto min-w-0 relative p-4 sm:p-6 lg:p-8">
+        <div className={cn(
+          "flex-1",
+          isBuilderPage ? "flex flex-col overflow-hidden" : "overflow-y-auto"
+        )}>
+          <div className={cn(
+            "flex-1 min-w-0 relative",
+            isBuilderPage ? "h-full p-0 flex flex-col" : "overflow-y-auto p-4 sm:p-6 lg:p-8"
+          )}>
             <motion.div
-              className="bg-background-secondary"
+              className={cn("bg-background-secondary p-4 sm:p-2 lg:p-4", isBuilderPage && "h-full")}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{

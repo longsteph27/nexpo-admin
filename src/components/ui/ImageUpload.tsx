@@ -139,7 +139,7 @@ export function ImageUpload({ value, onChange, className = '', folderId, multipl
         <Button
           type="button"
           variant="ghost"
-          className="w-full border border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 hover:bg-gray-100/50 transition-all bg-gray-50"
+          className="w-full border border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-gray-400 hover:bg-gray-100/50 transition-all bg-gray-50 h-auto"
           onClick={() => setShowPicker(true)}
         >
           <div className="flex flex-col items-center justify-center">

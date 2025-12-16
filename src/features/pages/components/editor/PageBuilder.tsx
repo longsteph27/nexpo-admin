@@ -5,6 +5,7 @@ import '@/styles/pagebuilder.css';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   usePageBuilderBlocks,
   usePageBuilderNavigation,
@@ -17,6 +18,7 @@ import {
   usePageSite,
   usePagePayloadManager
 } from '@/features/pages/hooks/usePages';
+import { useSiteTheme } from '@/features/pages/hooks/useSiteTheme';
 import type { Block, Page, PageTranslation } from '@/features/pages/types';
 import type {
   PageBlock,
@@ -29,6 +31,7 @@ import type {
 } from '@/types/directus-collections';
 import type { Tenant } from '@/lib/directus';
 import { extractLanguageCode } from '@/types/directus-collections';
+import PageBuilderHeader from './PageBuilderHeader';
 import BlockSelectorModal from './BlockSelectorModal';
 import BlockEditorModal from './BlockEditorModal';
 import PagePreview from './PagePreview';
@@ -87,6 +90,10 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
     'vi-VN': {},
   });
 
+  // Theme State
+  const [showThemeSidebar, setShowThemeSidebar] = useState(false);
+  const [previewTheme, setPreviewTheme] = useState<any>(null); // Use 'any' or import Theme type if available
+
   // Fetch page data
   const { data: page, isLoading, refetch: refetchPage } = usePageData(pageId);
 
@@ -106,6 +113,12 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
   const { data: site } = usePageSite({
     siteId: siteId as number | undefined,
     enabled: !!page && !!siteId
+  });
+
+  // Fetch saved theme for initial sidebar state
+  const { theme: savedTheme } = useSiteTheme({
+    siteId: siteId as number | undefined,
+    enabled: !!siteId,
   });
 
   // Custom hooks
@@ -484,6 +497,120 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
     await save();
   }, [save]);
 
+  // Header Callbacks
+  const handleToggleEditMode = useCallback(() => {
+    setInlineEditMode(true);
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    if (hasUnsavedChanges) {
+      if (!window.confirm('You have unsaved changes. Are you sure you want to discard them?')) {
+        return;
+      }
+    }
+
+    setInlineEditMode(false);
+    setHoveredSectionIndex(null);
+    // Clear payload and pending changes when canceling
+    resetPayload();
+    setPendingHeaderNavigation(null);
+    setPendingFooterNavigation(null);
+    setStagedTranslations([]);
+    setTempMetadata({ 'en-US': {}, 'vi-VN': {} }); // Clear temporary metadata
+    setHasUnsavedChanges(false);
+    setShowThemeSidebar(false);
+    setPreviewTheme(null);
+    // Refetch page to restore original state
+    refetchPage();
+  }, [resetPayload, refetchPage, hasUnsavedChanges]);
+
+  // Warn on browser refresh/close if unsaved changes exist
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = ''; // Required for some browsers
+        return '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  const handleEditMetadata = useCallback(() => {
+    setMetadataDialogLang(previewLang);
+    setShowMetadataDialog(true);
+  }, [previewLang]);
+
+  // Theme Handlers
+  const handleThemePreview = (theme: any) => {
+    setPreviewTheme(theme);
+  };
+
+  const handleThemeSave = async (theme: any) => {
+    const { globalApi } = await import('@/lib/api');
+    if (!siteId) return;
+
+    // Save theme to global settings
+    const globalRes = await globalApi.getGlobal(Number(siteId));
+
+    if (globalRes.success && globalRes.data && typeof globalRes.data === 'object' && 'id' in globalRes.data) {
+      await globalApi.updateGlobal(String(globalRes.data.id), { theme });
+    } else {
+      await globalApi.createGlobal({ site_id: Number(siteId), theme });
+    }
+
+    // setPreviewTheme(null); // Keep the preview active so UI doesn't revert to old theme during refetch
+    refetchPage(); // Refresh to get persisted theme
+  };
+
+  const handleViewPublic = useCallback(() => {
+    const siteData = site as Site | undefined;
+    const pageData = page as Page | undefined;
+
+    if (!siteData) {
+      toast.error('Site data not found');
+      return;
+    }
+
+    // Determine base URL
+    let baseUrl = '';
+    if (siteData.slug) {
+      baseUrl = `https://nxp-public-ruby.vercel.app/${siteData.slug}`;
+    } else if (siteData.domain) {
+      baseUrl = `https://${siteData.domain}`;
+    } else {
+      toast.error('Site has no domain or slug configured');
+      return;
+    }
+
+    // Determine language code (en/vi)
+    const langCode = previewLang === 'en-US' ? 'en' : 'vi';
+
+    // Get permalink
+    // Use temporary metadata if available
+    let permalink = tempMetadata[previewLang]?.permalink;
+
+    // If not in temp metadata, try to get from translations
+    if (permalink === undefined || permalink === null) {
+      const translation = pageData?.translations?.find(
+        (t) => extractLanguageCode(t.languages_code) === previewLang
+      );
+      permalink = translation?.permalink;
+    }
+
+    // Fallback to empty string if undefined
+    permalink = permalink || '';
+
+    // Ensure permalink starts with / if not empty
+    const safePermalink = permalink.startsWith('/') ? permalink : `/${permalink}`;
+
+    // Construct final URL
+    const url = `${baseUrl}/${langCode}${safePermalink}`;
+    window.open(url, '_blank');
+  }, [site, page, previewLang, tempMetadata]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -496,216 +623,38 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
   }
 
   return (
-    <div className="h-full flex flex-col relative">
-      {/* Top Bar - SquareSpace style */}
-      <div className="bg-white px-6 py-3 flex items-center justify-between shadow-md sticky top-0 z-30">
-        {/* Left Section - Edit/Cancel/Save buttons */}
-        <div className="flex items-center space-x-3">
-          {!inlineEditMode ? (
-            <>
-              {/* <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              if (siteId) {
-                router.push(`/events/${eventId}/sites/${siteId}`);
-              } else {
-                router.push(`/events/${eventId}/pages`);
-              }
-            }}
-          >
-            <Icon icon="lucide:arrow-left" className="w-4 h-4" />
-          </Button> */}
-              <Button
-                variant="gradient"
-                size="sm"
-                onClick={() => setInlineEditMode(true)}
-                className="text-white"
-              >
-                <Icon icon="lucide:edit-3" className="w-4 h-4 mr-2" />
-                Edit
-              </Button>
-              {hasUnsavedChanges && (
-                <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" title="Unsaved changes" />
-              )}
-            </>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setInlineEditMode(false);
-                  setHoveredSectionIndex(null);
-                  // Clear payload and pending changes when canceling
-                  resetPayload();
-                  setPendingHeaderNavigation(null);
-                  setPendingFooterNavigation(null);
-                  setStagedTranslations([]);
-                  setTempMetadata({ 'en-US': {}, 'vi-VN': {} }); // Clear temporary metadata
-                  setHasUnsavedChanges(false);
-                  // Refetch page to restore original state
-                  refetchPage();
-                }}
-              >
-                <Icon icon="lucide:x" className="w-4 h-4 mr-2" />
-                Cancel
-              </Button>
-              <Button
-                variant="gradient"
-                size="sm"
-                onClick={handleSave}
-                disabled={isSaving || !hasUnsavedChanges}
-                className="text-white"
-                title={!hasUnsavedChanges ? 'No changes to save' : undefined}
-              >
-                {isSaving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Icon icon="lucide:save" className="w-4 h-4 mr-2" />
-                    Save
-                  </>
-                )}
-              </Button>
-            </>
-          )}
-        </div>
-
-        {/* Center Section - Page Metadata */}
-        <div className="flex-1 flex justify-center">
-          {inlineEditMode ? (
-            <div
-              className="flex flex-col items-center cursor-pointer"
-              onClick={() => {
-                setMetadataDialogLang(previewLang);
-                setShowMetadataDialog(true);
-              }}
-            >
-              <span className="text-sm font-semibold text-neutral-900">{currentPageTitle}</span>
-              <span className="text-xs text-neutral-500">{currentPagePermalink}</span>
-            </div>
-          ) : (
-            <div
-              className="flex flex-col items-center"
-            >
-              <span className="text-sm font-semibold text-neutral-900">{currentPageTitle}</span>
-              <span className="text-xs text-neutral-500">{currentPagePermalink}</span>
-            </div>
-          )
-          }
-        </div>
-
-        <div className="flex items-center space-x-3">
-          {/* Theme Selector */}
-          {siteId && (
-            <ThemeSelector
-              onThemeSelect={() => { }}
-              siteId={siteId}
-            />
-          )}
-          {/* Preview Device Buttons */}
-          <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
-            <button
-              onClick={() => setPreviewDevice('desktop')}
-              className={`p-2 rounded transition-colors ${previewDevice === 'desktop'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              title="Desktop"
-            >
-              <Icon icon="lucide:monitor" className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPreviewDevice('tablet')}
-              className={`p-2 rounded transition-colors ${previewDevice === 'tablet'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              title="Tablet"
-            >
-              <Icon icon="lucide:tablet" className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPreviewDevice('mobile')}
-              className={`p-2 rounded transition-colors ${previewDevice === 'mobile'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              title="Mobile"
-            >
-              <Icon icon="lucide:smartphone" className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="h-6 w-px bg-neutral-200" />
-
-          {/* Language Switcher */}
-          <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
-            <button
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${previewLang === 'en-US'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              onClick={() => setPreviewLang('en-US')}
-            >
-              EN
-            </button>
-            <button
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${previewLang === 'vi-VN'
-                ? 'bg-white text-neutral-900 shadow-sm'
-                : 'text-neutral-600 hover:text-neutral-900'
-                }`}
-              onClick={() => setPreviewLang('vi-VN')}
-            >
-              VI
-            </button>
-          </div>
-
-          <div className="h-6 w-px bg-neutral-200" />
-
-          {/* Zoom Controls */}
-          <div className="flex items-center space-x-1 bg-neutral-100 rounded-lg p-1">
-            <button
-              onClick={() => setPreviewScale((s) => Math.max(0.5, s - 0.1))}
-              className="p-2 rounded transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-white hover:shadow-sm"
-              title="Zoom Out"
-            >
-              <Icon icon="lucide:minus" className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setPreviewScale(1)}
-              className="px-2 py-1.5 text-xs font-medium min-w-[3rem] text-center rounded transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-white hover:shadow-sm"
-              title="Reset Zoom"
-            >
-              {Math.round(previewScale * 100)}%
-            </button>
-            <button
-              onClick={() => setPreviewScale((s) => Math.min(1.5, s + 0.1))}
-              className="p-2 rounded transition-colors text-neutral-600 hover:text-neutral-900 hover:bg-white hover:shadow-sm"
-              title="Zoom In"
-            >
-              <Icon icon="lucide:plus" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-      </div>
+    <div className="h-full flex flex-col rounded-lg relative overflow-hidden bg-[#fbfbfb]">
+      {/* Top Bar - Separate Component */}
+      <PageBuilderHeader
+        isInlineEditMode={inlineEditMode}
+        onToggleEditMode={handleToggleEditMode}
+        onCancelEdit={handleCancelEdit}
+        hasUnsavedChanges={hasUnsavedChanges}
+        isSaving={isSaving}
+        onSave={handleSave}
+        pageTitle={currentPageTitle}
+        pagePermalink={currentPagePermalink}
+        onEditMetadata={handleEditMetadata}
+        previewDevice={previewDevice}
+        onPreviewDeviceChange={setPreviewDevice}
+        previewLang={previewLang}
+        onPreviewLangChange={setPreviewLang}
+        previewScale={previewScale}
+        onPreviewScaleChange={setPreviewScale}
+        siteId={siteId as number | undefined}
+        onViewPublic={handleViewPublic}
+        onToggleThemeSidebar={() => setShowThemeSidebar(prev => !prev)}
+      />
 
       {/* Main Content - Split View */}
       <div className="flex-1 flex w-full overflow-hidden bg-[#fbfbfb]">
-        {/* Left Panel - Sections List or Navigation Editor */}
 
 
         {/* Right Panel - Live Preview */}
         <div className="flex-1 bg-neutral-100 overflow-hidden flex flex-col">
 
-
           {/* Preview content với device constraints */}
-          <div className="flex-1 overflow-y-auto bg-neutral-100 p-8">
+          <div className="flex-1 overflow-y-auto bg-neutral-100">
             <div
               style={{
                 width: previewDevice === 'desktop' ? '100%' : previewDevice === 'tablet' ? '768px' : '375px',
@@ -765,6 +714,7 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
                       setSelectedBlockIndex(0);
                       setShowBlockSelector(true);
                     }}
+                    previewTheme={previewTheme}
                   />
                 )}
               </div>
@@ -772,97 +722,109 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
           </div>
         </div>
 
-        {/* Block Selector Modal */}
-        <BlockSelectorModal
-          isOpen={showBlockSelector}
-          onClose={() => {
-            setShowBlockSelector(false);
-            setSelectedBlockIndex(null);
-          }}
-          onSelectBlock={handleBlockTypeSelected}
-        />
+        {/* Right Panel - Theme Sidebar */}
+        <AnimatePresence>
+          {showThemeSidebar && (
+            <ThemeSelector
+              onPreview={handleThemePreview}
+              onSave={handleThemeSave}
+              onClose={() => setShowThemeSidebar(false)}
+              currentTheme={previewTheme || savedTheme}
+            />
+          )}
+        </AnimatePresence>
+      </div>
 
-        {/* Block Editor Modal */}
-        <BlockEditorModal
-          isOpen={showBlockEditor}
-          onClose={() => {
-            setShowBlockEditor(false);
-            setEditingBlock(null);
-            setSelectedBlockIndex(null);
-          }}
-          block={editingBlock}
-          onSave={handleBlockSaved}
-          activeLang={previewLang}
-          folderId={folderId}
-          eventId={uploadEventId}
-        />
+      {/* Block Selector Modal */}
+      <BlockSelectorModal
+        isOpen={showBlockSelector}
+        onClose={() => {
+          setShowBlockSelector(false);
+          setSelectedBlockIndex(null);
+        }}
+        onSelectBlock={handleBlockTypeSelected}
+      />
 
-        {/* Header Navigation Dialog */}
-        <HeaderNavigationBlockEditor
-          isOpen={showHeaderDialog}
-          onClose={() => setShowHeaderDialog(false)}
-          siteId={siteId as number}
-          headerNavigation={headerNavigationPreview}
-          activeLang={previewLang}
-          onSaveChanges={(items, preparedData) => {
-            // Store changes locally only if there are actual diffs
-            const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
-            setHeaderItems(items);
-            if (hasNavChanges) {
-              setPendingHeaderNavigation(preparedData!);
-              setHasUnsavedChanges(true);
-            }
-          }}
-        />
+      {/* Block Editor Modal */}
+      <BlockEditorModal
+        isOpen={showBlockEditor}
+        onClose={() => {
+          setShowBlockEditor(false);
+          setEditingBlock(null);
+          setSelectedBlockIndex(null);
+        }}
+        block={editingBlock}
+        onSave={handleBlockSaved}
+        activeLang={previewLang}
+        folderId={folderId}
+        eventId={uploadEventId}
+      />
 
-        {/* Footer Navigation Dialog */}
-        <FooterNavigationBlockEditor
-          isOpen={showFooterDialog}
-          onClose={() => setShowFooterDialog(false)}
-          siteId={siteId as number}
-          footerNavigation={footerNavigationPreview}
-          activeLang={previewLang}
-          onSaveChanges={(items, preparedData) => {
-            // Store changes locally only if there are actual diffs
-            const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
-            setFooterItems(items);
-            if (hasNavChanges) {
-              setPendingFooterNavigation(preparedData!);
-              setHasUnsavedChanges(true);
-            }
-          }}
-        />
+      {/* Header Navigation Dialog */}
+      <HeaderNavigationBlockEditor
+        isOpen={showHeaderDialog}
+        onClose={() => setShowHeaderDialog(false)}
+        siteId={siteId as number}
+        headerNavigation={headerNavigationPreview}
+        activeLang={previewLang}
+        onSaveChanges={(items, preparedData) => {
+          // Store changes locally only if there are actual diffs
+          const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
+          setHeaderItems(items);
+          if (hasNavChanges) {
+            setPendingHeaderNavigation(preparedData!);
+            setHasUnsavedChanges(true);
+          }
+        }}
+      />
 
-        <PageMetadataDialog
-          isOpen={showMetadataDialog}
-          onClose={() => setShowMetadataDialog(false)}
-          pageId={pageId}
-          page={page as Page | null}
-          defaultLanguage={metadataDialogLang}
-          tempMetadata={tempMetadata}
-          onApply={(entry) => {
-            // Stage page translation changes into the payload manager
-            console.log('[PageBuilder] Staging translation:', entry);
-            stagePageTranslation(entry.languages_code, {
+      {/* Footer Navigation Dialog */}
+      <FooterNavigationBlockEditor
+        isOpen={showFooterDialog}
+        onClose={() => setShowFooterDialog(false)}
+        siteId={siteId as number}
+        footerNavigation={footerNavigationPreview}
+        activeLang={previewLang}
+        onSaveChanges={(items, preparedData) => {
+          // Store changes locally only if there are actual diffs
+          const hasNavChanges = !!preparedData?.payload?.items && Object.keys(preparedData.payload.items).length > 0;
+          setFooterItems(items);
+          if (hasNavChanges) {
+            setPendingFooterNavigation(preparedData!);
+            setHasUnsavedChanges(true);
+          }
+        }}
+      />
+
+      <PageMetadataDialog
+        isOpen={showMetadataDialog}
+        onClose={() => setShowMetadataDialog(false)}
+        pageId={pageId}
+        page={page as Page | null}
+        defaultLanguage={metadataDialogLang}
+        tempMetadata={tempMetadata}
+        onApply={(entry) => {
+          // Stage page translation changes into the payload manager
+          console.log('[PageBuilder] Staging translation:', entry);
+          stagePageTranslation(entry.languages_code, {
+            title: entry.title,
+            permalink: entry.permalink,
+            id: entry.id,
+            isSessionOnly: entry.isSessionOnly,
+          });
+
+          // Update temporary metadata for immediate preview
+          setTempMetadata((prev) => ({
+            ...prev,
+            [entry.languages_code]: {
               title: entry.title,
               permalink: entry.permalink,
-              id: entry.id,
-              isSessionOnly: entry.isSessionOnly,
-            });
+            },
+          }));
 
-            // Update temporary metadata for immediate preview
-            setTempMetadata((prev) => ({
-              ...prev,
-              [entry.languages_code]: {
-                title: entry.title,
-                permalink: entry.permalink,
-              },
-            }));
-
-            setHasUnsavedChanges(true);
-          }}
-        />
-      </div>
+          setHasUnsavedChanges(true);
+        }}
+      />
     </div>
   );
 }

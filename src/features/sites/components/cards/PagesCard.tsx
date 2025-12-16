@@ -5,8 +5,11 @@ import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { pagesApi } from '@/features/pages/api';
 import type { LanguageCode } from '@/types/directus-collections';
 import type { FeatureSite, SitePageSummary, SitePageTranslationSummary } from '../../types';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface PagesCardProps {
   site?: FeatureSite | null;
@@ -15,7 +18,10 @@ interface PagesCardProps {
 
 export default function PagesCard({ site, eventId }: PagesCardProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [copiedPermalink, setCopiedPermalink] = useState<string | null>(null);
+  const [pageToDelete, setPageToDelete] = useState<{ id: string; title: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const pages: SitePageSummary[] = site?.pages ?? [];
 
   const handleAddPage = () => {
@@ -24,6 +30,34 @@ export default function PagesCard({ site, eventId }: PagesCardProps) {
 
   const handlePageClick = (pageId: string) => {
     router.push(`/events/${eventId}/pages/${pageId}`);
+  };
+
+  const deletePageMutation = useMutation({
+    mutationFn: (pageId: string) => pagesApi.deletePage(pageId),
+    onSuccess: () => {
+      if (site?.id) {
+        queryClient.invalidateQueries({ queryKey: ['site', String(site.id)] });
+      }
+      toast.success('Page deleted successfully');
+      setPageToDelete(null);
+      setIsDeleting(false);
+    },
+    onError: (error: any) => {
+      toast.error(error.message || 'Failed to delete page');
+      setIsDeleting(false);
+    },
+  });
+
+  const handleDeleteClick = (pageId: string, pageTitle: string, event: React.MouseEvent) => {
+    event.stopPropagation();
+    setPageToDelete({ id: pageId, title: pageTitle });
+  };
+
+  const handleConfirmDelete = () => {
+    if (pageToDelete) {
+      setIsDeleting(true);
+      deletePageMutation.mutate(pageToDelete.id);
+    }
   };
 
   const localeMap = useMemo(
@@ -114,11 +148,11 @@ export default function PagesCard({ site, eventId }: PagesCardProps) {
         {pages.length > 0 ? (
           <div className="space-y-4">
             {pages.map((page) => (
-              <div 
-                key={page.id} 
+              <div
+                key={page.id}
                 className="group border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all duration-200"
               >
-                <div 
+                <div
                   className="flex items-center justify-between p-4 cursor-pointer"
                   onClick={() => handlePageClick(page.id)}
                 >
@@ -136,16 +170,27 @@ export default function PagesCard({ site, eventId }: PagesCardProps) {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      page.status === 'published' ? 'bg-green-100 text-green-800' : 
+                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${page.status === 'published' ? 'bg-green-100 text-green-800' :
                       'bg-gray-100 text-content-primary'
-                    }`}>
+                      }`}>
                       {page.status || 'draft'}
                     </span>
+
+                    {/* Delete Button */}
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 w-8 p-0 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      onClick={(e) => handleDeleteClick(page.id, page.translations?.[0]?.title || 'Untitled Page', e)}
+                      title="Delete Page"
+                    >
+                      <Icon icon="lucide:trash-2" className="w-4 h-4" />
+                    </Button>
+
                     <Icon icon="lucide:chevron-right" className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
-                
+
                 {/* Permalink Section */}
                 <div className="px-4 pb-4 border-t border-gray-100 bg-gray-50/50">
                   <div className="flex items-center justify-between pt-3">
@@ -164,13 +209,13 @@ export default function PagesCard({ site, eventId }: PagesCardProps) {
                             className="h-6 w-6 p-0 hover:bg-blue-100"
                             onClick={(e) => copyPermalink(page, 'en', e)}
                           >
-                            <Icon 
-                              icon={copiedPermalink === `${page.id}-en` ? "lucide:check" : "lucide:copy"} 
-                              className="w-3 h-3 text-gray-500 hover:text-blue-600" 
+                            <Icon
+                              icon={copiedPermalink === `${page.id}-en` ? "lucide:check" : "lucide:copy"}
+                              className="w-3 h-3 text-gray-500 hover:text-blue-600"
                             />
                           </Button>
                         </div>
-                        
+
                         {/* Vietnamese Permalink */}
                         <div className="flex items-center space-x-2 bg-white border border-gray-200 rounded-md px-3 py-2 min-w-0 flex-1">
                           <span className="text-xs font-medium text-blue-600 whitespace-nowrap">VI:</span>
@@ -183,9 +228,9 @@ export default function PagesCard({ site, eventId }: PagesCardProps) {
                             className="h-6 w-6 p-0 hover:bg-blue-100"
                             onClick={(e) => copyPermalink(page, 'vi', e)}
                           >
-                            <Icon 
-                              icon={copiedPermalink === `${page.id}-vi` ? "lucide:check" : "lucide:copy"} 
-                              className="w-3 h-3 text-gray-500 hover:text-blue-600" 
+                            <Icon
+                              icon={copiedPermalink === `${page.id}-vi` ? "lucide:check" : "lucide:copy"}
+                              className="w-3 h-3 text-gray-500 hover:text-blue-600"
                             />
                           </Button>
                         </div>
@@ -216,6 +261,32 @@ export default function PagesCard({ site, eventId }: PagesCardProps) {
           </div>
         )}
       </div>
+      <Dialog open={!!pageToDelete} onOpenChange={(open) => !open && setPageToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Page</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete the page "{pageToDelete?.title}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setPageToDelete(null)}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={handleConfirmDelete}
+              loading={isDeleting}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }

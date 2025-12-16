@@ -365,6 +365,15 @@ export const siteApi = {
     }
   },
 
+  deletePage: async (pageId: string): Promise<ApiResponse<void>> => {
+    try {
+      await directus.request(deleteItem('pages' as never, pageId as never));
+      return { success: true };
+    } catch (error: unknown) {
+      return { success: false, error: handleAxiosError(error, 'Failed to delete page') };
+    }
+  },
+
   updatePageTranslations: async (
     pageId: string,
     translations: Array<{

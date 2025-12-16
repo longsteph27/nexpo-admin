@@ -464,7 +464,7 @@ export const directusHelpers = {
 
       const form = await directus.request(readItem('forms', formId, {
         fields: ([
-          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'event_id',
+          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'event_id', 'is_registration',
           { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
           {
             fields: [

@@ -8,7 +8,7 @@ import type { ApiResponse } from '../api';
 export const pageKeys = {
   all: ['pages'] as const,
   lists: () => [...pageKeys.all, 'list'] as const,
-  list: (siteId: number, params?: { page?: number; limit?: number; sort?: string; search?: string }) => 
+  list: (siteId: number, params?: { page?: number; limit?: number; sort?: string; search?: string }) =>
     [...pageKeys.lists(), siteId, params] as const,
   details: () => [...pageKeys.all, 'detail'] as const,
   detail: (id: string) => [...pageKeys.details(), id] as const,
@@ -67,16 +67,16 @@ export function useCreatePage() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: { 
-      site_id: number; 
-      sort?: number; 
-      translations?: { 
-        create: Array<{ 
-          languages_code: { code: string }; 
-          title?: string; 
-          permalink?: string 
-        }> 
-      } 
+    mutationFn: async (payload: {
+      site_id: number;
+      sort?: number;
+      translations?: {
+        create: Array<{
+          languages_code: { code: string };
+          title?: string;
+          permalink?: string
+        }>
+      }
     }) => {
       const result = await pagesApi.createPage(payload);
       if (!result.success) {
@@ -86,7 +86,7 @@ export function useCreatePage() {
     },
     onSuccess: (data, variables) => {
       // Invalidate pages list for the site
-      queryClient.invalidateQueries({ 
+      queryClient.invalidateQueries({
         queryKey: pageKeys.list(variables.site_id),
       });
     },
@@ -117,15 +117,15 @@ export function useUpdatePageBlocks() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ 
-      pageId, 
-      payload 
-    }: { 
-      pageId: string; 
-      payload: { 
-        blocks: { create: any[]; update: any[]; delete: string[] }; 
-        event_id?: number 
-      } 
+    mutationFn: async ({
+      pageId,
+      payload
+    }: {
+      pageId: string;
+      payload: {
+        blocks: { create: any[]; update: any[]; delete: string[] };
+        event_id?: number
+      }
     }) => {
       const result = await pagesApi.updatePageBlocks(pageId, payload);
       if (!result.success) {

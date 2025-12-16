@@ -1,594 +1,321 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Icon } from '@iconify/react';
 import { Button } from './button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from './dialog';
-import { Badge } from './badge';
-import { globalApi } from '@/lib/api';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
-interface ThemeTemplate {
-  id: string;
-  name: string;
-  category: 'PROFESSIONAL' | 'PLAYFUL' | 'SOPHISTICATED';
-  preview: {
-    background: string;
-    fontStyle: string;
-    fontFamily: string;
-    colorPalette: string[];
-    buttonStyle: {
-      background: string;
-      textColor: string;
-      border?: string;
-      borderRadius: string;
-    };
-  };
-  theme: {
-    primary: string;
-    secondary: string;
-    borderRadius: string;
-    fonts: {
-      families: {
-        display: string;
-        body: string;
-        code: string;
-      };
-    };
-  };
-}
-
-const themeTemplates: ThemeTemplate[] = [
-  // PROFESSIONAL
-  {
-    id: 'professional-minimal',
-    name: 'Minimal Professional',
-    category: 'PROFESSIONAL',
-    preview: {
-      background: 'bg-gray-50',
-      fontStyle: 'font-bold text-black',
-      fontFamily: 'font-sans',
-      colorPalette: ['bg-white', 'bg-gray-100', 'bg-gray-300', 'bg-gray-600', 'bg-black'],
-      buttonStyle: {
-        background: 'bg-white',
-        textColor: 'text-black',
-        border: 'border border-black',
-        borderRadius: 'rounded-none'
-      }
-    },
-    theme: {
-      primary: '#000000',
-      secondary: '#6B7280',
-      borderRadius: 'none',
-      fonts: {
-        families: {
-          display: 'Inter, Arial, sans-serif',
-          body: 'Inter, Arial, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-  {
-    id: 'professional-nature',
-    name: 'Nature Professional',
-    category: 'PROFESSIONAL',
-    preview: {
-      background: 'bg-stone-50',
-      fontStyle: 'font-medium text-stone-800',
-      fontFamily: 'font-serif',
-      colorPalette: ['bg-white', 'bg-green-100', 'bg-green-600', 'bg-black', 'bg-green-400'],
-      buttonStyle: {
-        background: 'bg-green-600',
-        textColor: 'text-white',
-        borderRadius: 'rounded-none'
-      }
-    },
-    theme: {
-      primary: '#059669',
-      secondary: '#374151',
-      borderRadius: 'none',
-      fonts: {
-        families: {
-          display: 'Georgia, serif',
-          body: 'Georgia, serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-
-  // PLAYFUL
-  {
-    id: 'playful-creative',
-    name: 'Creative Playful',
-    category: 'PLAYFUL',
-    preview: {
-      background: 'bg-purple-50',
-      fontStyle: 'font-bold italic text-purple-800',
-      fontFamily: 'font-sans',
-      colorPalette: ['bg-pink-200', 'bg-purple-200', 'bg-purple-400', 'bg-purple-700', 'bg-purple-900'],
-      buttonStyle: {
-        background: 'bg-purple-900',
-        textColor: 'text-pink-200',
-        border: 'border border-pink-200',
-        borderRadius: 'rounded-full'
-      }
-    },
-    theme: {
-      primary: '#581C87',
-      secondary: '#FBB6CE',
-      borderRadius: 'xl',
-      fonts: {
-        families: {
-          display: 'Poppins, sans-serif',
-          body: 'Poppins, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-  {
-    id: 'playful-bold',
-    name: 'Bold Playful',
-    category: 'PLAYFUL',
-    preview: {
-      background: 'bg-yellow-100',
-      fontStyle: 'font-bold text-black',
-      fontFamily: 'font-sans',
-      colorPalette: ['bg-stone-100', 'bg-teal-300', 'bg-blue-500', 'bg-blue-700', 'bg-black'],
-      buttonStyle: {
-        background: 'bg-black',
-        textColor: 'text-white',
-        borderRadius: 'rounded-r-xl'
-      }
-    },
-    theme: {
-      primary: '#1E40AF',
-      secondary: '#14B8A6',
-      borderRadius: 'xl',
-      fonts: {
-        families: {
-          display: 'Montserrat, sans-serif',
-          body: 'Montserrat, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-
-  // SOPHISTICATED
-  {
-    id: 'sophisticated-elegant',
-    name: 'Elegant Sophisticated',
-    category: 'SOPHISTICATED',
-    preview: {
-      background: 'bg-amber-50',
-      fontStyle: 'font-medium text-amber-900',
-      fontFamily: 'font-serif',
-      colorPalette: ['bg-stone-50', 'bg-amber-200', 'bg-amber-600', 'bg-amber-800', 'bg-black'],
-      buttonStyle: {
-        background: 'bg-amber-800',
-        textColor: 'text-white',
-        borderRadius: 'rounded-none'
-      }
-    },
-    theme: {
-      primary: '#92400E',
-      secondary: '#D97706',
-      borderRadius: 'none',
-      fonts: {
-        families: {
-          display: 'Playfair Display, serif',
-          body: 'Source Sans Pro, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-  {
-    id: 'sophisticated-modern',
-    name: 'Modern Sophisticated',
-    category: 'SOPHISTICATED',
-    preview: {
-      background: 'bg-slate-50',
-      fontStyle: 'font-semibold text-slate-800',
-      fontFamily: 'font-sans',
-      colorPalette: ['bg-white', 'bg-slate-200', 'bg-slate-400', 'bg-slate-600', 'bg-slate-900'],
-      buttonStyle: {
-        background: 'bg-slate-900',
-        textColor: 'text-white',
-        borderRadius: 'rounded-lg'
-      }
-    },
-    theme: {
-      primary: '#0F172A',
-      secondary: '#64748B',
-      borderRadius: 'lg',
-      fonts: {
-        families: {
-          display: 'Inter, sans-serif',
-          body: 'Inter, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-  {
-    id: 'sophisticated-luxury',
-    name: 'Luxury Sophisticated',
-    category: 'SOPHISTICATED',
-    preview: {
-      background: 'bg-rose-50',
-      fontStyle: 'font-medium text-rose-900',
-      fontFamily: 'font-serif',
-      colorPalette: ['bg-white', 'bg-rose-200', 'bg-rose-400', 'bg-rose-700', 'bg-rose-900'],
-      buttonStyle: {
-        background: 'bg-rose-900',
-        textColor: 'text-white',
-        borderRadius: 'rounded-none'
-      }
-    },
-    theme: {
-      primary: '#9F1239',
-      secondary: '#F43F5E',
-      borderRadius: 'none',
-      fonts: {
-        families: {
-          display: 'Crimson Text, serif',
-          body: 'Source Sans Pro, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-
-  // Additional themes
-  {
-    id: 'professional-tech',
-    name: 'Tech Professional',
-    category: 'PROFESSIONAL',
-    preview: {
-      background: 'bg-blue-50',
-      fontStyle: 'font-semibold text-blue-900',
-      fontFamily: 'font-mono',
-      colorPalette: ['bg-white', 'bg-blue-100', 'bg-blue-400', 'bg-blue-700', 'bg-blue-900'],
-      buttonStyle: {
-        background: 'bg-blue-700',
-        textColor: 'text-white',
-        borderRadius: 'rounded-lg'
-      }
-    },
-    theme: {
-      primary: '#1D4ED8',
-      secondary: '#3B82F6',
-      borderRadius: 'lg',
-      fonts: {
-        families: {
-          display: 'JetBrains Mono, monospace',
-          body: 'Inter, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-  {
-    id: 'playful-sunset',
-    name: 'Sunset Playful',
-    category: 'PLAYFUL',
-    preview: {
-      background: 'bg-orange-50',
-      fontStyle: 'font-bold text-orange-900',
-      fontFamily: 'font-sans',
-      colorPalette: ['bg-orange-100', 'bg-orange-300', 'bg-orange-500', 'bg-orange-700', 'bg-orange-900'],
-      buttonStyle: {
-        background: 'bg-orange-900',
-        textColor: 'text-orange-100',
-        borderRadius: 'rounded-full'
-      }
-    },
-    theme: {
-      primary: '#EA580C',
-      secondary: '#FB923C',
-      borderRadius: 'xl',
-      fonts: {
-        families: {
-          display: 'Fredoka One, cursive',
-          body: 'Nunito, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  },
-  {
-    id: 'sophisticated-forest',
-    name: 'Forest Sophisticated',
-    category: 'SOPHISTICATED',
-    preview: {
-      background: 'bg-emerald-50',
-      fontStyle: 'font-medium text-emerald-900',
-      fontFamily: 'font-serif',
-      colorPalette: ['bg-white', 'bg-emerald-200', 'bg-emerald-400', 'bg-emerald-700', 'bg-emerald-900'],
-      buttonStyle: {
-        background: 'bg-emerald-900',
-        textColor: 'text-white',
-        borderRadius: 'rounded-lg'
-      }
-    },
-    theme: {
-      primary: '#064E3B',
-      secondary: '#10B981',
-      borderRadius: 'lg',
-      fonts: {
-        families: {
-          display: 'Merriweather, serif',
-          body: 'Open Sans, sans-serif',
-          code: 'JetBrains Mono, Consolas, monospace'
-        }
-      }
-    }
-  }
-];
+// Import extracted components and data
+import ThemePreviewSection from './theme/ThemePreviewSection';
+import AttributeSelector from './theme/AttributeSelector';
+import ThemeCard from './theme/ThemeCard';
+import { ThemeTemplate, SubView } from './theme/types';
+import { themeTemplates, mockFonts, mockColors, mockButtonStyles } from './theme/mockData';
+import { ThemeProvider, useThemeState, useThemeDispatch } from './theme/ThemeContext';
 
 interface ThemeSelectorProps {
-  onThemeSelect: (theme: ThemeTemplate['theme']) => void;
+  onPreview: (theme: ThemeTemplate['theme'] | null) => void;
+  onSave: (theme: ThemeTemplate['theme']) => Promise<void>;
+  onClose: () => void;
   currentTheme?: ThemeTemplate['theme'];
-  siteId?: number;
 }
 
-export default function ThemeSelector({ onThemeSelect, currentTheme, siteId }: ThemeSelectorProps) {
-  const [selectedTheme, setSelectedTheme] = useState<ThemeTemplate | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [currentGlobalData, setCurrentGlobalData] = useState<any>(null);
+// Inner Component that consumes Context
+const ThemeSelectorContent = ({ onPreview, onSave, onClose }: Omit<ThemeSelectorProps, 'currentTheme'>) => {
+  const { selectedTheme } = useThemeState();
+  const dispatch = useThemeDispatch();
+  const [activeSubView, setActiveSubView] = useState<SubView>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // Load current theme from global settings
+  // Sync with parent preview whenever selectedTheme changes in context
   useEffect(() => {
-    if (siteId && !currentTheme) {
-      loadCurrentTheme();
+    if (selectedTheme) {
+      onPreview(selectedTheme.theme);
     }
-  }, [siteId]);
+  }, [selectedTheme, onPreview]);
 
-  // Match current theme with templates
-  useEffect(() => {
-    if (currentTheme) {
-      const matchedTheme = themeTemplates.find(template =>
-        template.theme.primary === currentTheme.primary &&
-        template.theme.secondary === currentTheme.secondary &&
-        template.theme.borderRadius === currentTheme.borderRadius
-      );
-      if (matchedTheme) {
-        setSelectedTheme(matchedTheme);
-      }
-    }
-  }, [currentTheme]);
+  // Handler Wrappers
+  const handleUpdate = useCallback((updatedPreview: Partial<ThemeTemplate['preview']>, updatedTheme: Partial<ThemeTemplate['theme']>) => {
+    dispatch({ type: 'UPDATE_THEME', payload: { preview: updatedPreview, theme: updatedTheme } });
+  }, [dispatch]);
 
-  const loadCurrentTheme = async () => {
-    if (!siteId) return;
+  const handleThemePresetSelect = useCallback((theme: ThemeTemplate) => {
+    dispatch({ type: 'SET_THEME', payload: theme });
+  }, [dispatch]);
 
+  const handleSave = async () => {
+    if (!selectedTheme) return;
+
+    setIsSaving(true);
     try {
-      const response = await globalApi.getGlobal(siteId);
-      if (response.success && response.data) {
-        setCurrentGlobalData(response.data);
-        // If theme exists in global data, use it
-        if (response.data.theme && typeof response.data.theme === 'object') {
-          const matchedTheme = themeTemplates.find(template =>
-            template.theme.primary === response.data.theme.primary &&
-            template.theme.secondary === response.data.theme.secondary &&
-            template.theme.borderRadius === response.data.theme.borderRadius
-          );
-          if (matchedTheme) {
-            setSelectedTheme(matchedTheme);
-          }
-        }
-      }
+      await onSave(selectedTheme.theme);
+      toast.success('Theme saved successfully!');
+      onClose();
     } catch (error) {
-      console.error('Failed to load current theme:', error);
-    }
-  };
-
-  const handleThemeSelect = async (theme: ThemeTemplate) => {
-    setSelectedTheme(theme);
-    setIsUpdating(true);
-
-    try {
-      if (!siteId) {
-        // Fallback to parent callback
-        onThemeSelect(theme.theme);
-        setIsOpen(false);
-        return;
-      }
-
-      // Get current global settings
-      const globalRes = await globalApi.getGlobal(siteId);
-      if (!globalRes.success) {
-        throw new Error(globalRes.error || 'Failed to get global settings');
-      }
-
-      if (globalRes.data && typeof globalRes.data === 'object' && 'id' in globalRes.data) {
-        // Update existing global with new theme
-        const updateRes = await globalApi.updateGlobal(String(globalRes.data.id), {
-          theme: theme.theme
-        });
-        if (!updateRes.success) {
-          throw new Error(updateRes.error || 'Failed to update theme');
-        }
-      } else {
-        // Create new global with theme
-        const createRes = await globalApi.createGlobal({
-          site_id: siteId,
-          theme: theme.theme
-        });
-        if (!createRes.success) {
-          throw new Error(createRes.error || 'Failed to create theme');
-        }
-      }
-
-      toast.success('Theme updated successfully!');
-
-      // Update parent component
-      onThemeSelect(theme.theme);
-
-      // Refresh page to apply new theme
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
-
-    } catch (error) {
-      console.error('Theme update error:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to update theme');
+      console.error('Failed to save theme:', error);
+      toast.error('Failed to save theme');
     } finally {
-      setIsUpdating(false);
-      setIsOpen(false);
+      setIsSaving(false);
     }
   };
 
-  const groupedThemes = themeTemplates.reduce((acc, theme) => {
+  const handleClose = () => {
+    onPreview(null);
+    onClose();
+  };
+
+  const groupedThemes = useMemo(() => themeTemplates.reduce((acc, theme) => {
     if (!acc[theme.category]) {
       acc[theme.category] = [];
     }
     acc[theme.category].push(theme);
     return acc;
-  }, {} as Record<string, ThemeTemplate[]>);
+  }, {} as Record<string, ThemeTemplate[]>), []);
 
-  return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="z-50 bg-white/90 backdrop-blur-sm hover:bg-white"
-          disabled={isUpdating}
-        >
-          <Icon
-            icon={isUpdating ? "lucide:loader-2" : "lucide:palette"}
-            className={`w-4 h-4 mr-2 ${isUpdating ? 'animate-spin' : ''}`}
-          />
-          {isUpdating ? 'Updating...' : selectedTheme ? selectedTheme.name : 'Theme'}
-        </Button>
-      </DialogTrigger>
+  const SubPanel = () => {
+    // Note: Can split this further if SubLists get complex, but keeping here for now
+    if (!activeSubView) return null;
 
-      <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Icon icon="lucide:palette" className="w-5 h-5" />
-            Choose Your Theme
-          </DialogTitle>
-        </DialogHeader>
+    // ... SubPanel Logic mostly same, but using handleUpdate/handleThemePresetSelect from hooks
+    let title = '';
+    let content = null;
 
-        {/* Current Theme Section */}
-        {selectedTheme && (
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <div className="flex items-center gap-2 mb-3">
-              <Icon icon="lucide:check-circle" className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-800">Current Theme</span>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className={`${selectedTheme.preview.background} p-2 rounded border`}>
-                <span className={`${selectedTheme.preview.fontStyle} ${selectedTheme.preview.fontFamily} text-sm`}>
-                  Aa
-                </span>
+    switch (activeSubView) {
+      case 'THEMES':
+        title = 'Browse Themes';
+        content = (
+          <div className="space-y-8">
+            {Object.entries(groupedThemes).map(([category, themes]) => (
+              <div key={category}>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                    {category}
+                  </span>
+                  <div className="flex-1 h-px bg-gray-100"></div>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                  {themes.map((theme) => (
+                    <ThemeCard
+                      key={theme.id}
+                      theme={theme}
+                      isSelected={selectedTheme?.id === theme.id}
+                      onSelect={() => handleThemePresetSelect(theme)}
+                      isUpdating={false}
+                    />
+                  ))}
+                </div>
               </div>
-              <div>
-                <h4 className="font-medium text-blue-900">{selectedTheme.name}</h4>
-                <p className="text-xs text-blue-700">{selectedTheme.category}</p>
-              </div>
-            </div>
+            ))}
           </div>
-        )}
-
-        <div className="space-y-8">
-          {Object.entries(groupedThemes).map(([category, themes]) => (
-            <div key={category}>
-              <div className="flex items-center gap-2 mb-4">
-                <Badge variant="outline" className="text-sm font-semibold">
-                  {category}
-                </Badge>
-                <div className="flex-1 h-px bg-gray-200"></div>
+        );
+        break;
+      case 'FONTS':
+        title = 'Select Fonts';
+        content = (
+          <div className="space-y-2">
+            {mockFonts.map((font) => (
+              <div
+                key={font.id}
+                onClick={() => handleUpdate(
+                  {
+                    fontFamily: font.style,
+                    fontStyle: font.id === 'font-serif' ? 'font-medium' : 'font-sans'
+                  },
+                  {
+                    fonts: {
+                      families: {
+                        display: font.family,
+                        body: font.family,
+                        code: selectedTheme?.theme.fonts.families.code || 'monospace'
+                      }
+                    }
+                  }
+                )}
+                className={`p-4 rounded-lg cursor-pointer border-2 transition-all flex items-center justify-between ${selectedTheme?.theme.fonts.families.body === font.family ? 'border-blue-500 bg-blue-50' : 'border-gray-100 hover:border-gray-300'}`}
+              >
+                <div className="flex flex-col">
+                  <span className={`text-2xl mb-1 ${font.style}`}>Ag</span>
+                  <span className="text-sm font-medium text-gray-900">{font.name}</span>
+                </div>
+                {selectedTheme?.theme.fonts.families.body === font.family && <Icon icon="lucide:check" className="text-blue-500" />}
               </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {themes.map((theme) => (
-                  <ThemeCard
-                    key={theme.id}
-                    theme={theme}
-                    isSelected={selectedTheme?.id === theme.id}
-                    onSelect={() => handleThemeSelect(theme)}
-                    isUpdating={isUpdating}
-                  />
-                ))}
+            ))}
+          </div>
+        );
+        break;
+      case 'COLORS':
+        title = 'Select Colors';
+        content = (
+          <div className="space-y-2">
+            {mockColors.map((color) => (
+              <div
+                key={color.id}
+                onClick={() => handleUpdate(
+                  { colorPalette: color.palette },
+                  { primary: color.primary, secondary: color.secondary }
+                )}
+                className={`p-4 rounded-lg cursor-pointer border-2 transition-all flex items-center justify-between ${selectedTheme?.theme.primary === color.primary ? 'border-blue-500 bg-blue-50' : 'border-gray-100 hover:border-gray-300'}`}
+              >
+                <div className='flex items-center gap-4'>
+                  <div className='flex'>
+                    {color.palette.slice(0, 4).map((bg, i) => (
+                      <div key={i} className={`w-8 h-8 rounded-full border-2 border-white ${bg} -ml-2 first:ml-0`}></div>
+                    ))}
+                  </div>
+                  <span className="text-sm font-medium text-gray-900">{color.name}</span>
+                </div>
+                {selectedTheme?.theme.primary === color.primary && <Icon icon="lucide:check" className="text-blue-500" />}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        );
+        break;
+      case 'BUTTONS':
+        title = 'Button Styles';
+        content = (
+          <div className="grid grid-cols-2 gap-3">
+            {mockButtonStyles.map((btn) => (
+              <div
+                key={btn.id}
+                onClick={() => handleUpdate(
+                  { buttonStyle: { ...selectedTheme!.preview.buttonStyle, borderRadius: btn.borderRadius } },
+                  { borderRadius: btn.borderRadius === 'rounded-full' ? 'xl' : btn.borderRadius === 'rounded-none' ? 'none' : 'lg' }
+                )}
+                className={`p-6 rounded-lg cursor-pointer border-2 transition-all flex flex-col items-center justify-center gap-4 ${selectedTheme?.preview.buttonStyle.borderRadius === btn.borderRadius ? 'border-blue-500 bg-blue-50' : 'border-gray-100 hover:border-gray-300'}`}
+              >
+                <div className={`px-6 py-2.5 bg-black text-white text-sm font-bold shadow-sm ${btn.borderRadius}`}>
+                  Button
+                </div>
+                <span className="text-xs font-medium text-gray-500">{btn.name}</span>
+              </div>
+            ))}
+          </div>
+        );
+        break;
+      default:
+        content = <div className="p-4">Content for {activeSubView}</div>;
+    }
+
+    return (
+      <motion.div
+        initial={{ x: 20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        exit={{ x: 20, opacity: 0 }}
+        transition={{ type: 'spring', bounce: 0, duration: 0.3 }}
+        className="h-[calc(100vh)] w-[320px] bg-white border-l border-gray-200 shadow-xl overflow-hidden flex flex-col absolute right-[320px] top-0 z-10"
+      >
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 bg-white">
+          <div className="flex items-center gap-2">
+            <button onClick={() => setActiveSubView(null)} className="p-1 -ml-2 text-gray-400 hover:text-gray-900 transition-colors">
+              <Icon icon="lucide:chevron-left" className="w-6 h-6" />
+            </button>
+            <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+          </div>
+          <button onClick={() => setActiveSubView(null)} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+            <Icon icon="lucide:x" className="w-5 h-5 text-gray-500" />
+          </button>
         </div>
-      </DialogContent>
-    </Dialog>
-  );
-}
+        <div className="flex-1 overflow-y-auto p-6 bg-white">{content}</div>
+      </motion.div>
+    )
+  }
 
-interface ThemeCardProps {
-  theme: ThemeTemplate;
-  isSelected: boolean;
-  onSelect: () => void;
-  isUpdating?: boolean;
-}
-
-function ThemeCard({ theme, isSelected, onSelect, isUpdating }: ThemeCardProps) {
-  const { preview } = theme;
-
+  // --- Main Layout ---
   return (
-    <div
-      className={`relative p-4 rounded-lg border-2 transition-all ${isUpdating
-        ? 'cursor-not-allowed opacity-50'
-        : 'cursor-pointer hover:shadow-md'
-        } ${isSelected
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-200 bg-white hover:border-gray-300'
-        }`}
-      onClick={isUpdating ? undefined : onSelect}
+    <motion.div
+      initial={{ x: 320, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      exit={{ x: 320, opacity: 0 }}
+      transition={{ type: 'spring', bounce: 0, duration: 0.4 }}
+      className="fixed inset-y-0 right-0 flex flex-row-reverse pointer-events-auto h-full z-50 shadow-2xl"
     >
-      {/* Theme Preview */}
-      <div className={`${preview.background} p-4 rounded-lg mb-3`}>
-        {/* Font Preview */}
-        <div className="mb-3">
-          <span className={`${preview.fontStyle} ${preview.fontFamily} text-lg`}>
-            Aa
-          </span>
-        </div>
-
-        {/* Color Palette */}
-        <div className="flex gap-1 mb-3">
-          {preview.colorPalette.map((color, index) => (
-            <div
-              key={index}
-              className={`w-6 h-6 rounded-sm ${color} border border-gray-200`}
-            />
-          ))}
-        </div>
-
-        {/* Button Preview */}
-        <div className="flex justify-center">
-          <div
-            className={`px-4 py-2 text-sm font-medium ${preview.buttonStyle.background} ${preview.buttonStyle.textColor} ${preview.buttonStyle.borderRadius} ${preview.buttonStyle.border || ''}`}
-          >
-            Button
+      {/* Sidebar Container */}
+      <div className="h-full w-[320px] bg-white border-l border-gray-200 flex flex-col flex-shrink-0 z-20 shadow-xl">
+        <div className="py-6 px-2 space-y-6 flex-1 overflow-y-auto">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <h2 className="text-2xl font-bold text-gray-900">Site Styles</h2>
+            <button onClick={handleClose} className="p-2 text-gray-400 hover:text-gray-900 transition-colors lg:hidden">
+              <Icon icon="lucide:x" className="w-5 h-5" />
+            </button>
           </div>
+
+          <ThemePreviewSection />
+
+          <div className="h-px bg-gray-100 w-full"></div>
+
+          <div className="space-y-2">
+            <div
+              className={`flex items-center justify-between p-3 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors group ${activeSubView === 'THEMES' ? 'bg-gray-50' : ''}`}
+              onClick={() => setActiveSubView(activeSubView === 'THEMES' ? null : 'THEMES')}
+            >
+              <div className='flex items-center gap-4'>
+                <div className='p-2 bg-gray-100 rounded-md text-gray-600 group-hover:bg-white group-hover:shadow-sm transition-all'>
+                  <Icon icon="lucide:layout-template" className="w-5 h-5" />
+                </div>
+                <span className="text-sm font-semibold text-gray-900">Browse Themes</span>
+                <div className="bg-blue-600/10 text-blue-600 text-[10px] font-bold px-2 py-0.5 rounded-full ml-auto">NEW</div>
+              </div>
+              <Icon icon="lucide:chevron-right" className="w-4 h-4 text-gray-400 ml-2" />
+            </div>
+
+            <AttributeSelector activeSubView={activeSubView} onSubViewClick={setActiveSubView} />
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="p-4 border-t border-gray-200 flex items-center justify-between gap-3 bg-white">
+          <Button variant="ghost" className="flex-1" onClick={handleClose} disabled={isSaving}>Cancel</Button>
+          <Button className="flex-1 bg-black text-white hover:bg-black/90" onClick={handleSave} disabled={isSaving}>
+            {isSaving ? <Icon icon="lucide:loader-2" className="w-4 h-4 animate-spin" /> : 'Save'}
+          </Button>
         </div>
       </div>
 
-      {/* Theme Name */}
-      <h3 className="text-sm font-semibold text-gray-900 text-center">
-        {theme.name}
-      </h3>
+      <AnimatePresence>
+        {activeSubView && <SubPanel />}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
 
-      {/* Selection Indicator */}
-      {isSelected && (
-        <div className="absolute top-2 right-2">
-          <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-            <Icon icon="lucide:check" className="w-4 h-4 text-white" />
-          </div>
-        </div>
-      )}
-    </div>
+
+// Main Export - Wrapper
+export default function ThemeSelector(props: ThemeSelectorProps) {
+  // Logic to determine initialTheme
+  const initialTheme = useMemo(() => {
+    if (!props.currentTheme) return null;
+    const matched = themeTemplates.find(template =>
+      template.theme.primary === props.currentTheme!.primary &&
+      template.theme.secondary === props.currentTheme!.secondary &&
+      template.theme.borderRadius === props.currentTheme!.borderRadius &&
+      template.theme.fonts.families.body === props.currentTheme!.fonts.families.body &&
+      template.theme.fonts.families.display === props.currentTheme!.fonts.families.display
+    );
+    if (matched) return matched;
+    return {
+      id: 'custom-loaded',
+      name: 'Custom Theme',
+      category: 'PROFESSIONAL',
+      preview: {
+        background: 'bg-gray-50',
+        fontStyle: 'font-sans',
+        fontFamily: props.currentTheme.fonts.families.body.includes('serif') ? 'font-serif' : 'font-sans',
+        colorPalette: [props.currentTheme.primary, props.currentTheme.secondary, 'bg-gray-200'],
+        buttonStyle: {
+          background: props.currentTheme.primary,
+          textColor: '#fff',
+          borderRadius: props.currentTheme.borderRadius === 'full' ? 'rounded-full' : props.currentTheme.borderRadius === 'none' ? 'rounded-none' : 'rounded-lg'
+        }
+      },
+      theme: props.currentTheme
+    } as ThemeTemplate;
+  }, [props.currentTheme]);
+
+  return (
+    <ThemeProvider initialTheme={initialTheme}>
+      <ThemeSelectorContent {...props} />
+    </ThemeProvider>
   );
 }

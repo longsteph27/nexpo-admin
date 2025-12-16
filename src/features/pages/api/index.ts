@@ -11,6 +11,7 @@ export const pagesApi = {
   getBlocksByPage: siteApi.getBlocksByPage,
   upsertPageBlock: siteApi.upsertPageBlock,
   updatePageTranslations: siteApi.updatePageTranslations,
+  deletePage: siteApi.deletePage,
 } as const;
 
 export type { ApiResponse };

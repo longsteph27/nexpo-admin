@@ -67,9 +67,8 @@ export function SortableFieldItem({
           ...style,
           pointerEvents: isDragging || isAnyDragging ? 'none' : 'auto',
         }}
-        className={`group relative p-3 rounded-lg border-2 transition-all cursor-pointer ${
-          isSelected ? 'border-blue-500 bg-blue-50/50' : 'border-transparent hover:border-gray-300 hover:bg-gray-50'
-        } ${isDragging ? 'opacity-30 scale-95' : ''}`}
+        className={`group relative p-3 rounded-lg border-2 transition-all cursor-pointer ${isSelected ? 'border-blue-500 bg-blue-50/50' : 'border-transparent hover:border-gray-300 hover:bg-gray-50'
+          } ${isDragging ? 'opacity-30 scale-95' : ''}`}
         onClick={onSelect}
         layout
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -175,14 +174,17 @@ export function SortableFieldItem({
 
           {field.type === 'textarea' ? (
             <textarea
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 pointer-events-none flex-1"
+              className="w-full px-4 py-4 border border-gray-300 rounded-md text-sm bg-white text-gray-900 pointer-events-none flex-1"
               placeholder={fieldPlaceholder}
-              rows={3}
+              rows={4}
               disabled
               readOnly
             />
           ) : field.type === 'select' ? (
-            <select className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 pointer-events-none h-10" disabled>
+            <select
+              className="w-full px-4 py-4 border border-gray-300 rounded-md text-sm bg-white text-gray-900 pointer-events-none appearance-none"
+              disabled
+            >
               <option>{fieldPlaceholder || 'Select an option'}</option>
               {fieldOptions.map((opt, i) => (
                 <option key={i}>{opt.label}</option>
@@ -190,18 +192,30 @@ export function SortableFieldItem({
             </select>
           ) : field.type === 'multiselect' ? (
             <div className="space-y-2 pointer-events-none flex-1">
-              {fieldOptions.slice(0, 3).map((opt, i) => (
-                <label key={i} className="flex items-center space-x-2 text-sm text-gray-700">
-                  <input type="checkbox" className="rounded" disabled />
-                  <span>{opt.label}</span>
-                </label>
+              {fieldOptions.map((opt, i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    disabled
+                  />
+                  <span className="text-sm text-gray-800">{opt.label}</span>
+                </div>
               ))}
-              {fieldOptions.length > 3 && <div className="text-xs text-gray-500">+{fieldOptions.length - 3} more options...</div>}
+              {fieldOptions.length === 0 && <span className="text-sm text-gray-400 italic">No options defined</span>}
+            </div>
+          ) : field.type === 'file' || field.type === 'image' ? (
+            <div className="relative pointer-events-none">
+              <input
+                type="file"
+                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700"
+                disabled
+              />
             </div>
           ) : (
             <input
               type={field.type === 'email' ? 'email' : field.type === 'number' ? 'number' : 'text'}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 pointer-events-none h-10"
+              className="w-full px-4 py-4 border border-gray-300 rounded-md text-sm bg-white text-gray-900 pointer-events-none"
               placeholder={fieldPlaceholder}
               disabled
               readOnly

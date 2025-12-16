@@ -57,8 +57,8 @@ export default function CreatePage({ eventId }: CreatePageProps) {
         sort: 1,
         translations: {
           create: [
-            { 
-              languages_code: { code: language }, 
+            {
+              languages_code: { code: language },
               title: title.trim(),
               permalink: permalink.trim()
             },

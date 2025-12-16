@@ -4,7 +4,7 @@ import React, { useMemo, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useSiteTheme } from '../../hooks/useSiteTheme';
-import { themeToCSSVariables } from '../../services/siteThemeService';
+import { themeToCSSVariables, type SiteTheme } from '../../services/siteThemeService';
 import { Button } from '@/components/ui/button-base';
 import {
   HeroBlock,
@@ -81,6 +81,7 @@ interface PagePreviewProps {
   headerNavigation?: Navigation & { items?: DirectusNavigationItem[] } | null;
   footerNavigation?: Navigation & { items?: DirectusNavigationItem[] } | null;
   onAddFirstBlock?: () => void;
+  previewTheme?: SiteTheme; // Use imported SiteTheme type if possible, or any
 }
 
 interface SortableSectionProps {
@@ -321,7 +322,8 @@ export default function PagePreview({
   onSectionHover,
   headerNavigation,
   footerNavigation,
-  onAddFirstBlock
+  onAddFirstBlock,
+  previewTheme,
 }: PagePreviewProps) {
   // Calculate add button positions
   const addButtonPositions = useMemo(() => {
@@ -380,11 +382,14 @@ export default function PagePreview({
   }, []);
 
   // Fetch and apply site theme
-  const { theme } = useSiteTheme({
+  const { theme: fetchedTheme } = useSiteTheme({
     siteId,
     enabled: !!siteId,
     applyToDocument: false,
   });
+
+  // Prefer previewTheme if provided, otherwise use fetchedTheme
+  const theme = previewTheme || fetchedTheme;
 
   // Apply theme CSS variables to preview container
   useEffect(() => {
