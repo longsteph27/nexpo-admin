@@ -52,7 +52,7 @@ export default function EventsList() {
         <div className="mb-2">
           <div className="border-b border-gray-200">
             <nav className="-mb-px flex space-x-8">
-              {[{id:'all',label:'All Events'},{id:'published',label:'Published'},{id:'draft',label:'Draft'},{id:'archived',label:'Archived'}].map((tab) => (
+              {[{ id: 'all', label: 'All Events' }, { id: 'published', label: 'Published' }, { id: 'draft', label: 'Draft' }, { id: 'archived', label: 'Archived' }].map((tab) => (
                 <div key={tab.id} className="py-4 px-1 border-b-2 border-transparent flex items-center space-x-2">
                   <span className="text-sm font-medium text-content-tertiary">{tab.label}</span>
                   <div className="h-5 w-8 bg-gray-200 rounded-full animate-pulse" />
@@ -70,29 +70,29 @@ export default function EventsList() {
     );
   }
 
-  if (!loading && events.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-start justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-content-primary">{pageInfo.title}</h1>
-            <p className="text-content-secondary mt-1">{pageInfo.subtitle}</p>
-          </div>
-          <Button onClick={handleCreateEvent} variant="gradient">
-            <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
-            Create Event
-          </Button>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="text-center py-12">
-            <Icon icon="lucide:calendar" className="w-16 h-16 text-content-tertiary mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-content-primary mb-2">No Events Yet</h3>
-            <p className="text-content-tertiary mb-6">Get started by creating your first event</p>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // if (!loading && events.length === 0) {
+  //   return (
+  //     <div className="space-y-6">
+  //       <div className="flex items-start justify-between">
+  //         <div>
+  //           <h1 className="text-2xl font-bold text-content-primary">{pageInfo.title}</h1>
+  //           <p className="text-content-secondary mt-1">{pageInfo.subtitle}</p>
+  //         </div>
+  //         <Button onClick={handleCreateEvent} variant="gradient">
+  //           <Icon icon="lucide:plus" className="w-5 h-5 mr-2" />
+  //           Create Event
+  //         </Button>
+  //       </div>
+  //       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+  //         <div className="text-center py-12">
+  //           <Icon icon="lucide:calendar" className="w-16 h-16 text-content-tertiary mx-auto mb-4" />
+  //           <h3 className="text-lg font-semibold text-content-primary mb-2">No Events Yet</h3>
+  //           <p className="text-content-tertiary mb-6">Get started by creating your first event</p>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="space-y-6 p-4 sm:p-6 lg:p-8">
@@ -110,7 +110,7 @@ export default function EventsList() {
       <div className="mb-2">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            {[{id:'all',label:'All Events'},{id:'published',label:'Published'},{id:'draft',label:'Draft'},{id:'archived',label:'Archived'}].map((tab) => (
+            {[{ id: 'all', label: 'All Events' }, { id: 'published', label: 'Published' }, { id: 'draft', label: 'Draft' }, { id: 'archived', label: 'Archived' }].map((tab) => (
               <div
                 key={tab.id}
                 onClick={() => { setActiveFilter(tab.id); setCurrentPage(1); }}
