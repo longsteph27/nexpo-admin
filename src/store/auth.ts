@@ -54,10 +54,10 @@ export const useAuthStore = create<AuthState>()(
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
-        
+
         try {
           const result = await directusHelpers.login(email, password);
-          
+
           if (!result.success) {
             set({ isLoading: false, error: result.error || 'Login failed' });
             return false;
@@ -65,36 +65,36 @@ export const useAuthStore = create<AuthState>()(
 
           // Handle tokens based on auth mode
           if (!IS_SESSION_MODE) {
-              const loginData = result.data as DirectusAuthResponse;
+            const loginData = result.data as DirectusAuthResponse;
             get().setTokens(loginData.access_token || null, loginData.refresh_token || null);
           }
-          
+
           // Get user info and permissions in parallel
           const [userResult, permissionsResult] = await Promise.all([
             directusHelpers.getCurrentUser(),
             directusHelpers.getUserPermissions()
           ]);
-          
+
           if (!userResult.success || !userResult.data) {
             set({ isLoading: false, error: userResult.error || 'Failed to get user info' });
             return false;
           }
 
-              const user = userResult.data;
-              const tenants = user?.tenants ? user.tenants.map(t => t.tenants_id) : [];
+          const user = userResult.data;
+          const tenants = user?.tenants ? user.tenants.map(t => t.tenants_id) : [];
           const firstTenant = tenants[0] || null;
-              const permissions = permissionsResult.success ? permissionsResult.data : {};
-              
-              set({
-                user: user as User,
-                tenants,
-                selectedTenant: firstTenant,
-                permissions,
-                isAuthenticated: true,
-                isLoading: false,
-                error: null,
-              });
-              return true;
+          const permissions = permissionsResult.success ? permissionsResult.data : {};
+
+          set({
+            user: user as User,
+            tenants,
+            selectedTenant: firstTenant,
+            permissions,
+            isAuthenticated: true,
+            isLoading: false,
+            error: null,
+          });
+          return true;
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : 'Login failed';
           set({ isLoading: false, error: errorMessage });
@@ -104,7 +104,7 @@ export const useAuthStore = create<AuthState>()(
 
       logout: async () => {
         set({ isLoading: true });
-        
+
         try {
           await directusHelpers.logout();
         } catch (error) {
@@ -177,7 +177,7 @@ export const useAuthStore = create<AuthState>()(
 
       initializeFromStoredTokens: async () => {
         const { accessToken, refreshToken, isRefreshing } = get();
-        
+
         // Don't initialize if already refreshing
         if (isRefreshing) {
           return;
@@ -188,16 +188,16 @@ export const useAuthStore = create<AuthState>()(
             // In session mode, Directus handles authentication via cookies
             // Just try to get current user to validate session
             const userResult = await directusHelpers.getCurrentUser();
-            
+
             if (userResult.success && userResult.data) {
               const user = userResult.data;
               const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
               const { selectedTenant } = get();
-              
+
               // Keep selected tenant if still valid, otherwise select first
-              const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
-                                 (tenants.length > 0 ? tenants[0] : null);
-              
+              const validTenant = tenants.find(t => t.id === selectedTenant?.id) ||
+                (tenants.length > 0 ? tenants[0] : null);
+
               set({
                 user: user as User,
                 tenants,
@@ -228,20 +228,20 @@ export const useAuthStore = create<AuthState>()(
 
             // Initialize Directus with stored tokens
             const initialized = await initializeDirectusWithTokens(accessToken, refreshToken);
-            
+
             if (initialized) {
               // Try to get current user to validate tokens
               const userResult = await directusHelpers.getCurrentUser();
-              
+
               if (userResult.success && userResult.data) {
                 const user = userResult.data;
                 const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
                 const { selectedTenant } = get();
-                
+
                 // Keep selected tenant if still valid, otherwise select first
-                const validTenant = tenants.find(t => t.id === selectedTenant?.id) || 
-                                   (tenants.length > 0 ? tenants[0] : null);
-                
+                const validTenant = tenants.find(t => t.id === selectedTenant?.id) ||
+                  (tenants.length > 0 ? tenants[0] : null);
+
                 set({
                   user: user as User,
                   tenants,
@@ -268,16 +268,16 @@ export const useAuthStore = create<AuthState>()(
           }
         } catch (error) {
           console.error('Failed to initialize from stored tokens:', error);
-              // Clear invalid tokens
-              get().clearAuthData();
+          // Clear invalid tokens
+          get().clearAuthData();
         }
       },
 
       checkAuth: async () => {
         const { isRefreshing, refreshToken } = get();
-        
+
         console.log('[Auth Store] checkAuth called - IS_SESSION_MODE:', IS_SESSION_MODE, 'refreshToken:', !!refreshToken);
-        
+
         // Prevent multiple simultaneous calls
         if (isRefreshing) {
           console.log('[Auth Store] Already refreshing, skipping...');
@@ -288,19 +288,19 @@ export const useAuthStore = create<AuthState>()(
           // Session mode: validate session via getCurrentUser
           console.log('[Auth Store] Session mode - checking session...');
           set({ isLoading: true, isRefreshing: true });
-          
+
           try {
             const userResult = await directusHelpers.getCurrentUser();
             console.log('[Auth Store] getCurrentUser result:', userResult);
-            
+
             if (userResult.success && userResult.data) {
               const user = userResult.data;
               const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
               const { selectedTenant } = get();
               const validTenant = tenants.find(t => t.id === selectedTenant?.id) || tenants[0] || null;
-              
+
               console.log('[Auth Store] Setting authenticated state - tenants:', tenants.length, 'selectedTenant:', validTenant?.id);
-              
+
               set({
                 user: user as User,
                 tenants,
@@ -326,38 +326,38 @@ export const useAuthStore = create<AuthState>()(
           get().clearAuthData();
           return;
         }
-        
+
         console.log('[Auth Store] JSON mode - refreshing token...');
 
         set({ isLoading: true, isRefreshing: true });
-        
+
         try {
           // Step 1: Refresh the access token
           const refreshResult = await refreshWithToken(refreshToken);
           const refreshData = refreshResult as DirectusAuthResponse;
           const newAccessToken = refreshData.access_token || null;
           const newRefreshToken = refreshData.refresh_token || null;
-          
+
           console.log('[Auth Store] Token refreshed successfully');
-          
+
           // Step 2: Update tokens in store and directus client
           get().setTokens(newAccessToken, newRefreshToken);
-          
+
           if (newAccessToken) {
             await directus.setToken(newAccessToken);
           }
-          
+
           // Step 3: Fetch user info with new token
           const userResult = await directusHelpers.getCurrentUser();
-          
+
           if (userResult.success && userResult.data) {
             const user = userResult.data;
             const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
             const { selectedTenant } = get();
             const validTenant = tenants.find(t => t.id === selectedTenant?.id) || tenants[0] || null;
-            
+
             console.log('[Auth Store] Auth restored - user:', user.email, 'tenants:', tenants.length);
-            
+
             set({
               user: user as User,
               tenants,

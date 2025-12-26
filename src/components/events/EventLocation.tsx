@@ -7,6 +7,7 @@ import { CustomDateField } from "@/components/ui/CustomDateField";
 import { CustomTimeField } from "@/components/ui/CustomTimeField";
 import { eventsApi } from "@/lib/api";
 import { toast } from "sonner";
+import { format } from "date-fns";
 
 interface EventLocationProps {
   event: {
@@ -38,6 +39,38 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
     }
   }, [event]);
 
+  // Helper functions for date conversion
+  const getLocalDate = (isoString: string) => {
+    if (!isoString) return "";
+    try {
+      return format(new Date(isoString), "yyyy-MM-dd");
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const getLocalTime = (isoString: string) => {
+    if (!isoString) return "";
+    try {
+      return format(new Date(isoString), "HH:mm");
+    } catch (e) {
+      return "";
+    }
+  };
+
+  const createUTCString = (datePart: string, timePart: string) => {
+    if (!datePart || !timePart) return "";
+    try {
+      const [year, month, day] = datePart.split("-").map(Number);
+      const [hour, minute] = timePart.split(":").map(Number);
+      // This constructor creates a Date object in the user's local timezone
+      const localDate = new Date(year, month - 1, day, hour, minute);
+      return localDate.toISOString();
+    } catch (e) {
+      return "";
+    }
+  };
+
   // Handle form input changes
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -54,13 +87,13 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
     try {
       // Prepare update data
       const updateData = {
-        start_date: formData.start_date || undefined,
-        end_date: formData.end_date || undefined,
+        start_date: formData.start_date || null,
+        end_date: formData.end_date || null,
         location: formData.location || undefined
       };
 
       // Update event in Directus
-      const result = await eventsApi.updateEvent(event.id, updateData);
+      const result = await eventsApi.updateEvent(event.id, updateData as any);
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to update event location');
@@ -150,10 +183,10 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
               <div className="flex items-center gap-2 rounded-sm pb-1.5 border-b-2 border-b-[#23DD4E] space-x-5">
                 <div className="flex-1">
                   <CustomDateField
-                    value={formData.start_date ? new Date(formData.start_date).toISOString().split('T')[0] : ''}
+                    value={getLocalDate(formData.start_date)}
                     onChange={(date) => {
-                      const time = formData.start_date ? new Date(formData.start_date).toTimeString().slice(0, 5) : '00:00';
-                      handleInputChange('start_date', date ? `${date}T${time}:00.000Z` : '');
+                      const currentTime = getLocalTime(formData.start_date) || "00:00";
+                      handleInputChange('start_date', date ? createUTCString(date, currentTime) : '');
                     }}
                     placeholder="Select start date"
                     className="text-sm"
@@ -165,10 +198,10 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
                 </div>
                 <div className="flex-1">
                   <CustomTimeField
-                    value={formData.start_date ? new Date(formData.start_date).toTimeString().slice(0, 5) : ''}
+                    value={getLocalTime(formData.start_date)}
                     onChange={(time) => {
-                      const date = formData.start_date ? new Date(formData.start_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-                      handleInputChange('start_date', `${date}T${time}:00.000Z`);
+                      const currentDate = getLocalDate(formData.start_date) || format(new Date(), "yyyy-MM-dd");
+                      handleInputChange('start_date', time ? createUTCString(currentDate, time) : '');
                     }}
                     placeholder="Select start time"
                     className="text-sm"
@@ -179,7 +212,6 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
                   />
                 </div>
               </div>
-              {/* <div className="h-0.5 bg-[#23DD4E] w-full"></div> */}
             </div>
           </div>
 
@@ -192,10 +224,10 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
               <div className="flex items-center gap-2 rounded-sm pb-1.5 border-b-2 border-b-[#FF6321] space-x-5">
                 <div className="flex-1">
                   <CustomDateField
-                    value={formData.end_date ? new Date(formData.end_date).toISOString().split('T')[0] : ''}
+                    value={getLocalDate(formData.end_date)}
                     onChange={(date) => {
-                      const time = formData.end_date ? new Date(formData.end_date).toTimeString().slice(0, 5) : '00:00';
-                      handleInputChange('end_date', date ? `${date}T${time}:00.000Z` : '');
+                      const currentTime = getLocalTime(formData.end_date) || "00:00";
+                      handleInputChange('end_date', date ? createUTCString(date, currentTime) : '');
                     }}
                     placeholder="Select end date"
                     className="text-sm"
@@ -207,10 +239,10 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
                 </div>
                 <div className="flex-1">
                   <CustomTimeField
-                    value={formData.end_date ? new Date(formData.end_date).toTimeString().slice(0, 5) : ''}
+                    value={getLocalTime(formData.end_date)}
                     onChange={(time) => {
-                      const date = formData.end_date ? new Date(formData.end_date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
-                      handleInputChange('end_date', `${date}T${time}:00.000Z`);
+                      const currentDate = getLocalDate(formData.end_date) || format(new Date(), "yyyy-MM-dd");
+                      handleInputChange('end_date', time ? createUTCString(currentDate, time) : '');
                     }}
                     placeholder="Select end time"
                     className="text-sm"
@@ -221,7 +253,6 @@ export default function EventLocation({ event, onUpdate }: EventLocationProps) {
                   />
                 </div>
               </div>
-              {/* <div className="h-0.5 bg-[#FF6321] w-full"></div> */}
             </div>
           </div>
         </div>

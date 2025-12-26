@@ -651,10 +651,10 @@ export default function PageBuilder({ eventId, pageId }: PageBuilderProps) {
 
 
         {/* Right Panel - Live Preview */}
-        <div className="flex-1 bg-neutral-100 overflow-hidden flex flex-col">
+        <div className="flex-1 bg-[#f8f9fa] overflow-hidden flex flex-col">
 
           {/* Preview content với device constraints */}
-          <div className="flex-1 overflow-y-auto bg-neutral-100">
+          <div className="flex-1 overflow-y-auto bg-[#f8f9fa]">
             <div
               style={{
                 width: previewDevice === 'desktop' ? '100%' : previewDevice === 'tablet' ? '768px' : '375px',

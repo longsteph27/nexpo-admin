@@ -7,16 +7,16 @@ import { cn } from '@/lib/utils';
 import EventSidebar from '@/components/layout/EventSidebar';
 import { useAppContextStore } from '@/store/appContext';
 
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 
 export default function EventLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
 }) {
   const pathname = usePathname();
+  const params = useParams();
+  const id = params?.id as string;
   const { setEventId } = useAppContextStore();
 
   // Check if current page is Page Builder ( /events/:id/pages/:pageId ) but not create or list
@@ -25,9 +25,9 @@ export default function EventLayout({
     !pathname?.endsWith('/create');
 
   useEffect(() => {
-    const n = Number(params.id);
+    const n = Number(id);
     setEventId(Number.isFinite(n) ? n : null);
-  }, [params.id, setEventId]);
+  }, [id, setEventId]);
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -39,7 +39,7 @@ export default function EventLayout({
           " min-h-full shrink-0 transition-all duration-300 ease-in-out",
           sidebarCollapsed ? "w-0 opacity-0 overflow-hidden" : "w-72 opacity-100 overflow-y-auto"
         )}>
-          <EventSidebar eventId={params.id} />
+          <EventSidebar />
         </div>
 
         {/* Toggle Button - positioned at center outside sidebar */}

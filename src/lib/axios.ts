@@ -54,11 +54,11 @@ axiosInstance.interceptors.response.use(
             const refreshResponse = await axios.post(`${DIRECTUS_URL}/auth/refresh`, {
               refresh_token: authData.state.refreshToken
             });
-            
+
             if (refreshResponse.data?.access_token) {
               // Update token in token manager
               tokenManager.setAccessToken(refreshResponse.data.access_token);
-              
+
               // Update token in localStorage
               const updatedAuthData = {
                 ...authData,
@@ -69,7 +69,7 @@ axiosInstance.interceptors.response.use(
                 }
               };
               localStorage.setItem('nexpo-auth-storage', JSON.stringify(updatedAuthData));
-              
+
               // Retry original request with new token
               error.config.headers.Authorization = `Bearer ${refreshResponse.data.access_token}`;
               console.log('✅ Token refreshed, retrying request...');

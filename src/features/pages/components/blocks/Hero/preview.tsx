@@ -3,8 +3,7 @@ import Image from 'next/image';
 import VButton from '@/components/base/VButton';
 import BlockContainer from '@/components/BlockContainer';
 import { getDirectusMedia } from '@/lib/utils/directus-helpers';
-import type { BlockHeroButton, BlockHeroData } from './types'; // Assuming types file or using previous interfaces? 
-// Actually I'll redefine interfaces or use types logic as before but with aligned structure
+// import types from inline definitions below
 
 export interface BlockHeroButtonType {
   id: string;
@@ -12,6 +11,7 @@ export interface BlockHeroButtonType {
   href: string;
   open_in_new_window: boolean;
   variant: string;
+  color: string;
   translations?: Array<{
     label: string;
     href: string;
@@ -98,6 +98,7 @@ export default function HeroBlock({ data, lang }: HeroBlockProps) {
               key={button.id}
               href={buttonTranslation?.href || button.href}
               variant={button.variant}
+              color={button.color}
               target={button.open_in_new_window ? '_blank' : '_self'}
               size="lg"
             >

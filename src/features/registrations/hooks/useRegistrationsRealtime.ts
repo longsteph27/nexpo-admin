@@ -23,7 +23,7 @@ function createClient() {
     registrations: Registration[];
   }>(DIRECTUS_URL)
     .with(rest())
-    .with(authentication("json", { autoRefresh: true }))
+    .with(authentication("json")) // Disable autoRefresh for manual token handling in realtime
     .with(realtime());
 }
 

@@ -35,6 +35,7 @@ export interface Registration {
   date_created?: string;
   badge_id?: string;
   redeem_id?: string;
+  event_id?: number;
   submissions?: FormSubmission | null;
 }
 

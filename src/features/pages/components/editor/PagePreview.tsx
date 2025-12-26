@@ -145,7 +145,7 @@ function SortableSection({
     <div ref={setNodeRef} style={style} className="relative" id={`section-${block.id}`}>
       <motion.div
         className={clsx(
-          'relative group bg-[#f9fafb]',
+          'relative group bg-[#fafafa]',
           isEditMode && 'cursor-pointer',
           // Border logic
           isEditMode && 'border-2',
@@ -499,7 +499,7 @@ export default function PagePreview({
       id={`page-preview-container-${siteId || 'default'}`}
       data-preview-container={siteId || 'default'}
       className={clsx(
-        'min-h-[600px] bg-gray-50 relative',
+        'min-h-[600px] bg-[#fafafa] relative',
       )}
       style={{ overflow: 'visible' }}
     >
@@ -690,7 +690,7 @@ function renderBlockPreview(block: Block, lang: string) {
 
 function PlaceholderPreview({ collection }: { collection: string }) {
   return (
-    <section className="py-16 px-6 md:px-12 bg-neutral-50">
+    <section className="py-16 px-6 md:px-12 bg-[#fafafa]">
       <div className="max-w-4xl mx-auto border-2 border-dashed border-neutral-300 rounded-lg p-12 text-center">
         <Icon icon={getBlockIcon(collection)} className="w-16 h-16 text-neutral-300 mx-auto mb-4" />
         <h3 className="text-lg font-semibold text-neutral-600 mb-2">

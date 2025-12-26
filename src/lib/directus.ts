@@ -1,4 +1,4 @@
-import { createDirectus, rest, authentication, readItems, readItem, readMe, createItem, updateItem, updateItems, deleteItem } from '@directus/sdk';
+import { createDirectus, rest, authentication, readItems, readItem, readMe, createItem, updateItem, updateItems, deleteItem, readFiles } from '@directus/sdk';
 
 // Environment configuration (must be defined early for use in interceptor)
 const DIRECTUS_URL = process.env.NEXT_PUBLIC_DIRECTUS_URL || 'https://app.nexpo.vn';
@@ -295,6 +295,7 @@ interface Schema {
   forms: Record<string, unknown>[];
   form_fields: Record<string, unknown>[];
   form_submissions: Record<string, unknown>[];
+  directus_files: Record<string, unknown>[];
 }
 
 type DirectusFilter = Record<string, unknown>;
@@ -1203,31 +1204,20 @@ export const directusHelpers = {
     try {
       console.log('[getFilesByFolder] Fetching files from folder:', folderId);
 
-      const { tokenManager } = await import('./tokenManager');
-      const token = tokenManager.getBestAvailableToken();
+      // Use Directus SDK to fetch files - this ensures authenticatedFetch is used with auto-refresh logic
+      const result = await directus.request(
+        readFiles({
+          filter: {
+            folder: { _eq: folderId }
+          },
+          limit: limit,
+          sort: ['-uploaded_on'] as never,
+          fields: ['*']
+        })
+      );
 
-      if (!token) {
-        throw new Error('Authentication required. Please log in.');
-      }
-
-      // Fetch files from Directus with filter
-      const response = await fetch(`https://app.nexpo.vn/files?filter[folder][_eq]=${folderId}&limit=${limit}&sort[]=-uploaded_on`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Fetch files failed:', response.status, errorText);
-        throw new Error(`Failed to fetch files: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('[getFilesByFolder] Fetched files:', result.data?.length || 0);
-      return { success: true, data: result.data || [] };
+      console.log('[getFilesByFolder] Fetched files:', result.length);
+      return { success: true, data: result };
     } catch (error) {
       console.error('Get files error:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch files' };

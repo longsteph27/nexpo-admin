@@ -82,17 +82,14 @@ export default function GalleryBlockEditor({
   );
 
   // Sync form with parent state changes
-  const hasInitialized = useRef(false);
   const galleryItemsLength = (blockData.gallery_items || []).length;
 
   useEffect(() => {
-    if (!hasInitialized.current && galleryItemsLength > 0) {
+    // Only reset if form is empty but we have data from parent
+    if (galleryItemsLength > 0 && fields.length === 0) {
       reset({ gallery_items: initialGalleryItems });
-      hasInitialized.current = true;
-    } else if (galleryItemsLength === 0 && !hasInitialized.current) {
-      hasInitialized.current = true;
     }
-  }, [initialGalleryItems, galleryItemsLength, reset]);
+  }, [initialGalleryItems, galleryItemsLength, reset, fields.length]);
 
   const handleUpdate = useCallback(() => {
     const currentItems = getValues('gallery_items');
@@ -204,7 +201,7 @@ export default function GalleryBlockEditor({
             );
           })}
         </div>
-        <ImageUpload value="" onChange={handleAddImage} folderId={folderId} eventId={eventId} multiple={true} />
+        <ImageUpload value="" onChange={handleAddImage} folderId={folderId} multiple={true} />
       </div>
     </div>
   );

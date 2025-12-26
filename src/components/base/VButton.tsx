@@ -6,37 +6,17 @@ import { Button } from '@/components/ui/button-base'
 import { type VariantProps } from 'class-variance-authority'
 import { buttonVariants } from '@/components/ui/button-base'
 
-interface VButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
+import { getButtonStyles } from '@/lib/utils/button-styles'
+
+interface VButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   href?: string
   target?: string
   loading?: boolean
   block?: boolean
-  color?: 'primary' | 'gray' | 'black' | 'white'
+  color?: 'primary' | 'gray' | 'black' | 'white' | string
   variant?: 'solid' | 'outline' | 'soft' | 'ghost' | 'link' | string
+  size?: 'xs' | 'sm' | 'md' | 'default' | 'lg' | 'xl'
   children: React.ReactNode
-}
-
-// Color and variant classes to maintain backward compatibility with original VButton
-function getButtonColorClass(color: string, variant: string) {
-  if (variant === 'solid') {
-    if (color === 'primary' || null) return 'bg-primary text-white hover:bg-primary/90'
-    if (color === 'gray') return 'bg-gray-400 text-white hover:bg-gray-500'
-    if (color === 'black') return 'bg-black text-white hover:bg-gray-800'
-    if (color === 'white') return 'bg-white text-black hover:bg-gray-100 border border-gray-300'
-  }
-  if (variant === 'outline') {
-    if (color === 'primary') return 'border-primary text-primary hover:bg-primary/10'
-    if (color === 'gray') return 'border-gray-400 text-content-primary hover:bg-gray-100'
-    if (color === 'black') return 'border-black text-black hover:bg-gray-100'
-    if (color === 'white') return 'border-white text-white hover:bg-gray-100'
-  }
-  if (variant === 'link') {
-    if (color === 'primary') return 'text-primary hover:text-primary/80'
-    if (color === 'gray') return 'text-content-primary hover:text-content-primary'
-    if (color === 'black') return 'text-black hover:text-content-primary'
-    if (color === 'white') return 'text-white hover:text-gray-200'
-  }
-  return ''
 }
 
 function VButton(props: VButtonProps) {
@@ -56,33 +36,30 @@ function VButton(props: VButtonProps) {
     ...rest
   } = props
 
-  // Use custom color classes if color prop is provided, otherwise use shadcn variants
-  const useCustomColors = color !== 'primary' || variant === 'solid'
-  const customColorClass = useCustomColors ? getButtonColorClass(color, variant) : ''
-  
-  // Map to shadcn variants only if not using custom colors
-  const mappedVariant = !useCustomColors && variant === 'solid' ? 'default' : 
-                        variant === 'outline' ? 'outline' :
-                        variant === 'ghost' ? 'ghost' :
-                        variant === 'link' ? 'link' : 'default'
+  // Use custom color classes if color prop is provided, otherwise use shadcn variants definition
+  // We prioritize our new styling logic
+  const { className: customClasses, style: customStyle } = getButtonStyles(variant || 'solid', color || 'primary');
 
   const sizeMap = {
-    xs: 'sm',
-    sm: 'sm', 
-    md: 'default',
-    lg: 'lg',
-    xl: 'lg',
+    xs: 'h-7 px-2 text-xs',
+    sm: 'h-8 px-3 text-xs',
+    md: 'h-9 px-4 py-2',
+    default: 'h-9 px-4 py-2',
+    lg: 'h-10 px-8',
+    xl: 'h-12 px-10 text-lg',
   } as const
 
-  const mappedSize = sizeMap[size as keyof typeof sizeMap] || size
+  const mappedSize = sizeMap[size as keyof typeof sizeMap] || sizeMap.default
 
   const buttonClasses = cn(
-    'btn',
-    size ? `btn-${size}` : '',
+    customClasses,
+    mappedSize,
     block && 'w-full',
-    customColorClass,
+    loading && 'opacity-70 pointer-events-none',
     className
   )
+
+  const combinedStyle = { ...customStyle, ...rest.style }
 
   if (href) {
     return (
@@ -90,25 +67,27 @@ function VButton(props: VButtonProps) {
         href={href as any}
         target={target}
         className={buttonClasses}
+        style={combinedStyle}
         onClick={onClick as any}
       >
+        {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
         {children}
       </Link>
     )
   }
 
   return (
-    <Button
-      className={cn(
-        useCustomColors ? buttonClasses : cn(buttonVariants({ variant: mappedVariant as any, size: mappedSize as any }), block && 'w-full', className)
-      )}
+    <button
+      className={buttonClasses}
+      style={combinedStyle}
       disabled={disabled || loading}
       type={type as any}
       onClick={onClick}
       {...rest}
     >
+      {loading && <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />}
       {children}
-    </Button>
+    </button>
   )
 }
 
