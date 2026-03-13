@@ -28,6 +28,7 @@ import { useFormBuilder } from '../../hooks/useFormBuilder';
 import { useFormFields, CATALOG } from '../../hooks/useFormFields';
 import { CatalogItem } from './CatalogItem';
 import { FormPreviewDroppable } from './FormPreviewDroppable';
+import { ConditionsEditor } from './ConditionsEditor';
 import { buildFormEmbedScriptSnippet } from '../../services/formBuilderService';
 
 export interface FormBuilderProps {
@@ -466,6 +467,17 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
                       </div>
                     </div>
                   )}
+
+                  {/* Conditions */}
+                  <div className="pt-3 border-t border-gray-100">
+                    <ConditionsEditor
+                      conditions={selected.conditions || []}
+                      allFields={fields}
+                      currentFieldId={selected.id}
+                      activeLang={activeLang}
+                      onChange={(conds) => updateField(selected.id, { conditions: conds })}
+                    />
+                  </div>
                 </motion.div>
               )}
 

@@ -1,101 +1,91 @@
-'use client'
-
-import React from 'react'
-import { motion } from 'framer-motion'
-import { Icon } from '@iconify/react'
-import BlockContainer from '@/components/BlockContainer'
-import TypographyTitle from '@/components/typography/TypographyTitle'
-import TypographyHeadline from '@/components/typography/TypographyHeadline'
-import { useForm } from '@/hooks/useForms'
-import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+'use client';
+import React, { useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Icon } from '@iconify/react';
+import BlockContainer from '@/components/BlockContainer';
+import TypographyTitle from '@/components/typography/TypographyTitle';
+import TypographyHeadline from '@/components/typography/TypographyHeadline';
+import { useForm as useDirectusForm } from '@/hooks/useForms';
+import { useForm, ControllerRenderProps, FieldValues } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { useFormConditions, Field } from '@/hooks/use-form-conditions';
+import { buildDynamicZodSchema } from '@/lib/dynamic-schema';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
 interface FormBlockData {
-  id: string
-  form?: string
-  tenant_id?: number
-  event_id?: number
+  id: string;
+  form?: string | { id?: string };
+  tenant_id?: number;
+  event_id?: number;
   translations?: Array<{
-    title?: string
-    headline?: string
-    languages_code: string
-  }>
+    title?: string;
+    headline?: string;
+    languages_code: string;
+  }>;
 }
 
 interface FormBlockProps {
-  data: FormBlockData
-  lang: string
-}
-
-interface FormField {
-  id: string
-  name: string
-  type: 'input' | 'textarea' | 'email' | 'number' | 'select' | 'multiselect' | 'file' | 'image'
-  width?: string
-  is_required?: boolean
-  validation?: string
-  translations?: Array<{
-    languages_code: string
-    label?: string
-    placeholder?: string
-    help?: string
-    options?: Array<{ label: string; value: string }>
-  }>
-}
-
-interface Form {
-  id: string
-  status: string
-  on_success?: string
-  redirect_url?: string
-  fields?: FormField[]
-  translations?: Array<{
-    languages_code: string
-    title?: string
-    submit_label?: string
-    success_message?: string
-  }>
+  data: FormBlockData;
+  lang: string;
 }
 
 export default function FormBlock({ data, lang }: FormBlockProps) {
-  const directusLang = lang === 'en' ? 'en-US' : 'vi-VN'
+  const directusLang = lang === 'en' ? 'en-US' : 'vi-VN';
 
   // Get block translations (title, headline for the form section)
-  const translations = Array.isArray(data.translations) ? data.translations : []
-  const translation = translations.find(t => t.languages_code === directusLang) || translations[0]
-  const title = translation?.title || ''
-  const headline = translation?.headline || ''
+  const translations = Array.isArray(data.translations) ? data.translations : [];
+  const translation = translations.find(t => t.languages_code === directusLang) || translations[0];
+  const title = translation?.title || '';
+  const headline = translation?.headline || '';
 
-  // Debug: Log data.form to check if it's a string or object
-  console.log('[FormBlock] data.form:', data.form, 'type:', typeof data.form);
-  
   // Ensure formId is a string
   const formId = typeof data.form === 'string' ? data.form : (data.form?.id || '');
-  console.log('[FormBlock] Using formId:', formId);
   
   // Load form data via React Query
-  const { data: formResponse, isLoading, error } = useForm(formId)
+  const { data: formResponse, isLoading, error } = useDirectusForm(formId);
 
   // Extract form data from response
-  const form = formResponse as Form | undefined
+  const formConfig = formResponse as any | undefined;
+  const fields = (formConfig?.fields || []) as Field[];
 
   // Get form translations (form title, submit label, success message)
-  const formTranslation = form?.translations?.find((t: any) => t.languages_code === directusLang) || form?.translations?.[0]
-  const submitLabel = formTranslation?.submit_label || 'Submit'
+  const formTranslation = formConfig?.translations?.find((t: any) => t.languages_code === directusLang) || formConfig?.translations?.[0];
+  const submitLabel = formTranslation?.submit_label || 'Submit';
 
-  // Debug logging
-  console.log('[FormBlock] Rendering:', {
-    blockData: data,
-    blockTranslation: translation,
-    lang,
-    directusLang,
-    title,
-    headline,
-    formData: form,
-    formFields: form?.fields,
-    isLoading,
-    error
-  })
+  // Tạo zodResolver động. Mỗi khi dynamicSchema thay đổi resolver cũng thay đổi theo.
+  const defaultValues = useMemo(
+    () => fields.reduce((acc, f) => ({ ...acc, [f.id]: f.type === 'multiselect' ? [] : '' }), {}),
+    [fields]
+  );
+
+  // 1. Khởi tạo RHF form
+  const rhfForm = useForm<FieldValues>({
+    defaultValues,
+  });
+
+  // 2. Gắn Hook quản lý conditions tự động
+  const { visibleFields, requiredFields, dynamicOptions } = useFormConditions(fields, rhfForm);
+
+  // 3. Build lại Schema Zod động mỗi khi required state hay visible state thay đổi
+  const dynamicSchema = useMemo(
+    () => buildDynamicZodSchema(fields, requiredFields, visibleFields),
+    [fields, requiredFields, visibleFields]
+  );
+
+  // Cập nhật resolver + reset values khi fields load xong lần đầu
+  useEffect(() => {
+    if (fields.length > 0) {
+      rhfForm.reset(defaultValues, { keepErrors: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fields]);
+
+  // Cập nhật resolver nóng khi schema thay đổi (trigger re-validate)
+  useEffect(() => {
+    rhfForm.clearErrors();
+  }, [dynamicSchema, rhfForm]);
 
   // Show placeholder if no form selected
   if (!data.form) {
@@ -111,7 +101,7 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
           </div>
         </div>
       </BlockContainer>
-    )
+    );
   }
 
   // Show loading state
@@ -127,11 +117,11 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
           </div>
         </div>
       </BlockContainer>
-    )
+    );
   }
 
   // Show error state
-  if (error || !form) {
+  if (error || !formConfig) {
     return (
       <BlockContainer className="py-16 px-4">
         <div className="relative max-w-2xl mx-auto">
@@ -144,149 +134,29 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
           </div>
         </div>
       </BlockContainer>
-    )
+    );
   }
 
   // Prevent form submission in preview mode
   const handlePreventSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log('[FormBlock] Submit prevented - this is a preview only')
-    toast.info('Form submission is disabled in preview mode')
-  }
+    e.preventDefault();
+    console.log('[FormBlock] Submit prevented - this is a preview only');
+    toast.info('Form submission is disabled in preview mode');
+  };
 
-  const renderField = (field: FormField) => {
-    const fieldTranslation = field.translations?.find(t => t.languages_code === directusLang) || field.translations?.[0]
-    const label = fieldTranslation?.label || field.name
-    const placeholder = fieldTranslation?.placeholder || ''
-    const help = fieldTranslation?.help || ''
-    const options = fieldTranslation?.options || []
-
-    // Get width class based on field width setting
-    const getWidthClass = () => {
-      switch (field.width) {
-        case '33':
-          return 'md:col-span-2';
-        case '50':
-          return 'md:col-span-3';
-        case '67':
-          return 'md:col-span-4';
-        case '100':
-        default:
-          return 'md:col-span-6';
-      }
+  const getWidthClass = (width?: string) => {
+    switch (width) {
+      case '33':
+        return 'md:col-span-2';
+      case '50':
+        return 'md:col-span-3';
+      case '67':
+        return 'md:col-span-4';
+      case '100':
+      default:
+        return 'md:col-span-6';
     }
-
-    const commonProps = {
-      id: field.id,
-      name: field.name,
-      placeholder,
-      disabled: true, // Disabled for preview mode
-      className: 'form-input w-full rounded-md px-4 py-4 bg-gray-50 text-gray-700 border border-gray-300 cursor-not-allowed opacity-75',
-      style: { borderColor: 'var(--color-border, #d1d5db)' },
-    }
-
-    return (
-      <div key={field.id} className={cn(getWidthClass(), 'w-full')}>
-        <label className='block text-sm font-medium text-gray-900 mb-2' htmlFor={field.id}>
-          {label}
-          {field.is_required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-
-        {(() => {
-          switch (field.type) {
-            case 'textarea':
-              return (
-                <textarea
-                  {...commonProps}
-                  rows={5}
-                />
-              )
-
-            case 'select':
-              return (
-                <select {...commonProps}>
-                  <option value="">Select an option</option>
-                  {options.map((option, index) => (
-                    <option key={index} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              )
-
-            case 'multiselect':
-              return (
-                <div className="space-y-2">
-                  {options.map((option, index) => (
-                    <label key={index} className="flex items-center space-x-2 cursor-not-allowed opacity-75">
-                      <input
-                        type="checkbox"
-                        value={option.value}
-                        disabled
-                        className="form-checkbox h-4 w-4 text-gray-400 border-gray-300 rounded cursor-not-allowed"
-                      />
-                      <span className="text-gray-700">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              )
-
-            case 'file':
-              return (
-                <div className="relative">
-                  <input
-                    {...commonProps}
-                    type="file"
-                    className={cn(commonProps.className, 'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-400 file:text-white file:cursor-not-allowed')}
-                  />
-                </div>
-              )
-
-            case 'image':
-              return (
-                <div className="relative">
-                  <input
-                    {...commonProps}
-                    type="file"
-                    accept="image/*"
-                    className={cn(commonProps.className, 'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-400 file:text-white file:cursor-not-allowed')}
-                  />
-                </div>
-              )
-
-            case 'email':
-              return (
-                <input
-                  {...commonProps}
-                  type="email"
-                />
-              )
-
-            case 'number':
-              return (
-                <input
-                  {...commonProps}
-                  type="number"
-                />
-              )
-
-            default: // input
-              return (
-                <input
-                  {...commonProps}
-                  type="text"
-                />
-              )
-          }
-        })()}
-
-        {help && (
-          <p className="text-xs text-gray-500 mt-1">{help}</p>
-        )}
-      </div>
-    )
-  }
-
+  };
 
   return (
     <BlockContainer>
@@ -310,32 +180,151 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
           )}
         </div>
         <div className="card-body bg-white border-2 border-[var(--color-primary)] rounded-[12px] shadow-md p-8">
-          {/* Form Header */}
+          
+          <Form {...rhfForm}>
+            <form
+              className="form-control relative mt-4 space-y-6"
+              onSubmit={(e) => {
+                // Preview mode: block submit & notify user
+                e.preventDefault();
+                toast.info('Form submission is disabled in preview mode');
+              }}
+            >
+              <div className="grid gap-6 md:grid-cols-6">
+                {fields.map((field: any) => {
+                  if (!visibleFields[field.id]) return null;
 
-          {/* Form */}
-          <form
-            className="form-control relative mt-4"
-            onSubmit={handlePreventSubmit}
-          >
-            <div className="grid gap-6 md:grid-cols-6">
-              {form.fields?.map((field) => renderField(field))}
-            </div>
+                  const fieldTranslation = field.translations?.find((t: any) => t.languages_code === directusLang) || field.translations?.[0];
+                  const label = fieldTranslation?.label || field.name;
+                  const placeholder = fieldTranslation?.placeholder || '';
+                  const help = fieldTranslation?.help || '';
+                  
+                  const renderOptions = dynamicOptions[field.id] || fieldTranslation?.options || [];
+                  const isRequired = requiredFields[field.id];
+                  // Set base readonly state to true since this is a preview preview, but respect dynamically readonly too
+                  // In a real usage (non-preview), it would just be `readonlyFields[field.id]`
+                  const isReadonly = true;
 
-            {/* Submit Button - Disabled for Preview */}
-            <div className="col-span-6 mx-auto">
-              <div className="form-control mt-6">
+                  const commonProps = {
+                    id: field.id,
+                    name: field.name,
+                    placeholder,
+                    disabled: isReadonly,
+                    className: 'form-input w-full rounded-md px-4 py-4 bg-gray-50 text-gray-700 border border-gray-300 cursor-not-allowed opacity-75',
+                    style: { borderColor: 'var(--color-border, #d1d5db)' },
+                  };
+
+                  return (
+                    <div key={field.id} className={cn(getWidthClass(field.width), 'w-full')}>
+                      <FormField
+                        control={rhfForm.control}
+                        name={field.id as string}
+                        render={({ field: rhfField }: { field: ControllerRenderProps<FieldValues, string> }) => (
+                          <FormItem>
+                            <label className='block text-sm font-medium text-gray-900 mb-2' htmlFor={field.id}>
+                              {label}
+                              {isRequired && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+                            
+                            <FormControl>
+                              {(() => {
+                                switch (field.type) {
+                                  case 'textarea':
+                                    return <textarea {...commonProps} {...rhfField} rows={5} />;
+                                  
+                                  case 'select':
+                                    return (
+                                      <select {...commonProps} {...rhfField}>
+                                        <option value="">Select an option</option>
+                                        {renderOptions.map((option: any, index: number) => (
+                                          <option key={index} value={option.value}>
+                                            {option.label || option.text || option.value}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    );
+                                  
+                                  case 'multiselect':
+                                    return (
+                                      <div className="space-y-2">
+                                        {renderOptions.map((option: any, index: number) => {
+                                          const currentVals = (rhfField.value || []) as string[];
+                                          return (
+                                            <label key={index} className="flex items-center space-x-2 cursor-not-allowed opacity-75">
+                                              <input
+                                                type="checkbox"
+                                                value={option.value}
+                                                disabled={isReadonly}
+                                                checked={currentVals.includes(String(option.value))}
+                                                onChange={(e) => {
+                                                  if (e.target.checked) {
+                                                    rhfField.onChange([...currentVals, String(option.value)]);
+                                                  } else {
+                                                    rhfField.onChange(currentVals.filter((v: string) => v !== String(option.value)));
+                                                  }
+                                                }}
+                                                className="form-checkbox h-4 w-4 text-gray-400 border-gray-300 rounded cursor-not-allowed"
+                                              />
+                                              <span className="text-gray-700">{option.label || option.text || option.value}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+
+                                  case 'file':
+                                  case 'image':
+                                    return (
+                                      <div className="relative">
+                                        <input
+                                          {...commonProps}
+                                          type="file"
+                                          accept={field.type === 'image' ? "image/*" : undefined}
+                                          className={cn(commonProps.className, 'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-400 file:text-white file:cursor-not-allowed')}
+                                          onChange={(e) => {
+                                            if (e.target.files) rhfField.onChange(e.target.files);
+                                          }}
+                                        />
+                                      </div>
+                                    );
+
+                                  case 'email':
+                                    return <input {...commonProps} {...rhfField} type="email" />;
+                                  
+                                  case 'number':
+                                    return <input {...commonProps} {...rhfField} type="number" />;
+                                  
+                                  default: // input
+                                    return <input {...commonProps} {...rhfField} type="text" />;
+                                }
+                              })()}
+                            </FormControl>
+                            
+                            {help && <p className="text-xs text-gray-500 mt-1">{help}</p>}
+                            <FormMessage className="text-red-500 mt-1" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Submit Button - Disabled for Preview */}
+              <div className="col-span-6 mx-auto mt-6">
                 <button
                   type="button"
                   disabled
-                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-md opacity-50 cursor-not-allowed"
+                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-md opacity-50 cursor-not-allowed w-full md:w-auto"
                 >
                   {submitLabel}
                 </button>
               </div>
-            </div>
-          </form>
+            </form>
+          </Form>
+
         </div>
       </motion.div>
     </BlockContainer>
-  )
+  );
 }

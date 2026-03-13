@@ -221,7 +221,7 @@ export interface FieldPayload {
   sort: number;
   is_required: boolean;
   validation: string;
-  conditions: Record<string, unknown> | null;
+  conditions: import('@/features/forms/types').FieldCondition[] | null;
   is_group_field?: boolean;
   event_id: number;
   tenant_id: number;

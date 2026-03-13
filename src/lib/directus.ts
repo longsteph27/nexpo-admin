@@ -19,8 +19,29 @@ const processQueue = (token: string | null) => {
 // Custom fetch wrapper with 401 interceptor
 const createAuthenticatedFetch = () => {
   return async (url: RequestInfo | URL, options: RequestInit = {}): Promise<Response> => {
+    // Determine if we are in session mode
+    const isSessionMode = AUTH_MODE === 'cookie';
+
+    // Prepare options with credentials for session mode
+    const fetchOptions = {
+      ...options,
+      headers: new Headers(options.headers),
+    };
+
+    if (isSessionMode) {
+      fetchOptions.credentials = 'include';
+    }
+
     // Make the initial request
-    const response = await fetch(url, options);
+    const response = await fetch(url, fetchOptions);
+
+    // If we are in session mode, we rely on cookies, so we don't do manual token refresh here.
+    // The Directus SDK or browser handles the cookie lifecycle.
+    if (isSessionMode) {
+      return response;
+    }
+
+    // --- JSON MODE LOGIC BELOW ---
 
     // If not 401, return the response as is
     if (response.status !== 401) {
@@ -331,7 +352,7 @@ type PaginatedFailure = {
 type PaginatedResponse<T> = PaginatedSuccess<T> | PaginatedFailure;
 
 // Additional environment configuration
-const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'session') || 'json';
+const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'cookie') || 'json';
 const AUTO_REFRESH = process.env.NEXT_PUBLIC_DIRECTUS_AUTO_REFRESH === 'true';
 
 // Log configuration in development
@@ -353,8 +374,16 @@ const directus = createDirectus<Schema>(DIRECTUS_URL, {
     fetch: authenticatedFetch,
   },
 })
-  .with(rest())
-  .with(authentication(AUTH_MODE, { autoRefresh: AUTO_REFRESH }));
+  .with(rest({
+    onRequest: (options) => {
+      // In session mode, we must treat requests as credentialed to send cookies
+      if (AUTH_MODE === 'cookie') {
+        return { ...options, credentials: 'include' };
+      }
+      return options;
+    }
+  }))
+  .with(authentication(AUTH_MODE === 'cookie' ? 'session' : AUTH_MODE, { autoRefresh: AUTO_REFRESH }));
 
 // Helper function to initialize Directus with stored tokens
 export const initializeDirectusWithTokens = async (accessToken: string | null, refreshToken: string | null) => {

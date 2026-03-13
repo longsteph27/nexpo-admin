@@ -12,8 +12,8 @@ interface DirectusAuthResponse {
 }
 
 // Environment configuration
-const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'session') || 'json';
-const IS_SESSION_MODE = AUTH_MODE === 'session';
+const AUTH_MODE = (process.env.NEXT_PUBLIC_DIRECTUS_AUTH_MODE as 'json' | 'cookie') || 'json';
+const IS_SESSION_MODE = AUTH_MODE === 'cookie';
 
 interface AuthState {
   user: User | null;

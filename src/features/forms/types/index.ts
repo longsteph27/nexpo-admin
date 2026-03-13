@@ -14,6 +14,26 @@ export interface FormFieldTranslation {
   options?: FormFieldOption[] | string | null;
 }
 
+export type FieldConditionOperator =
+  | '_eq' | '_neq' | '_contains'
+  | '_gt' | '_gte' | '_lt' | '_lte'
+  | '_in' | '_nin';
+
+export type FieldConditionAction =
+  | 'show' | 'hide'
+  | 'required' | 'optional'
+  | 'readonly'
+  | 'set_options' | 'set_value';
+
+export interface FieldCondition {
+  source_field_id: string;
+  operator: FieldConditionOperator;
+  value: string;
+  action: FieldConditionAction;
+  extra_value?: string;
+  extra_options?: { label: string; value: string }[] | null;
+}
+
 export interface FormField {
   id: string;
   name?: string;
@@ -22,7 +42,7 @@ export interface FormField {
   sort?: number;
   is_required?: boolean;
   validation?: string | null;
-  conditions?: Record<string, unknown> | null;
+  conditions?: FieldCondition[] | null;
   is_group_field?: boolean;
   translations?: FormFieldTranslation[];
 }
@@ -116,7 +136,7 @@ export interface BuilderFormField {
   sort?: number;
   is_required?: boolean;
   validation?: string;
-  conditions?: Record<string, unknown> | null;
+  conditions?: FieldCondition[] | null;
   is_group_field?: boolean;
   translations?: {
     'en-US'?: { id?: string | number; label?: string; placeholder?: string; help?: string; options?: FormFieldOption[] };

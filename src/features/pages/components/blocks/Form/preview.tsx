@@ -1,14 +1,19 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import BlockContainer from '@/components/BlockContainer';
 import TypographyTitle from '@/components/typography/TypographyTitle';
 import TypographyHeadline from '@/components/typography/TypographyHeadline';
-import { useForm } from '@/hooks/useForms';
+import { useForm as useDirectusForm } from '@/hooks/useForms';
+import { useForm, ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useFormConditions, Field } from '@/hooks/use-form-conditions';
+import { buildDynamicZodSchema } from '@/lib/dynamic-schema';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
 interface FormBlockData {
   id: string;
@@ -27,36 +32,6 @@ interface FormBlockProps {
   lang: string;
 }
 
-interface FormField {
-  id: string;
-  name: string;
-  type: 'input' | 'textarea' | 'email' | 'number' | 'select' | 'multiselect' | 'file' | 'image';
-  width?: string;
-  is_required?: boolean;
-  validation?: string;
-  translations?: Array<{
-    languages_code: string;
-    label?: string;
-    placeholder?: string;
-    help?: string;
-    options?: Array<{ label: string; value: string }>;
-  }>;
-}
-
-interface Form {
-  id: string;
-  status: string;
-  on_success?: string;
-  redirect_url?: string;
-  fields?: FormField[];
-  translations?: Array<{
-    languages_code: string;
-    title?: string;
-    submit_label?: string;
-    success_message?: string;
-  }>;
-}
-
 export default function FormBlock({ data, lang }: FormBlockProps) {
   const directusLang = lang === 'en' ? 'en-US' : 'vi-VN';
 
@@ -66,12 +41,54 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
   const headline = translation?.headline || '';
 
   const formId = typeof data.form === 'string' ? data.form : data.form?.id || '';
-  const { data: formResponse, isLoading, error } = useForm(formId);
-  const form = formResponse as Form | undefined;
+  const { data: formResponse, isLoading, error } = useDirectusForm(formId);
+  const formConfig = formResponse as any | undefined;
+  const fields = (formConfig?.fields || []) as Field[];
 
   const formTranslation =
-    form?.translations?.find((item: any) => item.languages_code === directusLang) || form?.translations?.[0];
+    formConfig?.translations?.find((item: any) => item.languages_code === directusLang) || formConfig?.translations?.[0];
   const submitLabel = formTranslation?.submit_label || 'Submit';
+
+  // Default values cho RHF
+  const defaultValues = useMemo(
+    () => fields.reduce((acc, f) => ({ ...acc, [f.id]: f.type === 'multiselect' ? [] : '' }), {}),
+    [fields]
+  );
+
+  // Khởi tạo RHF form
+  const rhfForm = useForm<FieldValues>({ defaultValues });
+
+  // Conditions hook — tính toán show/hide, required, dynamic options từ trường conditions
+  const { visibleFields, requiredFields, dynamicOptions } = useFormConditions(fields, rhfForm);
+
+  // Dynamic Zod schema — tạo lại mỗi khi required/visible thay đổi
+  const dynamicSchema = useMemo(
+    () => buildDynamicZodSchema(fields, requiredFields, visibleFields),
+    [fields, requiredFields, visibleFields]
+  );
+
+  // Reset values khi fields load xong lần đầu
+  useEffect(() => {
+    if (fields.length > 0) {
+      rhfForm.reset(defaultValues, { keepErrors: false });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fields]);
+
+  // Clear lỗi validation khi schema thay đổi (do conditions thay đổi required)
+  useEffect(() => {
+    rhfForm.clearErrors();
+  }, [dynamicSchema, rhfForm]);
+
+  const getWidthClass = (width?: string) => {
+    switch (width) {
+      case '33': return 'md:col-span-2';
+      case '50': return 'md:col-span-3';
+      case '67': return 'md:col-span-4';
+      case '100':
+      default: return 'md:col-span-6';
+    }
+  };
 
   if (!data.form) {
     return (
@@ -104,7 +121,7 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
     );
   }
 
-  if (error || !form) {
+  if (error || !formConfig) {
     return (
       <BlockContainer className="py-16 px-4">
         <div className="relative max-w-2xl mx-auto">
@@ -119,110 +136,6 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
       </BlockContainer>
     );
   }
-
-  const handlePreventSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    console.log('[FormBlock] Submit prevented - this is a preview only');
-    toast.info('Form submission is disabled in preview mode');
-  };
-
-  const renderField = (field: FormField) => {
-    const fieldTranslation =
-      field.translations?.find((item) => item.languages_code === directusLang) || field.translations?.[0];
-    const label = fieldTranslation?.label || field.name;
-    const placeholder = fieldTranslation?.placeholder || '';
-    const help = fieldTranslation?.help || '';
-    const options = fieldTranslation?.options || [];
-
-    const getWidthClass = () => {
-      switch (field.width) {
-        case '33':
-          return 'md:col-span-2';
-        case '50':
-          return 'md:col-span-3';
-        case '67':
-          return 'md:col-span-4';
-        case '100':
-        default:
-          return 'md:col-span-6';
-      }
-    };
-
-    const commonProps = {
-      id: field.id,
-      name: field.name,
-      placeholder,
-      disabled: true,
-      className:
-        'form-input w-full rounded-md px-4 py-4 bg-gray-50 text-gray-700 border border-gray-300 cursor-not-allowed opacity-75',
-      style: { borderColor: 'var(--color-border, #d1d5db)' },
-    };
-
-    return (
-      <div key={field.id} className={cn(getWidthClass(), 'w-full')}>
-        <label className="block text-sm font-medium text-gray-900 mb-2" htmlFor={field.id}>
-          {label}
-          {field.is_required && <span className="text-red-500 ml-1">*</span>}
-        </label>
-
-        {(() => {
-          switch (field.type) {
-            case 'textarea':
-              return <textarea {...commonProps} rows={5} />;
-            case 'select':
-              return (
-                <select {...commonProps}>
-                  <option value="">Select an option</option>
-                  {options.map((option, index) => (
-                    <option key={index} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              );
-            case 'multiselect':
-              return (
-                <div className="space-y-2">
-                  {options.map((option, index) => (
-                    <label key={index} className="flex items-center space-x-2 cursor-not-allowed opacity-75">
-                      <input
-                        type="checkbox"
-                        value={option.value}
-                        disabled
-                        className="form-checkbox h-4 w-4 text-gray-400 border-gray-300 rounded cursor-not-allowed"
-                      />
-                      <span className="text-gray-700">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              );
-            case 'file':
-            case 'image':
-              return (
-                <div className="relative">
-                  <input
-                    {...commonProps}
-                    type="file"
-                    className={cn(
-                      commonProps.className,
-                      'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-400 file:text-white file:cursor-not-allowed'
-                    )}
-                  />
-                </div>
-              );
-            case 'email':
-              return <input {...commonProps} type="email" />;
-            case 'number':
-              return <input {...commonProps} type="number" />;
-            default:
-              return <input {...commonProps} type="text" />;
-          }
-        })()}
-
-        {help && <p className="text-xs text-gray-500 mt-1">{help}</p>}
-      </div>
-    );
-  };
 
   return (
     <BlockContainer>
@@ -246,28 +159,152 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
           )}
         </div>
         <div className="card-body bg-white border-2 border-[var(--color-primary)] rounded-[12px] shadow-md p-8">
-          <form className="form-control relative mt-4" onSubmit={handlePreventSubmit}>
-            <div className="grid gap-6 md:grid-cols-6">
-              {form.fields?.map((field) => renderField(field))}
-            </div>
-            <div className="col-span-6 mx-auto">
-              <div className="form-control mt-6">
+          <Form {...rhfForm}>
+            <form
+              className="form-control relative mt-4 space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+                toast.info('Form submission is disabled in preview mode');
+              }}
+            >
+              <div className="grid gap-6 md:grid-cols-6">
+                {fields.map((field: any) => {
+                  // Ẩn field động theo action: 'hide' từ conditions
+                  if (!visibleFields[field.id]) return null;
+
+                  const fieldTranslation =
+                    field.translations?.find((t: any) => t.languages_code === directusLang) || field.translations?.[0];
+                  const label = fieldTranslation?.label || field.name;
+                  const placeholder = fieldTranslation?.placeholder || '';
+                  const help = fieldTranslation?.help || '';
+
+                  // Dùng dynamic options nếu có (action: 'set_options'), fallback về static options
+                  const renderOptions = dynamicOptions[field.id] || fieldTranslation?.options || [];
+                  const isRequired = requiredFields[field.id];
+
+                  const commonProps = {
+                    id: field.id,
+                    name: field.name,
+                    placeholder,
+                    disabled: true, // Preview mode — luôn disabled
+                    className:
+                      'form-input w-full rounded-md px-4 py-4 bg-gray-50 text-gray-700 border border-gray-300 cursor-not-allowed opacity-75',
+                    style: { borderColor: 'var(--color-border, #d1d5db)' },
+                  };
+
+                  return (
+                    <div key={field.id} className={cn(getWidthClass(field.width), 'w-full')}>
+                      <FormField
+                        control={rhfForm.control}
+                        name={field.id as string}
+                        render={({ field: rhfField }: { field: ControllerRenderProps<FieldValues, string> }) => (
+                          <FormItem>
+                            <label className="block text-sm font-medium text-gray-900 mb-2" htmlFor={field.id}>
+                              {label}
+                              {isRequired && <span className="text-red-500 ml-1">*</span>}
+                            </label>
+
+                            <FormControl>
+                              {(() => {
+                                switch (field.type) {
+                                  case 'textarea':
+                                    return <textarea {...commonProps} {...rhfField} rows={5} />;
+
+                                  case 'select':
+                                    return (
+                                      <select {...commonProps} {...rhfField}>
+                                        <option value="">Select an option</option>
+                                        {renderOptions.map((option: any, index: number) => (
+                                          <option key={index} value={option.value}>
+                                            {option.label || option.text || option.value}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    );
+
+                                  case 'multiselect':
+                                    return (
+                                      <div className="space-y-2">
+                                        {renderOptions.map((option: any, index: number) => {
+                                          const currentVals = (rhfField.value || []) as string[];
+                                          return (
+                                            <label key={index} className="flex items-center space-x-2 cursor-not-allowed opacity-75">
+                                              <input
+                                                type="checkbox"
+                                                value={option.value}
+                                                disabled
+                                                checked={currentVals.includes(String(option.value))}
+                                                onChange={(e) => {
+                                                  if (e.target.checked) {
+                                                    rhfField.onChange([...currentVals, String(option.value)]);
+                                                  } else {
+                                                    rhfField.onChange(currentVals.filter((v: string) => v !== String(option.value)));
+                                                  }
+                                                }}
+                                                className="form-checkbox h-4 w-4 text-gray-400 border-gray-300 rounded cursor-not-allowed"
+                                              />
+                                              <span className="text-gray-700">{option.label || option.text || option.value}</span>
+                                            </label>
+                                          );
+                                        })}
+                                      </div>
+                                    );
+
+                                  case 'file':
+                                  case 'image':
+                                    return (
+                                      <div className="relative">
+                                        <input
+                                          {...commonProps}
+                                          type="file"
+                                          accept={field.type === 'image' ? 'image/*' : undefined}
+                                          className={cn(
+                                            commonProps.className,
+                                            'file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-gray-400 file:text-white file:cursor-not-allowed'
+                                          )}
+                                          onChange={(e) => {
+                                            if (e.target.files) rhfField.onChange(e.target.files);
+                                          }}
+                                        />
+                                      </div>
+                                    );
+
+                                  case 'email':
+                                    return <input {...commonProps} {...rhfField} type="email" />;
+
+                                  case 'number':
+                                    return <input {...commonProps} {...rhfField} type="number" />;
+
+                                  default:
+                                    return <input {...commonProps} {...rhfField} type="text" />;
+                                }
+                              })()}
+                            </FormControl>
+
+                            {help && <p className="text-xs text-gray-500 mt-1">{help}</p>}
+                            <FormMessage className="text-red-500 mt-1" />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Submit Button — luôn disabled trong Preview mode */}
+              <div className="col-span-6 mx-auto mt-6">
                 <button
                   type="button"
                   disabled
-                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-md opacity-50 cursor-not-allowed"
+                  className="bg-[var(--color-primary)] text-white px-6 py-3 rounded-md opacity-50 cursor-not-allowed w-full md:w-auto"
                 >
                   {submitLabel}
                 </button>
               </div>
-            </div>
-          </form>
+            </form>
+          </Form>
         </div>
       </motion.div>
     </BlockContainer>
   );
 }
-
-
-
-

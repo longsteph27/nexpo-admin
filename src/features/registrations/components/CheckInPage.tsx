@@ -6,7 +6,7 @@ import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Html5QrcodeSupportedFormats, Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode } from 'html5-qrcode';
 import { useAuthStore } from '@/store/auth';
 import QRCode from 'qrcode';
 import { registrationsApi } from '../api';
@@ -26,6 +26,10 @@ export function CheckInPage() {
   const [availableCameras, setAvailableCameras] = useState<MediaDeviceInfo[]>([]);
   const [selectedCameraId, setSelectedCameraId] = useState<string>('');
   const [isLoadingCameras, setIsLoadingCameras] = useState(false);
+
+  const [checkinMode, setCheckinMode] = useState<'camera' | 'hardware'>('camera');
+  const [hardwareValue, setHardwareValue] = useState('');
+  const hardwareInputRef = useRef<HTMLInputElement>(null);
 
   const qrCodeScannerRef = useRef<Html5Qrcode | null>(null);
   const qrCodeDivRef = useRef<HTMLDivElement>(null);
@@ -184,19 +188,9 @@ export function CheckInPage() {
     }
   };
 
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (qrCodeScannerRef.current) {
-        qrCodeScannerRef.current.stop().catch(console.error);
-        qrCodeScannerRef.current.clear();
-      }
-    };
-  }, []);
-
   // Auto-initialize scanner when element is ready
   useEffect(() => {
-    if (isScanning && !qrCodeScannerRef.current) {
+    if (checkinMode === 'camera' && isScanning && !qrCodeScannerRef.current) {
       const initializeWhenReady = async () => {
         const element = document.getElementById('qr-reader');
         if (element) {
@@ -209,7 +203,25 @@ export function CheckInPage() {
       };
       initializeWhenReady();
     }
-  }, [isScanning]);
+  }, [isScanning, checkinMode]);
+
+  // Auto-focus hardware input in hardware mode
+  useEffect(() => {
+    if (checkinMode === 'hardware' && !isProcessing) {
+      const timer = setInterval(() => {
+        hardwareInputRef.current?.focus();
+      }, 500);
+      return () => clearInterval(timer);
+    }
+  }, [checkinMode, isProcessing]);
+
+  const handleHardwareSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (hardwareValue.trim()) {
+      processCheckin(hardwareValue.trim());
+      setHardwareValue('');
+    }
+  };
 
   // Initialize QR scanner with html5-qrcode
   const initializeQRScanner = async () => {
@@ -244,29 +256,25 @@ export function CheckInPage() {
           fps: 10,
           qrbox: { width: 250, height: 250 },
           aspectRatio: 1.0,
-          supportedScanTypes: [Html5QrcodeSupportedFormats.QR_CODE],
+          // @ts-ignore - html5-qrcode types might be outdated
           showTorchButtonIfSupported: true,
+          // @ts-ignore
           showZoomSliderIfSupported: true,
+          // @ts-ignore
           defaultZoomValueIfSupported: 2,
+          // @ts-ignore
           useBarCodeDetectorIfSupported: true,
         },
-        (decodedText, decodedResult) => {
+        (decodedText) => {
           console.log('QR Code detected:', decodedText);
           // Process the checkin
           qrScanner.pause();
           processCheckin(decodedText);
-          if (!isProcessing) {
-            // Stop scanning after successful detection
-            // qrCodeScannerRef.current = null;
-            // setIsScanning(false);
-
-            // Resume scanning for next scan
-            setTimeout(() => {
-              qrScanner.resume();
-            }, 1000);
-          }
-
-
+          
+          // Resume scanning for next scan
+          setTimeout(() => {
+            qrScanner.resume();
+          }, 1000);
         },
         (error) => {
           // Silently handle scan errors (QR code not found)
@@ -352,7 +360,7 @@ export function CheckInPage() {
       console.log(`[processCheckin] Found ${matchingRegistrations.length} registrations to check in`);
 
       // Step 2: Bulk update checkin_status to true
-      const registrationIds = matchingRegistrations.map(reg => reg.id);
+      const registrationIds = matchingRegistrations.map((reg: any) => reg.id);
       const bulkUpdateResult = await registrationsApi.bulkUpdateRegistrations(registrationIds, {
         checkin_status: true
       });
@@ -368,9 +376,6 @@ export function CheckInPage() {
 
       // Step 4: Print welcome card with QR code
       await printWelcomeCard(qrCodeId);
-
-      // Keep camera running for continuous scanning
-      console.log('[processCheckin] Checkin completed, camera continues running...');
 
     } catch (error) {
       console.error('[processCheckin] Error:', error);
@@ -413,9 +418,43 @@ export function CheckInPage() {
           <p className="text-lg text-gray-600">Scan QR code or enter registration ID manually</p>
         </div>
 
+        {/* Mode Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white p-1 rounded-xl shadow-md flex border border-gray-100">
+            <button
+              onClick={() => {
+                setCheckinMode('camera');
+                stopCamera();
+              }}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+                checkinMode === 'camera'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              <Icon icon="lucide:camera" className="w-4 h-4" />
+              Scanner bằng Camera
+            </button>
+            <button
+              onClick={() => {
+                setCheckinMode('hardware');
+                stopCamera();
+              }}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg text-sm font-medium transition-all ${
+                checkinMode === 'hardware'
+                  ? 'bg-blue-600 text-white shadow-lg'
+                  : 'text-gray-500 hover:bg-gray-50'
+              }`}
+            >
+              <Icon icon="lucide:zap" className="w-4 h-4" />
+              Máy quét Cầm tay
+            </button>
+          </div>
+        </div>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Camera Section */}
+          {/* Camera/Scanner Section */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -423,12 +462,16 @@ export function CheckInPage() {
             className="bg-white rounded-2xl shadow-xl overflow-hidden"
           >
             <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900 mb-2">QR Code Scanner</h2>
-              <p className="text-gray-600">Position QR code within the frame</p>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                {checkinMode === 'camera' ? 'QR Code Scanner' : 'Máy quét Cầm tay'}
+              </h2>
+              <p className="text-gray-600">
+                {checkinMode === 'camera' ? 'Position QR code within the frame' : 'Vui lòng quét mã từ máy cầm tay'}
+              </p>
             </div>
 
             <div className="p-6">
-              {!isScanning ? (
+              {!isScanning && checkinMode === 'camera' ? (
                 <div className="aspect-square bg-gray-100 rounded-xl flex items-center justify-center">
                   <div className="text-center w-full p-6">
                     <Icon icon="lucide:qr-code" className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -436,7 +479,7 @@ export function CheckInPage() {
 
                     {/* Camera Selection */}
                     {availableCameras.length > 0 && (
-                      <div className="mb-4">
+                      <div className="mb-4 text-left">
                         <label className="block text-sm font-medium text-gray-700 mb-2">
                           Select Camera:
                         </label>
@@ -487,61 +530,116 @@ export function CheckInPage() {
                 </div>
               ) : (
                 <div className="relative">
-                  <div className="aspect-square bg-black rounded-xl overflow-hidden relative">
-                    {/* QR Scanner Container */}
-                    <div
-                      id="qr-reader"
-                      ref={qrCodeDivRef}
-                      className="w-full h-full"
-                    />
-
-                    {/* Custom overlay for better UX */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      {/* Corner brackets */}
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48">
-                        <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-lg"></div>
-                        <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-lg"></div>
-                        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-lg"></div>
-                        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-lg"></div>
-                      </div>
-
-                      {/* Scanning line animation */}
-                      <motion.div
-                        className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent"
-                        animate={{ y: [0, 192, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  {checkinMode === 'camera' ? (
+                    <div className="aspect-square bg-black rounded-xl overflow-hidden relative">
+                      {/* QR Scanner Container */}
+                      <div
+                        id="qr-reader"
+                        ref={qrCodeDivRef}
+                        className="w-full h-full"
                       />
-                    </div>
 
-                    {/* Processing overlay - only show when processing */}
-                    {isProcessing && (
-                      <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-xl">
-                        <div className="bg-white rounded-lg p-6 text-center shadow-xl">
-                          <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
-                          <p className="text-gray-700 font-medium">Processing check-in...</p>
-                          <p className="text-sm text-gray-500 mt-1">Please wait</p>
+                      {/* Custom overlay for better UX */}
+                      <div className="absolute inset-0 pointer-events-none">
+                        {/* Corner brackets */}
+                        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48">
+                          <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-blue-500 rounded-tl-lg"></div>
+                          <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-blue-500 rounded-tr-lg"></div>
+                          <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-blue-500 rounded-bl-lg"></div>
+                          <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-blue-500 rounded-br-lg"></div>
                         </div>
+
+                        {/* Scanning line animation */}
+                        <motion.div
+                          className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent"
+                          animate={{ y: [0, 192, 0] }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                        />
                       </div>
-                    )}
 
-                    {/* QR instruction */}
-                    <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm">
-                      Position QR code within the frame
+                      {/* Processing overlay */}
+                      {isProcessing && (
+                        <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-xl z-20">
+                          <div className="bg-white rounded-lg p-6 text-center shadow-xl">
+                            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4"></div>
+                            <p className="text-gray-700 font-medium">Processing scan...</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  </div>
+                  ) : (
+                    <div className="aspect-square bg-blue-50 rounded-xl border-2 border-dashed border-blue-200 flex flex-col items-center justify-center p-8 text-center">
+                      <div className="relative mb-6">
+                        <div className="w-24 h-24 bg-blue-100 rounded-full flex items-center justify-center">
+                          <Icon icon="lucide:zap" className="w-12 h-12 text-blue-600" />
+                        </div>
+                        <motion.div 
+                          className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center"
+                          animate={{ scale: [1, 1.2, 1] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          <Icon icon="lucide:check" className="w-3 h-3 text-white" />
+                        </motion.div>
+                      </div>
+                      
+                      <h3 className="text-xl font-bold text-blue-900 mb-2">Sẵn sàng quét</h3>
+                      <p className="text-blue-600 text-sm mb-6 leading-relaxed">
+                        Hệ thống đã kết nối với máy quét cầm tay.<br/>
+                        Vui lòng bấm nút trên máy quét để đọc mã QR.
+                      </p>
 
-                  <div className="mt-4 flex gap-2">
-                    <Button
-                      onClick={stopCamera}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      <Icon icon="lucide:stop" className="w-4 h-4 mr-2" />
-                      Stop Scanner
-                    </Button>
+                      <form onSubmit={handleHardwareSubmit} className="w-full max-w-xs">
+                        <div className="relative">
+                          <input
+                            ref={hardwareInputRef}
+                            type="text"
+                            value={hardwareValue}
+                            onChange={(e) => setHardwareValue(e.target.value)}
+                            autoComplete="off"
+                            placeholder="Dữ liệu sẽ xuất hiện đây..."
+                            className="w-full px-4 py-3 bg-white border border-blue-200 rounded-xl shadow-sm text-center font-mono text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                          {isProcessing && (
+                            <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-xl">
+                              <Icon icon="lucide:loader-2" className="w-5 h-5 animate-spin text-blue-600" />
+                            </div>
+                          )}
+                        </div>
+                      </form>
+
+                      <div className="mt-6 flex items-center gap-2 text-[11px] text-blue-400">
+                        <Icon icon="lucide:info" className="w-3.5 h-3.5" />
+                        Ô nhập liệu luôn tự động được chọn
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex gap-2">
+                    {checkinMode === 'camera' ? (
+                      <Button
+                        onClick={stopCamera}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Icon icon="lucide:stop" className="w-4 h-4 mr-2" />
+                        Stop Scanner
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setCheckinMode('camera');
+                          setIsScanning(false);
+                        }}
+                        variant="outline"
+                        className="flex-1"
+                      >
+                        <Icon icon="lucide:camera" className="w-4 h-4 mr-2" />
+                        Dùng Camera
+                      </Button>
+                    )}
                     <Button
                       onClick={handleManualCheckin}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white shadow-md transition-all active:scale-95"
                     >
                       <Icon icon="lucide:keyboard" className="w-4 h-4 mr-2" />
                       Manual Entry
@@ -549,77 +647,51 @@ export function CheckInPage() {
                   </div>
 
                   {/* Debug info */}
-                  <div className="mt-4 p-3 bg-gray-100 rounded-lg text-xs text-gray-600">
-                    <p><strong>Scanner Status:</strong> {cameraPermission === null ? 'Not started' : cameraPermission ? 'Active' : 'Failed'}</p>
+                  <div className="mt-4 p-3 bg-gray-50 rounded-xl border border-gray-100 text-[10px] text-gray-500 grid grid-cols-2 gap-x-4 gap-y-1">
+                    <p><strong>Status:</strong> {cameraPermission === null ? 'Idle' : cameraPermission ? 'Active' : 'Failed'}</p>
                     <p><strong>Scanning:</strong> {isScanning ? 'Yes' : 'No'}</p>
-                    <p><strong>QR Scanner:</strong> {qrCodeScannerRef.current ? 'Active' : 'Not active'}</p>
-                    <p><strong>Available Cameras:</strong> {availableCameras.length}</p>
-                    <p><strong>Selected Camera:</strong> {selectedCameraId ? 'Yes' : 'No'}</p>
-                    {selectedCameraId && (
-                      <p><strong>Camera ID:</strong> {selectedCameraId.slice(0, 8)}...</p>
-                    )}
+                    <p><strong>Cameras:</strong> {availableCameras.length}</p>
+                    <p><strong>Mode:</strong> {checkinMode.toUpperCase()}</p>
                   </div>
                 </div>
               )}
             </div>
           </motion.div>
 
-          {/* Status Section */}
+          {/* Status/Instructions Section */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.4 }}
             className="space-y-6"
           >
-            {/* Instructions */}
             <div className="bg-white rounded-2xl shadow-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">How to Check-in</h3>
-              <div className="space-y-3">
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600">1</span>
+              <div className="space-y-4">
+                {[
+                  { step: '1', text: 'Chọn chế độ: Camera hoặc Máy quét cầm tay.' },
+                  { step: '2', text: 'Nếu dùng Camera, hãy cấp quyền và đưa mã QR vào khung.' },
+                  { step: '3', text: 'Nếu dùng Máy cầm tay, chỉ cần bấm nút quét trên thiết bị.' },
+                  { step: '4', text: 'Hệ thống tự động xử lý và in thẻ chào mừng.' }
+                ].map((item) => (
+                  <div key={item.step} className="flex items-start space-x-3">
+                    <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-xs font-semibold text-blue-600">{item.step}</span>
+                    </div>
+                    <p className="text-sm text-gray-600">{item.text}</p>
                   </div>
-                  <p className="text-gray-600">Click "Load Cameras" to detect available cameras</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600">2</span>
-                  </div>
-                  <p className="text-gray-600">Select your preferred camera from the dropdown</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600">3</span>
-                  </div>
-                  <p className="text-gray-600">Click "Start QR Scanner" to activate camera</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600">4</span>
-                  </div>
-                  <p className="text-gray-600">Position QR code within the scanning frame</p>
-                </div>
-                <div className="flex items-start space-x-3">
-                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <span className="text-xs font-semibold text-blue-600">5</span>
-                  </div>
-                  <p className="text-gray-600">QR code will be automatically detected</p>
-                </div>
+                ))}
               </div>
 
-              {/* Browser Requirements */}
-              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 className="text-sm font-semibold text-yellow-800 mb-2">Browser Requirements</h4>
-                <div className="text-xs text-yellow-700 space-y-1">
-                  <p>• Requires HTTPS or localhost for camera access</p>
-                  <p>• Chrome, Firefox, Safari, Edge supported</p>
-                  <p>• Mobile browsers work best</p>
-                  <p>• Check browser permissions if camera fails</p>
+              <div className="mt-8 p-4 bg-amber-50 border border-amber-100 rounded-xl">
+                <h4 className="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">Lưu ý</h4>
+                <div className="text-xs text-amber-700 space-y-1 leading-relaxed">
+                  <p>• Chế độ máy cầm tay yêu cầu thiết bị hỗ trợ giả lập bàn phím.</p>
+                  <p>• Để in thẻ, vui lòng cho phép trình duyệt mở cửa sổ pop-up.</p>
+                  <p>• Nếu camera không hoạt động, hãy kiểm tra lại quyền truy cập.</p>
                 </div>
               </div>
             </div>
-
-
           </motion.div>
         </div>
 
@@ -628,15 +700,15 @@ export function CheckInPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-8 text-center"
+          className="mt-12 text-center"
         >
           <Button
             onClick={() => router.push(`/events/${eventId}`)}
-            variant="outline"
-            className="px-8"
+            variant="ghost"
+            className="text-gray-500 hover:text-blue-600"
           >
             <Icon icon="lucide:arrow-left" className="w-4 h-4 mr-2" />
-            Back to Event
+            Quay lại sự kiện
           </Button>
         </motion.div>
       </div>
