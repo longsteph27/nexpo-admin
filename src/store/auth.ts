@@ -81,7 +81,8 @@ export const useAuthStore = create<AuthState>()(
           }
 
           const user = userResult.data;
-          const tenants = user?.tenants ? user.tenants.map(t => t.tenants_id) : [];
+          const tenantsResult = await directusHelpers.getUserTenants();
+          const tenants = tenantsResult.success ? tenantsResult.data || [] : [];
           const firstTenant = tenants[0] || null;
           const permissions = permissionsResult.success ? permissionsResult.data : {};
 
@@ -191,7 +192,8 @@ export const useAuthStore = create<AuthState>()(
 
             if (userResult.success && userResult.data) {
               const user = userResult.data;
-              const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+              const tenantsResult = await directusHelpers.getUserTenants();
+              const tenants = tenantsResult.success ? tenantsResult.data || [] : [];
               const { selectedTenant } = get();
 
               // Keep selected tenant if still valid, otherwise select first
@@ -235,7 +237,8 @@ export const useAuthStore = create<AuthState>()(
 
               if (userResult.success && userResult.data) {
                 const user = userResult.data;
-                const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+                const tenantsResult = await directusHelpers.getUserTenants();
+                const tenants = tenantsResult.success ? tenantsResult.data || [] : [];
                 const { selectedTenant } = get();
 
                 // Keep selected tenant if still valid, otherwise select first
@@ -295,7 +298,8 @@ export const useAuthStore = create<AuthState>()(
 
             if (userResult.success && userResult.data) {
               const user = userResult.data;
-              const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+              const tenantsResult = await directusHelpers.getUserTenants();
+              const tenants = tenantsResult.success ? tenantsResult.data || [] : [];
               const { selectedTenant } = get();
               const validTenant = tenants.find(t => t.id === selectedTenant?.id) || tenants[0] || null;
 
@@ -352,7 +356,8 @@ export const useAuthStore = create<AuthState>()(
 
           if (userResult.success && userResult.data) {
             const user = userResult.data;
-            const tenants = user.tenants ? user.tenants.map(t => t.tenants_id) : [];
+            const tenantsResult = await directusHelpers.getUserTenants();
+            const tenants = tenantsResult.success ? tenantsResult.data || [] : [];
             const { selectedTenant } = get();
             const validTenant = tenants.find(t => t.id === selectedTenant?.id) || tenants[0] || null;
 

@@ -119,6 +119,8 @@ const mapFieldFromApi = (field: NonNullable<Form['fields']>[number]): BuilderFor
   validation: field.validation ?? '',
   conditions: field.conditions ?? null,
   is_group_field: field.is_group_field ?? false,
+  use_for_matching: (field as any).use_for_matching ?? false,
+  matching_attribute: (field as any).matching_attribute ?? null,
   translations: buildFieldTranslations(field.translations),
 });
 
@@ -145,6 +147,9 @@ const normalizeBuilderSettings = (form?: Form | null): BuilderFormSettings => ({
   redirect_url: form?.redirect_url ?? undefined,
   is_allow_group: form?.is_allow_group ?? false,
   template_email_group: form?.template_email_group ?? undefined,
+  form_purpose: (form as any)?.form_purpose ?? [],
+  is_registration: (form as any)?.is_registration ?? false,
+  linked_module: (form as any)?.linked_module ?? undefined,
 });
 
 export function parseFormBuilderData(form?: Form | null): ParsedFormBuilderData {
@@ -270,6 +275,8 @@ const buildFieldBasePayload = (
   validation: field.validation ?? '',
   conditions: field.conditions ?? null,
   is_group_field: field.is_group_field ?? false,
+  use_for_matching: field.use_for_matching ?? false,
+  matching_attribute: field.matching_attribute ?? null,
   event_id: Number(eventId),
   tenant_id: tenantId,
 });
@@ -395,6 +402,9 @@ export function buildFormSavePayload({
     redirect_url: shouldUseRedirect ? formSettings.redirect_url || undefined : undefined,
     template_email_group: formSettings.template_email_group || undefined,
     is_allow_group: formSettings.is_allow_group ?? false,
+    form_purpose: formSettings.form_purpose ?? [],
+    is_registration: formSettings.is_registration ?? false,
+    linked_module: formSettings.linked_module ?? null,
     event_id: Number(eventId),
     tenant_id: Number(tenantId),
     translations: translationsDiff,

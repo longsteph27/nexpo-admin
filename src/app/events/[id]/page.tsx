@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useEvent } from "@/hooks/useEvents";
 import { Icon } from "@iconify/react";
 import { Button } from "@/components/ui/button-base";
-import { BasicInformation, EventLocation, EventRecognition } from '@/features/events/components/details';
+import { BasicInformation, EventLocation, EventRecognition, EventIndustries } from '@/features/events/components/details';
 import EventDetailSkeleton from "@/components/loading/EventDetailSkeleton";
 import ContainerHeader from "@/components/layout/Container-header";
 import Container from "@/components/layout/Container";
@@ -104,6 +104,9 @@ export default function EventDetailsPage() {
           }}
           onUpdate={handleDataUpdate}
         />
+        {/* Industries */}
+        <EventIndustries eventId={Number(event.id)} />
+
         {/* Message Content Footer */}
         <div className="flex items-center space-x-1.5 text-xs text-content-tertiary">
           <Icon icon="lucide:info" className="w-3 h-3" />

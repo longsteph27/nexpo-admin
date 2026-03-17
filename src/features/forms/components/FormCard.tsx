@@ -75,7 +75,7 @@ export default function FormCard({ form, eventId, lang = 'en-US' }: FormCardProp
             <h3 className="text-sm font-semibold text-gray-900 truncate leading-tight">
               {title}
             </h3>
-            <div className="flex items-center space-x-1.5 mt-1">
+            <div className="flex flex-wrap items-center gap-1 mt-1">
               <span className={cn(
                 "inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium capitalize",
                 getStatusColor(form.status)
@@ -86,6 +86,18 @@ export default function FormCard({ form, eventId, lang = 'en-US' }: FormCardProp
                 <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
                   <Icon icon="lucide:star" className="w-2.5 h-2.5 mr-0.5" />
                   Reg
+                </span>
+              )}
+              {form.form_purpose?.includes('matching_business') && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                  <Icon icon="lucide:handshake" className="w-2.5 h-2.5 mr-0.5" />
+                  Business Matching
+                </span>
+              )}
+              {form.form_purpose?.includes('matching_hiring') && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-green-100 text-green-700">
+                  <Icon icon="lucide:briefcase" className="w-2.5 h-2.5 mr-0.5" />
+                  Hiring Matching
                 </span>
               )}
             </div>

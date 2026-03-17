@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { useAuthStore } from '@/store/auth';
+import TenantSelector from '@/components/ui/TenantSelector';
 
 interface MenuItem {
   id: string;
@@ -20,6 +21,12 @@ const menuItems: MenuItem[] = [
     label: 'Event Manager',
     icon: 'lucide:calendar-days',
     href: '/events',
+  },
+  {
+    id: 'settings',
+    label: 'Settings',
+    icon: 'lucide:settings',
+    href: '/settings',
   },
 ];
 

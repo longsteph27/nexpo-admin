@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { directusHelpers } from '@/lib/directus';
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: { id: string; registrationId: string } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ id: string; registrationId: string }> }
 ) {
   try {
-    const eventId = params.id;
-    const registrationId = params.registrationId;
+    const { registrationId } = await params;
 
     // Get registration details
     const registrationResult = await directusHelpers.getRegistrationById(registrationId);
@@ -22,7 +21,7 @@ export async function POST(
     const registration = registrationResult.data;
 
     // Check if already checked in
-    if (registration.checkin_status === 'checked_in') {
+    if (registration.checkin_status === true) {
       return NextResponse.json({
         success: false,
         message: 'Registration already checked in'
@@ -31,8 +30,7 @@ export async function POST(
 
     // Update registration status to checked_in
     const updateResult = await directusHelpers.updateRegistration(registrationId, {
-      checkin_status: 'checked_in',
-      checkin_time: new Date().toISOString()
+      checkin_status: true,
     });
 
     if (!updateResult.success) {

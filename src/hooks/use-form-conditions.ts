@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UseFormReturn, useWatch } from "react-hook-form";
 
 // --- Types ---
@@ -138,6 +138,12 @@ export function useFormConditions(fields: Field[], form: UseFormReturn<any>) {
 
   const formValues = useWatch({ control });
   const formValuesStr = JSON.stringify(formValues);
+  // Stabilize fields reference — only re-run effect when fields content changes
+  const fieldsStr = JSON.stringify(fields);
+  const fieldsRef = useRef(fields);
+  if (fieldsStr !== JSON.stringify(fieldsRef.current)) {
+    fieldsRef.current = fields;
+  }
 
   const [state, setState] = useState<FormConditionsState>(() => ({
     visibleFields: fields.reduce((acc, f) => ({ ...acc, [f.id]: true }), {}),
@@ -147,18 +153,20 @@ export function useFormConditions(fields: Field[], form: UseFormReturn<any>) {
   }));
 
   useEffect(() => {
+    const stableFields = fieldsRef.current;
+
     // 1. Reset state về mặc định
     const newState: FormConditionsState = {
-      visibleFields: fields.reduce((acc, f) => ({ ...acc, [f.id]: true }), {} as Record<string, boolean>),
+      visibleFields: stableFields.reduce((acc, f) => ({ ...acc, [f.id]: true }), {} as Record<string, boolean>),
       readonlyFields: {},
-      requiredFields: fields.reduce((acc, f) => ({ ...acc, [f.id]: !!f.is_required }), {} as Record<string, boolean>),
+      requiredFields: stableFields.reduce((acc, f) => ({ ...acc, [f.id]: !!f.is_required }), {} as Record<string, boolean>),
       dynamicOptions: {},
     };
 
     const sideEffectUpdates: Record<string, any> = {};
 
     // 2. Chạy Evaluation Engine
-    fields.forEach((field) => {
+    stableFields.forEach((field) => {
       if (!field.conditions || field.conditions.length === 0) return;
 
       field.conditions.forEach((rawCond) => {
@@ -225,15 +233,20 @@ export function useFormConditions(fields: Field[], form: UseFormReturn<any>) {
       });
     });
 
-    // 3. Update States UI
-    setState(newState);
+    // 3. Update States UI — only setState when content actually changed
+    setState((prev) => {
+      const prevStr = JSON.stringify(prev);
+      const nextStr = JSON.stringify(newState);
+      return prevStr === nextStr ? prev : newState;
+    });
 
     // 4. Side Effects: reset hidden fields, clear invalid options, set_value
     Object.keys(sideEffectUpdates).forEach((fieldId) => {
-      setValue(fieldId, sideEffectUpdates[fieldId], { shouldValidate: true, shouldDirty: true });
+      setValue(fieldId, sideEffectUpdates[fieldId], { shouldValidate: false, shouldDirty: true });
     });
 
-  }, [formValuesStr, fields, setValue]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formValuesStr, fieldsStr, setValue]);
 
   return state;
 }

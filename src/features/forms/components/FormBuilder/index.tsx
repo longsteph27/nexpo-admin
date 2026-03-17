@@ -128,7 +128,7 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
           {/* <p className="text-content-secondary mt-1">Event <span className="font-medium">{eventId}</span> • Form <span className="font-medium">{formId}</span></p> */}
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => router.push(`/events/${eventId}`)}>
+          <Button variant="outline" onClick={() => router.push(`/events/${eventId}/forms`)}>
             <Icon icon="lucide:arrow-left" className="w-4 h-4 mr-2" />
             Back
           </Button>
@@ -376,15 +376,54 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
                   {/* Group Field Setting - Only show if form allows groups */}
                   {formSettings.is_allow_group && (
                     <div className="flex items-center gap-2">
-                      <input 
-                        id="group-field" 
-                        type="checkbox" 
-                        checked={!!selected.is_group_field} 
-                        onChange={(e) => updateField(selected.id, { is_group_field: e.target.checked })} 
+                      <input
+                        id="group-field"
+                        type="checkbox"
+                        checked={!!selected.is_group_field}
+                        onChange={(e) => updateField(selected.id, { is_group_field: e.target.checked })}
                       />
                       <label htmlFor="group-field" className="text-xs text-content-secondary">Group Field</label>
                     </div>
                   )}
+
+                  {/* Matching Settings */}
+                  <div className="pt-3 border-t border-gray-100">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Icon icon="lucide:sparkles" className="w-3.5 h-3.5 text-purple-500" />
+                      <span className="text-xs font-semibold text-content-secondary">AI Matching</span>
+                    </div>
+                    <div className="flex items-center gap-2 mb-2">
+                      <input
+                        id="use-for-matching"
+                        type="checkbox"
+                        checked={!!selected.use_for_matching}
+                        onChange={(e) => updateField(selected.id, { use_for_matching: e.target.checked })}
+                      />
+                      <label htmlFor="use-for-matching" className="text-xs text-content-secondary">Use for job matching</label>
+                    </div>
+                    {selected.use_for_matching && (
+                      <div>
+                        <label className="block text-xs text-content-secondary mb-1">Matching Attribute</label>
+                        <Select
+                          value={selected.matching_attribute || 'other'}
+                          onValueChange={(value) => updateField(selected.id, { matching_attribute: value as any })}
+                        >
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder="Select attribute" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="skills">Skills</SelectItem>
+                            <SelectItem value="experience_level">Experience Level</SelectItem>
+                            <SelectItem value="desired_role">Desired Role</SelectItem>
+                            <SelectItem value="availability">Availability</SelectItem>
+                            <SelectItem value="location">Location</SelectItem>
+                            <SelectItem value="education">Education</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                  </div>
                   <div>
                     <Input
                       label="Validation"
@@ -563,13 +602,53 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
                     
                     {/* Group Settings */}
                     <div className="flex items-center gap-2">
-                      <input 
-                        id="allow-group" 
-                        type="checkbox" 
-                        checked={!!formSettings.is_allow_group} 
-                        onChange={(e) => setFormSettings((s) => ({ ...s, is_allow_group: e.target.checked }))} 
+                      <input
+                        id="allow-group"
+                        type="checkbox"
+                        checked={!!formSettings.is_allow_group}
+                        onChange={(e) => setFormSettings((s) => ({ ...s, is_allow_group: e.target.checked }))}
                       />
                       <label htmlFor="allow-group" className="text-xs text-content-secondary">Allow Group Registration</label>
+                    </div>
+
+                    {/* Registration Form */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        id="is-registration"
+                        type="checkbox"
+                        checked={!!formSettings.is_registration}
+                        onChange={(e) => setFormSettings((s) => ({ ...s, is_registration: e.target.checked }))}
+                      />
+                      <label htmlFor="is-registration" className="text-xs text-content-secondary">Registration Form</label>
+                    </div>
+
+                    {/* Linked Module — auto-derives form_purpose */}
+                    <div>
+                      <label className="block text-xs text-content-secondary mb-1">Linked Module</label>
+                      <select
+                        className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 bg-white text-content-primary"
+                        value={formSettings.linked_module || ''}
+                        onChange={(e) => {
+                          const mod = e.target.value || undefined;
+                          const purposeMap: Record<string, string> = {
+                            candidate_profiles: 'matching_hiring',
+                            matching_requests: 'matching_business',
+                            ai_business_matching: 'matching_business',
+                          };
+                          const derivedPurpose = mod ? [purposeMap[mod]] : [];
+                          setFormSettings((s) => ({ ...s, linked_module: mod, form_purpose: derivedPurpose }));
+                        }}
+                      >
+                        <option value="">— None —</option>
+                        <option value="candidate_profiles">Candidate Profiles (Hiring)</option>
+                        <option value="matching_requests">Matching Requests (Business)</option>
+                        <option value="ai_business_matching">AI Business Matching</option>
+                      </select>
+                      {formSettings.linked_module && (
+                        <p className="text-xs text-content-tertiary mt-1">
+                          Form Purpose: <span className="font-medium">{formSettings.form_purpose?.join(', ')}</span>
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>

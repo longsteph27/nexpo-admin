@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { registrationsApi } from '../api';
 import type { RegistrationsResponse } from '../types';
 
@@ -77,6 +77,19 @@ export function useRegistrationCounts({ eventId, search }: UseRegistrationCounts
     isLoading: checkedInQuery.isLoading || pendingQuery.isLoading,
     isError: checkedInQuery.isError || pendingQuery.isError,
   };
+}
+
+export function useBulkUpdateRegistrations() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ids, payload }: { ids: string[]; payload: Record<string, unknown> }) =>
+      registrationsApi.bulkUpdateRegistrations(ids, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['registrations'] });
+      queryClient.invalidateQueries({ queryKey: ['registrations-count-checkedin'] });
+      queryClient.invalidateQueries({ queryKey: ['registrations-count-pending'] });
+    },
+  });
 }
 
 

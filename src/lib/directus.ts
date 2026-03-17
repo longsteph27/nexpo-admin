@@ -229,7 +229,8 @@ interface User {
   auth_data?: unknown;
   email_notifications?: boolean;
   tenants?: {
-    tenants_id: Tenant;
+    tenant: Tenant;
+    role?: string;
   }[];
 }
 
@@ -317,6 +318,23 @@ interface Schema {
   form_fields: Record<string, unknown>[];
   form_submissions: Record<string, unknown>[];
   directus_files: Record<string, unknown>[];
+  countries: Record<string, unknown>[];
+  facility_categories: Record<string, unknown>[];
+  facilities: Record<string, unknown>[];
+  industry_categories: Record<string, unknown>[];
+  industry_names: Record<string, unknown>[];
+  registrations: Record<string, unknown>[];
+  exhibitor_events: Record<string, unknown>[];
+  exhibitor_profile_views: Record<string, unknown>[];
+  leads: Record<string, unknown>[];
+  visitor_match_requests: Record<string, unknown>[];
+  meetings: Record<string, unknown>[];
+  support_tickets: Record<string, unknown>[];
+  support_ticket_replies: Record<string, unknown>[];
+  facility_orders: Record<string, unknown>[];
+  facility_order_items: Record<string, unknown>[];
+  job_requirements: Record<string, unknown>[];
+  job_applications: Record<string, unknown>[];
 }
 
 type DirectusFilter = Record<string, unknown>;
@@ -439,7 +457,8 @@ export const refreshWithToken = async (refreshToken: string) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        refresh_token: refreshToken
+        refresh_token: refreshToken,
+        mode: 'json',
       })
     });
 
@@ -494,7 +513,7 @@ export const directusHelpers = {
 
       const form = await directus.request(readItem('forms', formId, {
         fields: ([
-          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'event_id', 'is_registration',
+          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'event_id', 'is_registration', 'form_purpose', 'linked_module',
           { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
           {
             fields: [
@@ -595,7 +614,7 @@ export const directusHelpers = {
         },
         sort: (['-date_created'] as unknown) as never,
         fields: ([
-          'id', 'status', 'is_registration', 'date_created', 'date_updated',
+          'id', 'status', 'is_registration', 'form_purpose', 'date_created', 'date_updated',
           { translations: ['languages_code', 'title', 'submit_label'] },
           { fields: ['id'] },
           { submissions: ['id'] }
@@ -1041,13 +1060,7 @@ export const directusHelpers = {
             'role',
             'avatar',
             'status',
-            {
-              tenants: [
-                {
-                  tenants_id: ['id', 'name', 'email', 'logo', 'status', 'folder_files_id']
-                }
-              ]
-            }
+
           ],
         })
       );
@@ -1082,15 +1095,32 @@ export const directusHelpers = {
     }
   },
 
-  // Get tenants for current user
+  // Get tenants for current user (via tenant_users collection)
   async getUserTenants() {
     try {
       const user = await this.getCurrentUser();
-      if (!user.success || !user.data || !user.data.tenants) {
+      if (!user.success || !user.data?.id) {
         return { success: true, data: [] };
       }
 
-      const tenants = user.data.tenants.map((t: { tenants_id: Tenant }) => t.tenants_id);
+      // Query tenant_users collection directly - the actual user-tenant mapping
+      const tenantUsersResult = await directus.request(
+        readItems('tenant_users' as any, {
+          fields: [
+            {
+              tenant: ['id', 'name', 'email', 'logo', 'status', 'folder_files_id']
+            }
+          ],
+          filter: {
+            user: { _eq: user.data.id }
+          }
+        })
+      );
+
+      const tenants = (tenantUsersResult as any[])
+        .map((t: any) => t.tenant)
+        .filter(Boolean);
+
       return { success: true, data: tenants };
     } catch (error) {
       console.error('Get user tenants error:', error);

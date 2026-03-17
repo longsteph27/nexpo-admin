@@ -78,7 +78,8 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
   // Clear lỗi validation khi schema thay đổi (do conditions thay đổi required)
   useEffect(() => {
     rhfForm.clearErrors();
-  }, [dynamicSchema, rhfForm]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dynamicSchema]);
 
   const getWidthClass = (width?: string) => {
     switch (width) {

@@ -34,6 +34,15 @@ export interface FieldCondition {
   extra_options?: { label: string; value: string }[] | null;
 }
 
+export type MatchingAttribute =
+  | 'skills'
+  | 'experience_level'
+  | 'desired_role'
+  | 'availability'
+  | 'location'
+  | 'education'
+  | 'other';
+
 export interface FormField {
   id: string;
   name?: string;
@@ -44,6 +53,8 @@ export interface FormField {
   validation?: string | null;
   conditions?: FieldCondition[] | null;
   is_group_field?: boolean;
+  use_for_matching?: boolean;
+  matching_attribute?: MatchingAttribute | null;
   translations?: FormFieldTranslation[];
 }
 
@@ -71,6 +82,7 @@ export interface Form {
   template_email?: string | null;
   template_email_group?: string | null;
   qr_code_field?: string | null;
+  form_purpose?: string[];
   date_created?: string | null;
   date_updated?: string | null;
   translations?: FormTranslation[];
@@ -79,7 +91,7 @@ export interface Form {
   updated_at_using_changes?: boolean;
 }
 
-export interface FormSummary extends Pick<Form, 'id' | 'status' | 'is_registration' | 'date_created' | 'date_updated'> {
+export interface FormSummary extends Pick<Form, 'id' | 'status' | 'is_registration' | 'form_purpose' | 'date_created' | 'date_updated'> {
   translations?: FormTranslation[];
   fields?: Array<{ id: string }>;
   submissions?: Array<{ id: string }>;
@@ -138,6 +150,8 @@ export interface BuilderFormField {
   validation?: string;
   conditions?: FieldCondition[] | null;
   is_group_field?: boolean;
+  use_for_matching?: boolean;
+  matching_attribute?: MatchingAttribute | null;
   translations?: {
     'en-US'?: { id?: string | number; label?: string; placeholder?: string; help?: string; options?: FormFieldOption[] };
     'vi-VN'?: { id?: string | number; label?: string; placeholder?: string; help?: string; options?: FormFieldOption[] };
@@ -151,4 +165,7 @@ export interface BuilderFormSettings {
   redirect_url?: string;
   is_allow_group?: boolean;
   template_email_group?: string;
+  form_purpose?: string[];
+  is_registration?: boolean;
+  linked_module?: string;
 }

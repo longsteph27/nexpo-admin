@@ -197,7 +197,9 @@ export function areFieldsEqual(field1: FormField | undefined, field2: FormField 
     field1.sort === field2.sort &&
     field1.is_required === field2.is_required &&
     field1.validation === field2.validation &&
-    JSON.stringify(field1.conditions ?? null) === JSON.stringify(field2.conditions ?? null);
+    JSON.stringify(field1.conditions ?? null) === JSON.stringify(field2.conditions ?? null) &&
+    !!(field1 as any).use_for_matching === !!(field2 as any).use_for_matching &&
+    (field1 as any).matching_attribute === (field2 as any).matching_attribute;
 
   const translationsEqual = JSON.stringify(field1.translations ?? {}) === JSON.stringify(field2.translations ?? {});
 

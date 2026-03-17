@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   createDirectus,
   rest,
-  authentication,
+  staticToken,
   realtime
 } from "@directus/sdk";
 import { tokenManager } from "@/lib/tokenManager";
@@ -17,13 +17,13 @@ interface Params {
   enabled?: boolean;
 }
 
-/** Tạo Directus client (REST + Auth + Realtime) */
-function createClient() {
+/** Tạo Directus client với static token + Realtime */
+function createClient(token: string) {
   return createDirectus<{
     registrations: Registration[];
   }>(DIRECTUS_URL)
     .with(rest())
-    .with(authentication("json")) // Disable autoRefresh for manual token handling in realtime
+    .with(staticToken(token))
     .with(realtime());
 }
 
@@ -58,9 +58,8 @@ export function useRegistrationsRealtime({ eventId, enabled = true }: Params) {
 
         console.log("[Realtime] Creating client…");
 
-        const client = createClient();
+        const client = createClient(token);
         clientRef.current = client;
-        await client.setToken(token);
 
         // Log trạng thái WebSocket
         client.onWebSocket?.("open", () =>
@@ -117,11 +116,25 @@ export function useRegistrationsRealtime({ eventId, enabled = true }: Params) {
               });
             }
           } catch (err) {
-            console.error("[Realtime] Subscription error:", err);
+            const msg = err instanceof Error ? err.message : JSON.stringify(err, Object.getOwnPropertyNames(err as object));
+            console.error("[Realtime] Subscription error:", msg, err);
           }
         })();
       } catch (err) {
-        console.error("[Realtime] Setup error:", err);
+        // DOM Events (WebSocket error/close) are not Error instances — serialize safely
+        let msg: string;
+        if (err instanceof Error) {
+          msg = err.message;
+        } else if (err && typeof err === "object" && "type" in err) {
+          msg = `WebSocket ${(err as Event).type} event — realtime unavailable`;
+        } else {
+          try {
+            msg = JSON.stringify(err, Object.getOwnPropertyNames(err as object));
+          } catch {
+            msg = String(err);
+          }
+        }
+        console.warn("[Realtime] Setup error (realtime disabled):", msg);
       }
     }
 

@@ -7,9 +7,37 @@ import { motion } from 'framer-motion';
 import Pagination from '@/components/ui/Pagination';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button-base';
-import { useRegistrations, useRegistrationCounts } from '../hooks/useRegistrations';
+import { useRegistrations, useRegistrationCounts, useBulkUpdateRegistrations } from '../hooks/useRegistrations';
 import { useRegistrationsRealtime } from '../hooks/useRegistrationsRealtime';
+import { useSelection } from '@/hooks/useSelection';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
+import { toast } from 'sonner';
 import type { Registration } from '../types';
+
+function parseRegistrationInfo(reg: Registration): { name: string; email: string; phone: string } {
+  let name = reg.full_name || '';
+  let email = reg.email || '';
+  let phone = reg.phone_number || '';
+
+  if (!name || !email || !phone) {
+    const answers = reg.submissions?.answers || [];
+    const textValues: string[] = [];
+    for (const ans of answers) {
+      const val = ans.value?.trim();
+      if (!val) continue;
+      if (!email && ans.field?.type === 'email') { email = val; continue; }
+      if (!email && val.includes('@')) { email = val; continue; }
+      if (!phone && /^\+?[\d\s\-().]{9,}$/.test(val)) { phone = val; continue; }
+      if (ans.field?.type === 'input') textValues.push(val);
+    }
+    if (!name) {
+      if (textValues.length >= 2) name = `${textValues[0]} ${textValues[1]}`.trim();
+      else if (textValues.length === 1) name = textValues[0];
+    }
+  }
+
+  return { name: name || 'Unnamed', email, phone };
+}
 
 export function RegistrationsPage() {
   const params = useParams();
@@ -58,6 +86,9 @@ export function RegistrationsPage() {
     eventId: parseInt(eventId),
     enabled: true,
   });
+
+  const bulkUpdate = useBulkUpdateRegistrations();
+  const { selected, selectedArray, count, toggle, toggleAll, clear, isSelected, isAllSelected, isIndeterminate } = useSelection();
 
   // Debug pagination data
   console.log('[RegistrationsPage] Pagination data:', pagination);
@@ -135,8 +166,22 @@ export function RegistrationsPage() {
   const checkedInCount = checkedInCountData ?? 0;
   const pendingCount = pendingCountData ?? 0;
 
+  const allIds = registrations.map((r: Registration) => r.id);
+
+  const handleBulkCheckin = async () => {
+    await bulkUpdate.mutateAsync({ ids: selectedArray, payload: { checkin_status: true, checkin_time: new Date().toISOString() } });
+    toast.success(`${count} registration${count !== 1 ? 's' : ''} checked in`);
+    clear();
+  };
+
+  const handleBulkUndoCheckin = async () => {
+    await bulkUpdate.mutateAsync({ ids: selectedArray, payload: { checkin_status: false, checkin_time: null } });
+    toast.success(`${count} check-in${count !== 1 ? 's' : ''} undone`);
+    clear();
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg border border-gray-200 p-6">
@@ -259,6 +304,15 @@ export function RegistrationsPage() {
             <table className="w-full">
               <thead className="bg-gray-50 border-b border-gray-200">
                 <tr>
+                  <th className="px-4 py-3 w-8">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected(allIds)}
+                      ref={(el) => { if (el) el.indeterminate = isIndeterminate(allIds); }}
+                      onChange={() => toggleAll(allIds)}
+                      className="rounded border-gray-300 accent-blue-600"
+                    />
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-content-secondary uppercase tracking-wider">
                     Visitor
                   </th>
@@ -286,8 +340,17 @@ export function RegistrationsPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="hover:bg-gray-50 transition-colors"
+                    className={`transition-colors ${isSelected(registration.id) ? 'bg-blue-50/50' : 'hover:bg-gray-50'}`}
                   >
+                    <td className="px-4 py-4 w-8" onClick={(e) => { e.stopPropagation(); toggle(registration.id); }}>
+                      <input
+                        type="checkbox"
+                        checked={isSelected(registration.id)}
+                        onChange={() => toggle(registration.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="rounded border-gray-300 accent-blue-600"
+                      />
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div className="flex-shrink-0 h-8 w-8">
@@ -297,29 +360,34 @@ export function RegistrationsPage() {
                         </div>
                         <div className="ml-3">
                           <div className="text-sm font-medium text-content-primary">
-                            {registration.full_name || 'Unnamed'}
+                            {parseRegistrationInfo(registration).name}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-content-primary">
-                        {registration.email && (
-                          <div className="flex items-center space-x-1">
-                            <Icon icon="lucide:mail" className="w-3 h-3 text-gray-400" />
-                            <span>{registration.email}</span>
+                      {(() => {
+                        const { email, phone } = parseRegistrationInfo(registration);
+                        return (
+                          <div className="text-sm text-content-primary">
+                            {email && (
+                              <div className="flex items-center space-x-1">
+                                <Icon icon="lucide:mail" className="w-3 h-3 text-gray-400" />
+                                <span>{email}</span>
+                              </div>
+                            )}
+                            {phone && (
+                              <div className="flex items-center space-x-1 mt-1">
+                                <Icon icon="lucide:phone" className="w-3 h-3 text-gray-400" />
+                                <span>{phone}</span>
+                              </div>
+                            )}
+                            {!email && !phone && (
+                              <span className="text-content-tertiary">No contact info</span>
+                            )}
                           </div>
-                        )}
-                        {registration.phone_number && (
-                          <div className="flex items-center space-x-1 mt-1">
-                            <Icon icon="lucide:phone" className="w-3 h-3 text-gray-400" />
-                            <span>{registration.phone_number}</span>
-                          </div>
-                        )}
-                        {!registration.email && !registration.phone_number && (
-                          <span className="text-content-tertiary">No contact info</span>
-                        )}
-                      </div>
+                        );
+                      })()}
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-content-primary space-y-1">
@@ -387,6 +455,25 @@ export function RegistrationsPage() {
           )}
         </div>
       )}
+
+      <BulkActionBar
+        count={count}
+        onClear={clear}
+        actions={[
+          {
+            label: 'Check In',
+            icon: 'lucide:check-circle',
+            onClick: handleBulkCheckin,
+            loading: bulkUpdate.isPending,
+          },
+          {
+            label: 'Undo Check-in',
+            icon: 'lucide:undo-2',
+            onClick: handleBulkUndoCheckin,
+            loading: bulkUpdate.isPending,
+          },
+        ]}
+      />
     </div>
   );
 }

@@ -33,6 +33,15 @@ export default function EventSidebar() {
     const queryClient = useQueryClient();
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
+    const [expandedBusinessMatching, setExpandedBusinessMatching] = useState(() =>
+        typeof window !== 'undefined' && window.location.pathname.includes('/matching') && !window.location.pathname.includes('/matching/jobs') && !window.location.pathname.includes('/matching/candidates')
+    );
+    const [expandedTalentMatching, setExpandedTalentMatching] = useState(() =>
+        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/jobs') || window.location.pathname.includes('/matching/candidates') || (window.location.pathname.includes('/jobs') && !window.location.pathname.includes('/matching')))
+    );
+    const [expandedFacilities, setExpandedFacilities] = useState(() =>
+        typeof window !== 'undefined' && (window.location.pathname.includes('/facilities') || window.location.pathname.includes('/orders'))
+    );
     const [expandedForms, setExpandedForms] = useState(false);
     const [metadataDialogPage, setMetadataDialogPage] = useState<DirectusPage | null>(null);
     const [metadataDialogLang, setMetadataDialogLang] = useState<LanguageCode>('en-US');
@@ -105,13 +114,28 @@ export default function EventSidebar() {
     };
 
     // Check if Event Information is active (on main event page)
-    const isEventInformationActive = pathname === `/events/${eventId}` || (pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/') && !pathname?.includes('/forms') && !pathname?.includes('/pages/') && !pathname?.includes('/registrations') && !pathname?.includes('/checkin'));
+    const isEventInformationActive = pathname === `/events/${eventId}` || (pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/') && !pathname?.includes('/forms') && !pathname?.includes('/pages/') && !pathname?.includes('/registrations') && !pathname?.includes('/checkin') && !pathname?.includes('/exhibitors') && !pathname?.includes('/facilities'));
 
     // Check if Sites section is active (any site or page is selected)
     const isSitesActive = pathname?.includes('/sites/');
 
     // Check if Forms section is active
     const isFormsActive = pathname?.includes('/forms');
+
+    // Check if Exhibitors section is active
+    const isExhibitorsActive = pathname?.includes('/exhibitors');
+    const isMatchingRequestsActive = pathname?.includes('/matching') && !pathname?.includes('/matching/jobs') && !pathname?.includes('/matching/candidates') && !pathname?.includes('/matching/business-ai') && !pathname?.includes('/matching/meetings');
+    const isAIBusinessMatchingActive = pathname?.includes('/matching/business-ai');
+    const isBusinessMatchingActive = isMatchingRequestsActive || isAIBusinessMatchingActive;
+    const isJobPostingsActive = pathname?.includes('/jobs') && !pathname?.includes('/matching');
+    const isCandidateProfilesActive = pathname?.includes('/matching/candidates');
+    const isAIMatchingActive = pathname?.includes('/matching/jobs');
+    const isMeetingsActive = pathname?.includes('/matching/meetings');
+    const isTalentMatchingActive = isJobPostingsActive || isCandidateProfilesActive || isAIMatchingActive || isMeetingsActive;
+    const isTicketsActive = pathname?.includes('/tickets');
+    const isOrdersActive = pathname?.includes('/orders');
+    const isFacilitiesActive = pathname?.includes('/facilities');
+    const isLeadsActive = pathname?.includes('/leads');
 
     // Animation variants for sidebar items - chỉ hover effects
     const sidebarItemVariants = {
@@ -177,6 +201,28 @@ export default function EventSidebar() {
                                 <span className="font-sf text-sm text-content-secondary">Event Set-up</span>
                             </div>
                         </div> */}
+
+                            {/* Dashboard Item */}
+                            <motion.div
+                                className="ml-6 cursor-pointer"
+                                onClick={() => router.push(`/events/${eventId}/dashboard`)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                                <div className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                    pathname?.includes('/dashboard')
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <motion.div animate={pathname?.includes('/dashboard') ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                        <Icon icon="lucide:layout-dashboard" className={cn("w-4 h-4", pathname?.includes('/dashboard') ? "text-blue-600" : "text-content-tertiary")} />
+                                    </motion.div>
+                                    <span className="font-sf text-sm font-medium text-content-primary">Dashboard</span>
+                                </div>
+                            </motion.div>
 
                             {/* Event Information Item */}
                             <motion.div
@@ -279,6 +325,368 @@ export default function EventSidebar() {
                                     <span className="font-sf text-sm font-medium text-content-primary">Checkin</span>
                                 </div>
                             </motion.div>
+
+                            {/* Exhibitors Item */}
+                            <motion.div
+                                className="ml-6 cursor-pointer"
+                                onClick={() => router.push(`/events/${eventId}/exhibitors`)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                                <div className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                    isExhibitorsActive
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <motion.div
+                                        animate={isExhibitorsActive ? { scale: 1.1 } : { scale: 1 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <Icon
+                                            icon="lucide:store"
+                                            className={cn(
+                                                "w-4 h-4",
+                                                isExhibitorsActive ? "text-blue-600" : "text-content-tertiary"
+                                            )}
+                                        />
+                                    </motion.div>
+                                    <span className="font-sf text-sm font-medium text-content-primary">Exhibitors</span>
+                                </div>
+                            </motion.div>
+
+                            {/* Leads Item */}
+                            <motion.div
+                                className="ml-6 cursor-pointer"
+                                onClick={() => router.push(`/events/${eventId}/leads`)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                                <div className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                    isLeadsActive
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <motion.div animate={isLeadsActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                        <Icon icon="lucide:scan-line" className={cn("w-4 h-4", isLeadsActive ? "text-blue-600" : "text-content-tertiary")} />
+                                    </motion.div>
+                                    <span className="font-sf text-sm font-medium text-content-primary">Leads</span>
+                                </div>
+                            </motion.div>
+
+                            {/* Business Matching */}
+                            <div className="ml-6">
+                                <motion.div
+                                    className="cursor-pointer"
+                                    onClick={() => setExpandedBusinessMatching(!expandedBusinessMatching)}
+                                    variants={sidebarItemVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                >
+                                    <div className={cn(
+                                        "flex items-center justify-between px-3 py-2 transition-all duration-200",
+                                        isBusinessMatchingActive
+                                            ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                            : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                    )}>
+                                        <div className="flex items-center space-x-3">
+                                            <motion.div animate={isBusinessMatchingActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                                <Icon icon="lucide:handshake" className={cn("w-4 h-4", isBusinessMatchingActive ? "text-blue-600" : "text-content-tertiary")} />
+                                            </motion.div>
+                                            <span className="font-sf text-sm font-medium text-content-primary">Business Matching</span>
+                                        </div>
+                                        <motion.button
+                                            onClick={(e) => { e.stopPropagation(); setExpandedBusinessMatching(!expandedBusinessMatching); }}
+                                            className="p-1 hover:bg-blue-200 rounded transition-colors"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <motion.div animate={{ rotate: expandedBusinessMatching ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                                                <Icon icon="lucide:chevron-right" className="w-4 h-4 text-content-tertiary" />
+                                            </motion.div>
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                                <AnimatePresence>
+                                    {expandedBusinessMatching && (
+                                        <motion.div
+                                            className="relative ml-8 space-y-1 mt-2"
+                                            variants={expandVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            transition={{ duration: 0.3, ease: "easeOut" }}
+                                        >
+                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isMatchingRequestsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isMatchingRequestsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Matching Requests</span>
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isAIBusinessMatchingActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/business-ai`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isAIBusinessMatchingActive ? "bg-purple-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">AI Business Matching</span>
+                                                <Icon icon="lucide:sparkles" className="w-3 h-3 ml-1 text-purple-500" />
+                                            </motion.div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Talent Matching */}
+                            <div className="ml-6">
+                                <motion.div
+                                    className="cursor-pointer"
+                                    onClick={() => setExpandedTalentMatching(!expandedTalentMatching)}
+                                    variants={sidebarItemVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                >
+                                    <div className={cn(
+                                        "flex items-center justify-between px-3 py-2 transition-all duration-200",
+                                        isTalentMatchingActive
+                                            ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                            : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                    )}>
+                                        <div className="flex items-center space-x-3">
+                                            <motion.div animate={isTalentMatchingActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                                <Icon icon="lucide:users" className={cn("w-4 h-4", isTalentMatchingActive ? "text-blue-600" : "text-content-tertiary")} />
+                                            </motion.div>
+                                            <span className="font-sf text-sm font-medium text-content-primary">Talent Matching</span>
+                                        </div>
+                                        <motion.button
+                                            onClick={(e) => { e.stopPropagation(); setExpandedTalentMatching(!expandedTalentMatching); }}
+                                            className="p-1 hover:bg-blue-200 rounded transition-colors"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <motion.div animate={{ rotate: expandedTalentMatching ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                                                <Icon icon="lucide:chevron-right" className="w-4 h-4 text-content-tertiary" />
+                                            </motion.div>
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                                <AnimatePresence>
+                                    {expandedTalentMatching && (
+                                        <motion.div
+                                            className="relative ml-8 space-y-1 mt-2"
+                                            variants={expandVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            transition={{ duration: 0.3, ease: "easeOut" }}
+                                        >
+                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isJobPostingsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/jobs`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isJobPostingsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Job Postings</span>
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isCandidateProfilesActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/candidates`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isCandidateProfilesActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Candidate Profiles</span>
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isAIMatchingActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/jobs`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isAIMatchingActive ? "bg-purple-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">AI Matching</span>
+                                                <Icon icon="lucide:sparkles" className="w-3 h-3 ml-1 text-purple-500" />
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isMeetingsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/meetings`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isMeetingsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Meetings</span>
+                                            </motion.div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Tickets Item */}
+                            <motion.div
+                                className="ml-6 cursor-pointer"
+                                onClick={() => router.push(`/events/${eventId}/tickets`)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                                <div className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                    isTicketsActive
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <motion.div animate={isTicketsActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                        <Icon icon="lucide:ticket" className={cn("w-4 h-4", isTicketsActive ? "text-blue-600" : "text-content-tertiary")} />
+                                    </motion.div>
+                                    <span className="font-sf text-sm font-medium text-content-primary">Support Tickets</span>
+                                </div>
+                            </motion.div>
+
+                            {/* Facilities Item with Sub-items */}
+                            <div className="ml-6">
+                                <motion.div
+                                    className="cursor-pointer"
+                                    onClick={() => setExpandedFacilities(!expandedFacilities)}
+                                    variants={sidebarItemVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                >
+                                    <div className={cn(
+                                        "flex items-center justify-between px-3 py-2 transition-all duration-200",
+                                        (isFacilitiesActive || isOrdersActive)
+                                            ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                            : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                    )}>
+                                        <div className="flex items-center space-x-3">
+                                            <motion.div
+                                                animate={(isFacilitiesActive || isOrdersActive) ? { scale: 1.1 } : { scale: 1 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <Icon
+                                                    icon="lucide:building"
+                                                    className={cn("w-4 h-4", (isFacilitiesActive || isOrdersActive) ? "text-blue-600" : "text-content-tertiary")}
+                                                />
+                                            </motion.div>
+                                            <span className="font-sf text-sm font-medium text-content-primary">Facilities</span>
+                                        </div>
+                                        <motion.button
+                                            onClick={(e) => { e.stopPropagation(); setExpandedFacilities(!expandedFacilities); }}
+                                            className="p-1 hover:bg-blue-200 rounded transition-colors"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <motion.div
+                                                animate={{ rotate: expandedFacilities ? 90 : 0, scale: expandedFacilities ? 1.1 : 1 }}
+                                                transition={{ duration: 0.2 }}
+                                            >
+                                                <Icon icon="lucide:chevron-right" className="w-4 h-4 text-content-tertiary" />
+                                            </motion.div>
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+
+                                {/* Facilities Sub-items */}
+                                <AnimatePresence>
+                                    {expandedFacilities && (
+                                        <motion.div
+                                            className="relative ml-8 space-y-1 mt-2"
+                                            variants={expandVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            transition={{ duration: 0.3, ease: "easeOut" }}
+                                        >
+                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
+
+                                            {/* Manage Facilities */}
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isFacilitiesActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/facilities`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isFacilitiesActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Manage Facilities</span>
+                                            </motion.div>
+
+                                            {/* Orders */}
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isOrdersActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/orders`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isOrdersActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Orders</span>
+                                            </motion.div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
                             {/* Forms Item with Sub-items */}
                             <div className="ml-6">
@@ -638,7 +1046,7 @@ export default function EventSidebar() {
                                                                                                     const normalizedLang =
                                                                                                         typeof langCodeRaw === 'string'
                                                                                                             ? langCodeRaw
-                                                                                                            : (langCodeRaw as { code?: string })?.code;
+                                                                                                            : (langCodeRaw as unknown as { code?: string })?.code;
                                                                                                     const lang = normalizedLang === 'vi-VN' ? 'vi-VN' : 'en-US';
                                                                                                     setMetadataDialogLang(lang as LanguageCode);
                                                                                                     setMetadataDialogPage(page);
@@ -700,7 +1108,13 @@ export default function EventSidebar() {
                     if (!metadataDialogPage?.id) return;
 
                     // Call API to update translation
-                    await directusHelpers.updatePageTranslations(metadataDialogPage.id, [entry]);
+                    if (entry.id) {
+                        await directusHelpers.updatePage(metadataDialogPage.id, {
+                            translations: {
+                                update: [{ id: entry.id, title: entry.title, permalink: entry.permalink }],
+                            },
+                        });
+                    }
 
                     // Refresh data
                     await queryClient.invalidateQueries({ queryKey: ['pages'] });
