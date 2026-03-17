@@ -5,7 +5,9 @@ import { useParams } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import directus from '@/lib/directus';
-import { readItems, createItem } from '@directus/sdk';
+import { readItems, createItem, deleteItem } from '@directus/sdk';
+import { useSelection } from '@/hooks/useSelection';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 import { Input } from '@/components/ui/input';
@@ -343,6 +345,23 @@ export default function CandidateProfilesPage() {
   const eventId = params?.id as string;
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<CandidateSubmission | null>(null);
+  const queryClient = useQueryClient();
+  const selection = useSelection();
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) {
+        await directus.request(deleteItem('form_submissions' as any, id));
+      }
+      return ids.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`${count} candidate${count !== 1 ? 's' : ''} deleted`);
+      selection.clear();
+      queryClient.invalidateQueries({ queryKey: ['candidate-profiles', eventId] });
+    },
+    onError: () => toast.error('Failed to delete candidates'),
+  });
 
   const { data: candidateForm } = useQuery({
     queryKey: ['candidate-form', eventId],
@@ -453,6 +472,15 @@ export default function CandidateProfilesPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50">
+                    <th className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        className="rounded border-gray-300 text-blue-600"
+                        checked={selection.isAllSelected(filtered.map(s => s.id))}
+                        ref={(el) => { if (el) el.indeterminate = selection.isIndeterminate(filtered.map(s => s.id)); }}
+                        onChange={() => selection.toggleAll(filtered.map(s => s.id))}
+                      />
+                    </th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-content-secondary">Candidate</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-content-secondary">Contact</th>
                     <th className="text-left px-4 py-3 text-xs font-semibold text-content-secondary">Profile fields</th>
@@ -470,6 +498,14 @@ export default function CandidateProfilesPage() {
                         className="hover:bg-gray-50/50 transition-colors cursor-pointer"
                         onClick={() => setSelected(sub)}
                       >
+                        <td className="px-4 py-3 w-10" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            className="rounded border-gray-300 text-blue-600"
+                            checked={selection.isSelected(sub.id)}
+                            onChange={() => selection.toggle(sub.id)}
+                          />
+                        </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
@@ -517,6 +553,20 @@ export default function CandidateProfilesPage() {
         open={!!selected}
         onClose={() => setSelected(null)}
         eventId={eventId}
+      />
+
+      <BulkActionBar
+        count={selection.count}
+        onClear={selection.clear}
+        actions={[
+          {
+            label: 'Delete',
+            icon: 'lucide:trash-2',
+            variant: 'danger',
+            loading: bulkDeleteMutation.isPending,
+            onClick: () => bulkDeleteMutation.mutate(selection.selectedArray),
+          },
+        ]}
       />
     </Container>
   );

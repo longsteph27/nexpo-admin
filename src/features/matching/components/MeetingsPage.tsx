@@ -10,6 +10,8 @@ import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 import { Button } from '@/components/ui/button-base';
 import { toast } from 'sonner';
+import { useSelection } from '@/hooks/useSelection';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import type { Meeting, MeetingStatus } from '../types';
 
 const STATUS_CONFIG: Record<MeetingStatus, { label: string; cls: string }> = {
@@ -269,16 +271,33 @@ function GroupedList({ meetings, onStatusChange, isPending }: {
 
 // ─── Meetings Table ─────────────────────────────────────────────────────────────
 
-function MeetingsTable({ meetings, onStatusChange, isPending }: {
+function MeetingsTable({ meetings, onStatusChange, isPending, selectedIds, onToggle, onToggleAll }: {
   meetings: Meeting[];
   onStatusChange: (m: Meeting, s: MeetingStatus) => void;
   isPending: boolean;
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
+  onToggleAll?: (ids: string[]) => void;
 }) {
+  const ids = meetings.map(m => m.id);
+  const allSelected = !!selectedIds && ids.length > 0 && ids.every(id => selectedIds.has(id));
+  const someSelected = !!selectedIds && ids.some(id => selectedIds.has(id));
+  const indeterminate = someSelected && !allSelected;
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="bg-slate-50 border-b border-slate-200 text-xs">
+            <th className="px-4 py-3 w-10">
+              <input
+                type="checkbox"
+                className="rounded border-gray-300 text-blue-600"
+                checked={allSelected}
+                ref={(el) => { if (el) el.indeterminate = indeterminate; }}
+                onChange={() => onToggleAll && onToggleAll(ids)}
+              />
+            </th>
             <th className="text-left px-4 py-3 font-semibold text-content-secondary">Candidate</th>
             <th className="text-left px-4 py-3 font-semibold text-content-secondary">Exhibitor / Job</th>
             <th className="text-left px-4 py-3 font-semibold text-content-secondary">Scheduled</th>
@@ -295,6 +314,14 @@ function MeetingsTable({ meetings, onStatusChange, isPending }: {
             const cfg = STATUS_CONFIG[m.status as MeetingStatus] ?? { label: m.status, cls: 'bg-gray-100 text-gray-500' };
             return (
               <tr key={m.id} className="hover:bg-slate-50 transition-colors">
+                <td className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    className="rounded border-gray-300 text-blue-600"
+                    checked={!!selectedIds?.has(m.id)}
+                    onChange={() => onToggle && onToggle(m.id)}
+                  />
+                </td>
                 <td className="px-4 py-3">
                   <p className="font-medium text-content-primary">{name}</p>
                   {email && <p className="text-xs text-content-tertiary mt-0.5">{email}</p>}
@@ -354,6 +381,7 @@ export function MeetingsPage() {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [groupByExhibitor, setGroupByExhibitor] = useState(false);
+  const selection = useSelection();
 
   const { data: meetings = [], isLoading } = useQuery({
     queryKey: ['meetings', eventId, statusFilter],
@@ -388,6 +416,21 @@ export function MeetingsPage() {
     await updateMutation.mutateAsync({ id: meeting.id, payload: { status } });
     toast.success(`Meeting marked as ${STATUS_CONFIG[status]?.label ?? status}`);
   };
+
+  const bulkStatusMutation = useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[]; status: MeetingStatus }) => {
+      for (const id of ids) {
+        await directus.request(updateItem('meetings' as any, id, { status }));
+      }
+      return { count: ids.length, status };
+    },
+    onSuccess: ({ count, status }) => {
+      toast.success(`${count} meeting${count !== 1 ? 's' : ''} marked as ${STATUS_CONFIG[status]?.label ?? status}`);
+      selection.clear();
+      queryClient.invalidateQueries({ queryKey: ['meetings', eventId] });
+    },
+    onError: () => toast.error('Failed to update meetings'),
+  });
 
   return (
     <div className="space-y-4 pb-24">
@@ -449,10 +492,43 @@ export function MeetingsPage() {
           <GroupedList meetings={meetings} onStatusChange={handleStatusChange} isPending={updateMutation.isPending} />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-200">
-            <MeetingsTable meetings={meetings} onStatusChange={handleStatusChange} isPending={updateMutation.isPending} />
+            <MeetingsTable
+              meetings={meetings}
+              onStatusChange={handleStatusChange}
+              isPending={updateMutation.isPending}
+              selectedIds={selection.selected}
+              onToggle={selection.toggle}
+              onToggleAll={selection.toggleAll}
+            />
           </div>
         )}
       </Container>
+
+      <BulkActionBar
+        count={selection.count}
+        onClear={selection.clear}
+        actions={[
+          {
+            label: 'Confirm',
+            icon: 'lucide:check-circle',
+            loading: bulkStatusMutation.isPending,
+            onClick: () => bulkStatusMutation.mutate({ ids: selection.selectedArray, status: 'confirmed' }),
+          },
+          {
+            label: 'Complete',
+            icon: 'lucide:check-check',
+            loading: bulkStatusMutation.isPending,
+            onClick: () => bulkStatusMutation.mutate({ ids: selection.selectedArray, status: 'completed' }),
+          },
+          {
+            label: 'Cancel',
+            icon: 'lucide:x-circle',
+            variant: 'danger',
+            loading: bulkStatusMutation.isPending,
+            onClick: () => bulkStatusMutation.mutate({ ids: selection.selectedArray, status: 'cancelled' }),
+          },
+        ]}
+      />
     </div>
   );
 }

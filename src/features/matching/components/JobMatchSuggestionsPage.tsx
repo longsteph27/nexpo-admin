@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button-base';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 import { toast } from 'sonner';
+import { useSelection } from '@/hooks/useSelection';
+import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import directus from '@/lib/directus';
 import { readItems, updateItem, createItem } from '@directus/sdk';
@@ -123,16 +125,33 @@ const STATUS_FILTERS: { label: string; value: MatchStatus | '' }[] = [
   { label: 'Rejected', value: 'rejected' },
 ];
 
-function SuggestionsTable({ suggestions, isPending, onApprove, onReject }: {
+function SuggestionsTable({ suggestions, isPending, onApprove, onReject, selectedIds, onToggle, onToggleAll }: {
   suggestions: JobMatchSuggestion[];
   isPending: boolean;
   onApprove: (s: JobMatchSuggestion) => void;
   onReject: (s: JobMatchSuggestion) => void;
+  selectedIds?: Set<string>;
+  onToggle?: (id: string) => void;
+  onToggleAll?: (ids: string[]) => void;
 }) {
+  const ids = suggestions.map(s => s.id);
+  const allSelected = !!selectedIds && ids.length > 0 && ids.every(id => selectedIds.has(id));
+  const someSelected = !!selectedIds && ids.some(id => selectedIds.has(id));
+  const indeterminate = someSelected && !allSelected;
+
   return (
     <table className="w-full text-sm">
       <thead>
         <tr className="bg-slate-50 border-b border-slate-200">
+          <th className="px-4 py-3 w-10">
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 text-blue-600"
+              checked={allSelected}
+              ref={(el) => { if (el) el.indeterminate = indeterminate; }}
+              onChange={() => onToggleAll && onToggleAll(ids)}
+            />
+          </th>
           <th className="text-left px-4 py-3 font-semibold text-content-secondary">Visitor</th>
           <th className="text-left px-4 py-3 font-semibold text-content-secondary">Job / Exhibitor</th>
           <th className="text-left px-4 py-3 font-semibold text-content-secondary">Score</th>
@@ -147,6 +166,14 @@ function SuggestionsTable({ suggestions, isPending, onApprove, onReject }: {
           return (
             <motion.tr key={s.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.02 }} className="hover:bg-slate-50 transition-colors">
+              <td className="px-4 py-3 w-10">
+                <input
+                  type="checkbox"
+                  className="rounded border-gray-300 text-blue-600"
+                  checked={!!selectedIds?.has(s.id)}
+                  onChange={() => onToggle && onToggle(s.id)}
+                />
+              </td>
               <td className="px-4 py-3">
                 <p className="font-medium text-content-primary">{v.name}</p>
                 {v.email && <p className="text-xs text-content-tertiary mt-0.5">{v.email}</p>}
@@ -196,6 +223,7 @@ export function JobMatchSuggestionsPage() {
   const [note, setNote] = useState('');
   const [groupByExhibitor, setGroupByExhibitor] = useState(false);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const selection = useSelection();
 
   const toggleCollapse = (id: string) => setCollapsed(s => {
     const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n;
@@ -245,6 +273,21 @@ export function JobMatchSuggestionsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['job_match_suggestions', eventId] });
     },
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: async ({ ids, status }: { ids: string[]; status: MatchStatus }) => {
+      for (const id of ids) {
+        await directus.request(updateItem('job_match_suggestions' as any, id, { status }));
+      }
+      return { count: ids.length, status };
+    },
+    onSuccess: ({ count, status }) => {
+      toast.success(`${count} suggestion${count !== 1 ? 's' : ''} marked as ${status}`);
+      selection.clear();
+      queryClient.invalidateQueries({ queryKey: ['job_match_suggestions', eventId] });
+    },
+    onError: () => toast.error('Failed to update suggestions'),
   });
 
   const handleApprove = async (suggestion: JobMatchSuggestion, organizerNote?: string) => {
@@ -404,10 +447,33 @@ export function JobMatchSuggestionsPage() {
               isPending={updateMutation.isPending}
               onApprove={(s) => { setNoteModal({ suggestion: s, action: 'approve' }); setNote(''); }}
               onReject={(s) => { setNoteModal({ suggestion: s, action: 'reject' }); setNote(''); }}
+              selectedIds={selection.selected}
+              onToggle={selection.toggle}
+              onToggleAll={selection.toggleAll}
             />
           </div>
         )}
       </Container>
+
+      <BulkActionBar
+        count={selection.count}
+        onClear={selection.clear}
+        actions={[
+          {
+            label: 'Approve',
+            icon: 'lucide:check-circle',
+            loading: bulkUpdateMutation.isPending,
+            onClick: () => bulkUpdateMutation.mutate({ ids: selection.selectedArray, status: 'approved' }),
+          },
+          {
+            label: 'Reject',
+            icon: 'lucide:x-circle',
+            variant: 'danger',
+            loading: bulkUpdateMutation.isPending,
+            onClick: () => bulkUpdateMutation.mutate({ ids: selection.selectedArray, status: 'rejected' }),
+          },
+        ]}
+      />
 
       {/* Note Modal */}
       {noteModal && (
