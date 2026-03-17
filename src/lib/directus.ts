@@ -401,7 +401,7 @@ const directus = createDirectus<Schema>(DIRECTUS_URL, {
       return options;
     }
   }))
-  .with(authentication(AUTH_MODE === 'cookie' ? 'session' : AUTH_MODE, { autoRefresh: AUTO_REFRESH }));
+  .with(authentication('json', { autoRefresh: AUTO_REFRESH }));
 
 // Helper function to initialize Directus with stored tokens
 export const initializeDirectusWithTokens = async (accessToken: string | null, refreshToken: string | null) => {
@@ -482,7 +482,7 @@ export const directusHelpers = {
   // Authentication
   async login(email: string, password: string) {
     try {
-      const result = await directus.login(email, password, { mode: AUTH_MODE === 'cookie' ? 'session' : AUTH_MODE });
+      const result = await directus.login(email, password, { mode: 'json' });
       return { success: true, data: result };
     } catch (error) {
       console.error('Login error:', error);
