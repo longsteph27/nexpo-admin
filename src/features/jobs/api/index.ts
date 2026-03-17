@@ -17,7 +17,7 @@ export const jobsApi = {
         filter,
         fields: [
           'id', 'status', 'job_title', 'employment_type', 'quantity', 'salary_range',
-          'date_created', 'event_id',
+          'description', 'requirements', 'date_created', 'date_updated', 'event_id',
           'exhibitor_id.id',
           'exhibitor_id.translations.languages_code',
           'exhibitor_id.translations.company_name',

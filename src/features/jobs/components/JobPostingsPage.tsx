@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button-base';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { toast } from 'sonner';
 import { useJobs, useUpdateJob } from '../hooks/useJobs';
 import type { JobRequirement, JobStatus } from '../types';
@@ -53,7 +54,113 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-function JobRow({ job, idx }: { job: JobRequirement; idx: number }) {
+function JobDetailSheet({ job, open, onClose }: { job: JobRequirement | null; open: boolean; onClose: () => void }) {
+  const updateJob = useUpdateJob();
+
+  if (!job) return null;
+
+  const exhibitor = getExhibitorName(job);
+
+  const handleStatusChange = async (newStatus: JobStatus) => {
+    await updateJob.mutateAsync({ id: job.id, payload: { status: newStatus } });
+    toast.success('Status updated');
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto px-6">
+        <SheetHeader className="mb-5">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <Icon icon="lucide:briefcase" className="w-5 h-5 text-blue-600" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <SheetTitle className="text-base leading-tight">{job.job_title}</SheetTitle>
+              <p className="text-sm text-content-secondary mt-0.5">{exhibitor}</p>
+            </div>
+          </div>
+        </SheetHeader>
+
+        {/* Status + quick actions */}
+        <div className="flex items-center gap-3 mb-5 p-3 rounded-xl bg-slate-50 border border-slate-200">
+          <StatusBadge status={job.status} />
+          <span className="text-xs text-content-tertiary">Change status:</span>
+          <div className="flex gap-1.5 ml-auto">
+            {(['published', 'draft', 'closed'] as JobStatus[]).filter(s => s !== job.status).map(s => (
+              <button
+                key={s}
+                onClick={() => handleStatusChange(s)}
+                disabled={updateJob.isPending}
+                className="text-xs px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-content-secondary transition-colors disabled:opacity-50"
+              >
+                {STATUS_STYLE[s]?.label ?? s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Details grid */}
+        <div className="space-y-4 mb-5">
+          <div className="grid grid-cols-2 gap-3">
+            {job.employment_type && (
+              <div className="rounded-lg border border-slate-100 p-3">
+                <p className="text-xs text-content-tertiary mb-0.5">Employment Type</p>
+                <p className="text-sm font-medium text-content-primary">
+                  {EMPLOYMENT_LABEL[job.employment_type] ?? job.employment_type}
+                </p>
+              </div>
+            )}
+            {job.quantity != null && (
+              <div className="rounded-lg border border-slate-100 p-3">
+                <p className="text-xs text-content-tertiary mb-0.5">Openings</p>
+                <p className="text-sm font-medium text-content-primary">{job.quantity}</p>
+              </div>
+            )}
+            {job.salary_range && (
+              <div className="rounded-lg border border-slate-100 p-3 col-span-2">
+                <p className="text-xs text-content-tertiary mb-0.5">Salary Range</p>
+                <p className="text-sm font-medium text-content-primary">{job.salary_range}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Description */}
+        {job.description && (
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon icon="lucide:file-text" className="w-4 h-4 text-content-tertiary" />
+              <span className="text-xs font-semibold text-content-secondary uppercase tracking-wide">Description</span>
+            </div>
+            <div className="rounded-lg border border-slate-100 p-3 text-sm text-content-primary whitespace-pre-wrap leading-relaxed">
+              {job.description}
+            </div>
+          </div>
+        )}
+
+        {/* Requirements */}
+        {job.requirements && (
+          <div className="mb-5">
+            <div className="flex items-center gap-2 mb-2">
+              <Icon icon="lucide:list-checks" className="w-4 h-4 text-content-tertiary" />
+              <span className="text-xs font-semibold text-content-secondary uppercase tracking-wide">Requirements</span>
+            </div>
+            <div className="rounded-lg border border-slate-100 p-3 text-sm text-content-primary whitespace-pre-wrap leading-relaxed">
+              {job.requirements}
+            </div>
+          </div>
+        )}
+
+        <p className="text-xs text-content-tertiary">
+          Posted: {formatDate(job.date_created)}
+          {job.date_updated && job.date_updated !== job.date_created && ` · Updated: ${formatDate(job.date_updated)}`}
+        </p>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function JobRow({ job, idx, onSelect }: { job: JobRequirement; idx: number; onSelect: (job: JobRequirement) => void }) {
   const updateJob = useUpdateJob();
 
   const handleStatusChange = async (newStatus: JobStatus) => {
@@ -66,7 +173,8 @@ function JobRow({ job, idx }: { job: JobRequirement; idx: number }) {
       initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.03 }}
-      className="hover:bg-slate-50 transition-colors"
+      className="hover:bg-slate-50 transition-colors cursor-pointer"
+      onClick={() => onSelect(job)}
     >
       <td className="px-4 py-3">
         <p className="font-medium text-content-primary">{job.job_title}</p>
@@ -109,6 +217,7 @@ export function JobPostingsPage() {
   const [page, setPage] = useState(1);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [selectedJob, setSelectedJob] = useState<JobRequirement | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
@@ -201,7 +310,7 @@ export function JobPostingsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {rows.map((job, idx) => <JobRow key={job.id} job={job} idx={idx} />)}
+                {rows.map((job, idx) => <JobRow key={job.id} job={job} idx={idx} onSelect={setSelectedJob} />)}
               </tbody>
             </table>
           </div>
@@ -219,6 +328,12 @@ export function JobPostingsPage() {
           </div>
         )}
       </Container>
+
+      <JobDetailSheet
+        job={selectedJob}
+        open={!!selectedJob}
+        onClose={() => setSelectedJob(null)}
+      />
     </div>
   );
 }
