@@ -482,7 +482,7 @@ export const directusHelpers = {
   // Authentication
   async login(email: string, password: string) {
     try {
-      const result = await directus.login(email, password);
+      const result = await directus.login(email, password, { mode: AUTH_MODE === 'cookie' ? 'session' : AUTH_MODE });
       return { success: true, data: result };
     } catch (error) {
       console.error('Login error:', error);
