@@ -201,17 +201,6 @@ export function JobMatchSuggestionsPage() {
     const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
 
-  const grouped = useMemo(() => {
-    if (!groupByExhibitor) return null;
-    const g: Record<string, { id: string; name: string; items: JobMatchSuggestion[] }> = {};
-    for (const s of suggestions) {
-      const id = typeof s.exhibitor_id === 'object' ? s.exhibitor_id?.id || '__other__' : s.exhibitor_id || '__other__';
-      if (!g[id]) g[id] = { id, name: getExhibitorName(s), items: [] };
-      g[id].items.push(s);
-    }
-    return Object.values(g).sort((a, b) => a.name.localeCompare(b.name));
-  }, [suggestions, groupByExhibitor]);
-
   // Fetch suggestions
   const { data: suggestions = [], isLoading, error } = useQuery({
     queryKey: ['job_match_suggestions', eventId, statusFilter],
@@ -236,6 +225,17 @@ export function JobMatchSuggestionsPage() {
       return result as JobMatchSuggestion[];
     },
   });
+
+  const grouped = useMemo(() => {
+    if (!groupByExhibitor) return null;
+    const g: Record<string, { id: string; name: string; items: JobMatchSuggestion[] }> = {};
+    for (const s of suggestions) {
+      const id = typeof s.exhibitor_id === 'object' ? s.exhibitor_id?.id || '__other__' : s.exhibitor_id || '__other__';
+      if (!g[id]) g[id] = { id, name: getExhibitorName(s), items: [] };
+      g[id].items.push(s);
+    }
+    return Object.values(g).sort((a, b) => a.name.localeCompare(b.name));
+  }, [suggestions, groupByExhibitor]);
 
   // Update suggestion status
   const updateMutation = useMutation({
