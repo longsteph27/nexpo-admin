@@ -1,3 +1,12 @@
 'use client';
-import { JobMatchSuggestionsPage } from '@/features/matching';
-export default function JobMatchingRoute() { return <JobMatchSuggestionsPage />; }
+
+import dynamic from 'next/dynamic';
+
+const JobMatchSuggestionsPage = dynamic(
+  () => import('@/features/matching/components/JobMatchSuggestionsPage').then(m => ({ default: m.JobMatchSuggestionsPage })),
+  { ssr: false }
+);
+
+export default function JobMatchingRoute() {
+  return <JobMatchSuggestionsPage />;
+}
