@@ -513,7 +513,7 @@ export const directusHelpers = {
 
       const form = await directus.request(readItem('forms', formId, {
         fields: ([
-          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'event_id', 'is_registration', 'form_purpose', 'linked_module',
+          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'email_sender_name', 'email_subject', 'event_id', 'is_registration', 'form_purpose', 'linked_module',
           { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
           {
             fields: [
@@ -642,6 +642,15 @@ export const directusHelpers = {
       return { success: true, data: form };
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to update form' };
+    }
+  },
+
+  async updateFormTemplate(formId: string, updateData: Record<string, unknown>) {
+    try {
+      const form = await directus.request(updateItem('forms', formId, updateData));
+      return { success: true, data: form };
+    } catch (error) {
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to update form template' };
     }
   },
 

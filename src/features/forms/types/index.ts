@@ -82,6 +82,8 @@ export interface Form {
   template_email?: string | null;
   template_email_group?: string | null;
   qr_code_field?: string | null;
+  email_sender_name?: string | null;
+  email_subject?: string | null;
   form_purpose?: string[];
   date_created?: string | null;
   date_updated?: string | null;

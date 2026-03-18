@@ -169,11 +169,13 @@ export const formsApi = {
     formId: string,
     templateEmail?: string,
     qrCodeField?: string,
-    templateEmailGroup?: string
+    templateEmailGroup?: string,
+    emailSenderName?: string,
+    emailSubject?: string
   ): Promise<ApiResponse<Form>> => {
     try {
       console.log('[updateEmailTemplate] Updating email template for formId:', formId);
-      
+
       const updateData: any = {};
       if (templateEmail !== undefined) {
         updateData.template_email = templateEmail;
@@ -183,6 +185,12 @@ export const formsApi = {
       }
       if (templateEmailGroup !== undefined) {
         updateData.template_email_group = templateEmailGroup;
+      }
+      if (emailSenderName !== undefined) {
+        updateData.email_sender_name = emailSenderName;
+      }
+      if (emailSubject !== undefined) {
+        updateData.email_subject = emailSubject;
       }
 
       const result = await directusHelpers.updateFormTemplate(formId, updateData);

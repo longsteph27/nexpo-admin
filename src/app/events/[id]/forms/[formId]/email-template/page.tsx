@@ -1,24 +1,95 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
 import { Button } from '@/components/ui/button-base';
 import { EmailTemplateEditor, useForm, useUpdateEmailTemplate } from '@/features/forms';
+import { useEvent } from '@/features/events/hooks/useEvents';
 import type { Form, FormField } from '@/features/forms';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 
+// Reusable "Insert Field" dropdown for plain text inputs
+function FieldInsertDropdown({
+  fields,
+  onInsert,
+  extraItems,
+}: {
+  fields: { id: string; label: string }[];
+  onInsert: (tag: string) => void;
+  extraItems?: { label: string; tag: string; className?: string }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
+  if (fields.length === 0 && !extraItems?.length) return null;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+      >
+        <Icon icon="lucide:variable" className="w-3.5 h-3.5" />
+        Insert Field
+        <Icon icon="lucide:chevron-down" className={`w-3 h-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-20 min-w-[180px] py-1">
+          {extraItems?.map((item) => (
+            <button
+              key={item.tag}
+              type="button"
+              onClick={() => { onInsert(item.tag); setOpen(false); }}
+              className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left transition-colors hover:bg-blue-50 hover:text-blue-700 ${item.className ?? 'text-gray-700'}`}
+            >
+              <Icon icon="lucide:globe" className="w-3.5 h-3.5 flex-shrink-0 text-blue-400" />
+              {item.label}
+            </button>
+          ))}
+          {extraItems && extraItems.length > 0 && fields.length > 0 && (
+            <div className="border-t border-gray-100 my-1" />
+          )}
+          {fields.map((f) => (
+            <button
+              key={f.id}
+              type="button"
+              onClick={() => { onInsert(`{${f.label}}`); setOpen(false); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 text-left transition-colors"
+            >
+              <Icon icon="lucide:file-text" className="w-3.5 h-3.5 flex-shrink-0 text-gray-400" />
+              {f.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Individual Template Preview Component
-function TemplatePreview({ 
-  template, 
-  qrCodeContent, 
-  isRegistrationForm, 
+function TemplatePreview({
+  template,
+  qrCodeContent,
+  isRegistrationForm,
   title,
   icon,
-  iconColor = "blue"
+  iconColor = "blue",
+  senderName = "Nexpo",
+  fieldMap = {},
 }: {
   template: string;
   qrCodeContent: string;
@@ -26,15 +97,36 @@ function TemplatePreview({
   title: string;
   icon: string;
   iconColor?: string;
+  senderName?: string;
+  fieldMap?: Record<string, string>; // uuid → label
 }) {
-  // Convert template format to display format
-  const convertTemplateToDisplay = (template: string) => {
-    return template.replace(
-      /\{([^}]+)\}/g,
-      (match, fieldName) => {
-        return `<span class="field-placeholder">${fieldName}</span>`;
-      }
-    );
+  const hasEmbeddedQr = template.includes('cid:qrcode.png');
+
+  // Replace ${uuid} and {uuid} with labelled pill spans
+  const convertTemplateToDisplay = (tmpl: string) => {
+    return tmpl
+      // Replace cid:qrcode.png img tag with a visual QR placeholder at the right position
+      .replace(/<img[^>]*src=["']cid:qrcode\.png["'][^>]*\/?>/gi,
+        `<div style="text-align:center;padding:12px 0;">` +
+        `<div style="display:inline-block;border:1px dashed #9ca3af;border-radius:8px;padding:12px;background:#f9fafb;">` +
+        `<div style="width:64px;height:64px;background:#e5e7eb;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto;">&#x2611;</div>` +
+        `<div style="font-size:11px;color:#6b7280;margin-top:4px;">QR Code</div>` +
+        `</div></div>`
+      )
+      // Replace ${uuid}<!-- label --> (annotated by "Add Labels")
+      .replace(/\$\{([^}]+)\}<!--[^>]*-->/g, (_m, id) => {
+        const label = fieldMap[id] || id;
+        return `<span class="field-placeholder">${label}</span>`;
+      })
+      // Replace plain ${uuid}
+      .replace(/\$\{([^}]+)\}/g, (_m, id) => {
+        const label = fieldMap[id] || id;
+        return `<span class="field-placeholder">${label}</span>`;
+      })
+      // Replace {anything} (visual mode / special vars like {event_name})
+      .replace(/\{([^}]+)\}/g, (_m, name) => {
+        return `<span class="field-placeholder">${name}</span>`;
+      });
   };
 
   const displayTemplate = convertTemplateToDisplay(template);
@@ -55,7 +147,7 @@ function TemplatePreview({
               <Icon icon="lucide:mail" className={`w-4 h-4 text-${iconColor}-600`} />
             </div>
             <h3 className="text-sm font-semibold text-gray-800">Email Notification</h3>
-            <p className="text-xs text-gray-600 mt-1">From: Your Event Team</p>
+            <p className="text-xs text-gray-600 mt-1">From: {senderName} &lt;no-reply@m.nexpo.vn&gt;</p>
           </div>
 
           {/* Template Content */}
@@ -64,31 +156,34 @@ function TemplatePreview({
             dangerouslySetInnerHTML={{ __html: displayTemplate }}
           />
 
-          {/* QR Code Section */}
-          <div className="mt-4 pt-3 border-t border-gray-200">
-            <div className="text-center">
-              <div className="flex items-center justify-center gap-1 mb-2">
-                <Icon icon="lucide:qr-code" className="w-3 h-3 text-green-600" />
-                <span className="text-xs font-medium text-gray-700">QR Code</span>
-              </div>
-              
-              {/* QR Code Placeholder */}
-              <div className="inline-block bg-white border border-dashed border-gray-300 rounded p-3">
-                <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
-                  <Icon icon="lucide:qr-code" className="w-8 h-8 text-gray-400" />
+          {/* QR Code Section — only show if template does NOT already embed cid:qrcode.png */}
+          {!hasEmbeddedQr && (
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-1 mb-2">
+                  <Icon icon="lucide:qr-code" className="w-3 h-3 text-green-600" />
+                  <span className="text-xs font-medium text-gray-700">QR Code</span>
+                  <span className="text-xs text-gray-400">(auto-appended at end)</span>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
-                  {isRegistrationForm ? 'Registration QR Code' : 'Custom QR Code'}
-                </p>
-                {!isRegistrationForm && displayQrCode && (
-                  <div 
-                    className="text-xs text-gray-600 mt-1 font-mono"
-                    dangerouslySetInnerHTML={{ __html: displayQrCode }}
-                  />
-                )}
+
+                {/* QR Code Placeholder */}
+                <div className="inline-block bg-white border border-dashed border-gray-300 rounded p-3">
+                  <div className="w-16 h-16 bg-gray-100 rounded flex items-center justify-center">
+                    <Icon icon="lucide:qr-code" className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {isRegistrationForm ? 'Registration QR Code' : 'Custom QR Code'}
+                  </p>
+                  {!isRegistrationForm && displayQrCode && (
+                    <div
+                      className="text-xs text-gray-600 mt-1 font-mono"
+                      dangerouslySetInnerHTML={{ __html: displayQrCode }}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Email Footer */}
           <div className="mt-3 pt-2 border-t border-gray-200 text-center">
@@ -111,12 +206,23 @@ export default function EmailTemplatePage() {
   const [emailTemplate, setEmailTemplate] = useState('');
   const [qrCodeContent, setQrCodeContent] = useState('');
   const [groupEmailTemplate, setGroupEmailTemplate] = useState('');
+  const [emailSenderName, setEmailSenderName] = useState('');
+  const [emailSubject, setEmailSubject] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const senderNameRef = useRef<HTMLInputElement>(null);
+  const emailSubjectRef = useRef<HTMLInputElement>(null);
 
-  // Get form data
+  // Get form + event data
   const { data: formData, isLoading, error } = useForm(formId);
   const form = formData as Form | null;
   const fields = useMemo<FormField[]>(() => form?.fields ?? [], [form]);
+  const { data: eventData } = useEvent(eventId);
+  const eventName = (eventData as any)?.name ?? '';
+
+  const textFields = useMemo(
+    () => fields.filter((f) => !['file', 'image', 'upload'].includes(f.type ?? '')),
+    [fields]
+  );
 
   const getFieldLabel = useCallback((field: FormField): string => {
     const translation = field.translations?.find((t) => t.languages_code === 'en-US') ?? field.translations?.[0];
@@ -124,6 +230,38 @@ export default function EmailTemplatePage() {
       return translation.label;
     }
     return field.name || field.id;
+  }, []);
+
+  const textFieldOptions = useMemo(
+    () => textFields.map((f) => ({ id: f.id, label: getFieldLabel(f) })),
+    [textFields, getFieldLabel]
+  );
+
+  // uuid → label map for TemplatePreview
+  const fieldMap = useMemo(
+    () => Object.fromEntries(fields.map((f) => [f.id, getFieldLabel(f)])),
+    [fields, getFieldLabel]
+  );
+
+  const insertAtCursor = useCallback((
+    inputRef: React.RefObject<HTMLInputElement>,
+    value: string,
+    setValue: React.Dispatch<React.SetStateAction<string>>,
+    tag: string
+  ) => {
+    const input = inputRef.current;
+    if (input) {
+      const start = input.selectionStart ?? value.length;
+      const end = input.selectionEnd ?? value.length;
+      const next = value.slice(0, start) + tag + value.slice(end);
+      setValue(next);
+      setTimeout(() => {
+        input.focus();
+        input.setSelectionRange(start + tag.length, start + tag.length);
+      }, 0);
+    } else {
+      setValue((prev) => prev + tag);
+    }
   }, []);
 
   // Initialize email template and QR code content when form data loads
@@ -134,6 +272,14 @@ export default function EmailTemplatePage() {
       setGroupEmailTemplate('');
       return;
     }
+
+    const decodeVars = (str: string) =>
+      str.replace(/\$\{([^}]+)\}/g, (_m, fieldId) => {
+        const field = fields.find((f) => f.id === fieldId);
+        return field ? `{${getFieldLabel(field)}}` : `{${fieldId}}`;
+      });
+    setEmailSenderName(decodeVars(form.email_sender_name || ''));
+    setEmailSubject(decodeVars(form.email_subject || ''));
 
     if (form.template_email) {
       const displayEmailTemplate = form.template_email.replace(
@@ -235,11 +381,20 @@ export default function EmailTemplatePage() {
         return field ? `\${${field.id}}` : _match;
       });
 
+      // Encode {Label} → ${fieldId}, preserve special vars like {event_name}
+      const encodeVars = (str: string) =>
+        str.replace(/\{([^}]+)\}/g, (_match, name) => {
+          const field = fields.find((f) => getFieldLabel(f) === name || f.name === name);
+          return field ? `\${${field.id}}` : `{${name}}`;
+        });
+
       await saveEmailTemplateMutation.mutateAsync({
         formId,
         templateEmail: directusTemplate,
         qrCodeField: !form.is_registration ? directusQrCode : undefined,
         templateEmailGroup: directusGroupTemplate,
+        emailSenderName: emailSenderName ? encodeVars(emailSenderName) : undefined,
+        emailSubject: emailSubject ? encodeVars(emailSubject) : undefined,
       });
       
       toast.success('Email template and QR code configuration saved successfully!');
@@ -353,6 +508,71 @@ export default function EmailTemplatePage() {
             </div>
           </div>
 
+          {/* Email Settings: Sender Name + Subject */}
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="p-6 border-b border-gray-100">
+              <div className="flex items-center gap-3">
+                <Icon icon="lucide:settings-2" className="w-5 h-5 text-slate-600" />
+                <div>
+                  <h3 className="text-lg font-semibold text-content-primary">Email Settings</h3>
+                  <p className="text-sm text-content-secondary mt-1">
+                    Configure sender name and subject. Click field chips to insert variables.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-5">
+              {/* Sender Name */}
+              <div>
+                <label className="block text-sm font-medium text-content-primary mb-1.5">
+                  Sender Name
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    ref={senderNameRef}
+                    type="text"
+                    value={emailSenderName}
+                    onChange={(e) => setEmailSenderName(e.target.value)}
+                    placeholder="e.g. Nexpo Team, Job Fair 2026"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+                  />
+                  <FieldInsertDropdown
+                    fields={textFieldOptions}
+                    onInsert={(tag) => insertAtCursor(senderNameRef, emailSenderName, setEmailSenderName, tag)}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-content-tertiary">
+                  Shown as <span className="font-mono">{emailSenderName || 'Nexpo'} &lt;no-reply@m.nexpo.vn&gt;</span>
+                </p>
+              </div>
+
+              {/* Email Subject */}
+              <div>
+                <label className="block text-sm font-medium text-content-primary mb-1.5">
+                  Email Subject
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    ref={emailSubjectRef}
+                    type="text"
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
+                    placeholder="e.g. Registration Confirmation | {event_name}"
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+                  />
+                  <FieldInsertDropdown
+                    fields={textFieldOptions}
+                    extraItems={[{ label: 'Event Name', tag: '{event_name}' }]}
+                    onInsert={(tag) => insertAtCursor(emailSubjectRef, emailSubject, setEmailSubject, tag)}
+                  />
+                </div>
+                <p className="mt-1.5 text-xs text-content-tertiary">
+                  Leave blank to use default: <span className="font-mono">Registration Confirmation | {'{event_name}'}</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Email Template Editor */}
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="p-6 border-b border-gray-100">
@@ -371,6 +591,7 @@ export default function EmailTemplatePage() {
                 value={emailTemplate}
                 onChange={setEmailTemplate}
                 formFields={fields}
+                eventName={eventName}
                 className="w-full"
               />
               
@@ -382,6 +603,8 @@ export default function EmailTemplatePage() {
                 title="Email Template"
                 icon="lucide:mail"
                 iconColor="blue"
+                senderName={emailSenderName || 'Nexpo'}
+                fieldMap={fieldMap}
               />
             </div>
           </div>
@@ -514,6 +737,7 @@ export default function EmailTemplatePage() {
                   value={groupEmailTemplate}
                   onChange={setGroupEmailTemplate}
                   formFields={fields}
+                  eventName={eventName}
                   className="w-full"
                 />
                 
@@ -525,6 +749,8 @@ export default function EmailTemplatePage() {
                   title="Group Email Template"
                   icon="lucide:users"
                   iconColor="purple"
+                  senderName={emailSenderName || 'Nexpo'}
+                  fieldMap={fieldMap}
                 />
               </div>
             </div>

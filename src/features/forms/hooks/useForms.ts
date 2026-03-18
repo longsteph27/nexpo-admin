@@ -92,8 +92,8 @@ export function useUpdateEmailTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ formId, templateEmail, qrCodeField, templateEmailGroup }: { formId: string; templateEmail?: string; qrCodeField?: string; templateEmailGroup?: string }) =>
-      formsApi.updateEmailTemplate(formId, templateEmail, qrCodeField, templateEmailGroup),
+    mutationFn: ({ formId, templateEmail, qrCodeField, templateEmailGroup, emailSenderName, emailSubject }: { formId: string; templateEmail?: string; qrCodeField?: string; templateEmailGroup?: string; emailSenderName?: string; emailSubject?: string }) =>
+      formsApi.updateEmailTemplate(formId, templateEmail, qrCodeField, templateEmailGroup, emailSenderName, emailSubject),
     onSuccess: (data, variables) => {
       // Invalidate the specific form in cache to force refetch
       queryClient.invalidateQueries({ queryKey: formKeys.detail(variables.formId) });
