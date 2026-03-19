@@ -277,6 +277,7 @@ export const siteApi = {
   updateSite: async (siteId: number, payload: Partial<{
     slug: string;
     domain: string;
+    domain_verified: boolean;
     status: string;
     logo: string | null;
     favicon: string | null;

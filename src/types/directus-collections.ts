@@ -66,6 +66,7 @@ export interface Site extends DirectusTimestamp {
   id: number;
   slug?: string | null;
   domain?: string | null;
+  domain_verified?: boolean | null;
   status: DirectusStatus;
   sort: number | null;
   logo?: string | null; // UUID reference to directus_files

@@ -10,6 +10,9 @@ import { Html5Qrcode } from 'html5-qrcode';
 import { useAuthStore } from '@/store/auth';
 import QRCode from 'qrcode';
 import { registrationsApi } from '../api';
+import { eventsApi } from '@/lib/api';
+import { BadgeConfigModal, DEFAULT_BADGE_CONFIG } from './BadgeConfigModal';
+import type { BadgeConfig } from './BadgeConfigModal';
 
 
 export function CheckInPage() {
@@ -31,103 +34,93 @@ export function CheckInPage() {
   const [hardwareValue, setHardwareValue] = useState('');
   const hardwareInputRef = useRef<HTMLInputElement>(null);
 
+  const [badgeConfig, setBadgeConfig] = useState<BadgeConfig>(DEFAULT_BADGE_CONFIG);
+  const [showBadgeConfig, setShowBadgeConfig] = useState(false);
+
   const qrCodeScannerRef = useRef<Html5Qrcode | null>(null);
   const qrCodeDivRef = useRef<HTMLDivElement>(null);
 
-  // Function to generate QR code and open print dialog
-  const printWelcomeCard = async (qrCodeText: string) => {
+  // Function to generate badge HTML and open print dialog
+  const printWelcomeCard = async (qrCodeText: string, registration?: Record<string, string>) => {
     try {
-      // Generate QR code as data URL
-      const qrCodeDataUrl = await QRCode.toDataURL(qrCodeText, {
-        width: 200,
-        margin: 1,
-        color: {
-          dark: '#000000',
-          light: '#FFFFFF'
+      const cfg = badgeConfig;
+      const { widthMm, heightMm } = cfg;
+      const enabledEls = cfg.elements.filter(el => el.enabled);
+
+      // Generate QR if needed
+      let qrDataUrl = '';
+      if (enabledEls.some(el => el.type === 'qr')) {
+        qrDataUrl = await QRCode.toDataURL(qrCodeText, {
+          width: 200,
+          margin: 1,
+          color: { dark: '#000000', light: '#FFFFFF' },
+        });
+      }
+
+      // Build element HTML
+      const elementsHtml = enabledEls.map(el => {
+        const alignStyle = `text-align:${el.align};`;
+
+        if (el.type === 'qr') {
+          const qrSize = Math.min(widthMm * 0.45, 45);
+          return `<div style="display:flex;justify-content:${el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start'};width:100%;margin:2mm 0;">
+            <img src="${qrDataUrl}" alt="QR" style="width:${qrSize}mm;height:${qrSize}mm;object-fit:contain;" />
+          </div>`;
         }
-      });
 
-      // Create print content
-      const printContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <meta charset="utf-8">
-          <title>Nexpo Welcome Card</title>
-          <style>
-            @page {
-              size: 72mm 106mm;
-              margin: 0;
-            }
-            body {
-              margin: 0;
-              padding: 6mm;
-              font-family: 'Arial', sans-serif;
-              width: 60mm;
-              height: 94mm;
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              justify-content: center;
-              background: white;
-              box-sizing: border-box;
-            }
-            .welcome-text {
-              font-size: 12px;
-              font-weight: bold;
-              color: #1f2937;
-              text-align: center;
-              margin-bottom: 6mm;
-              line-height: 1.2;
-            }
-            .qr-code {
-              width: 25mm;
-              height: 25mm;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .qr-code img {
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
-            }
-            @media print {
-              body {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-              }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="welcome-text">Chào mừng bạn đến với Nexpo</div>
-          <div class="qr-code">
-            <img src="${qrCodeDataUrl}" alt="QR Code" />
-          </div>
-        </body>
-        </html>
-      `;
+        // registration already contains all field values (UUID keys + name keys + parsed keys)
+        const text = el.type === 'text'
+          ? (el.content || '')
+          : (el.fieldId ? (registration?.[el.fieldId] || '') : '');
 
-      // Open print dialog
+        console.log('[Badge print] el:', el.id, 'fieldId:', el.fieldId, '→', text || '(empty)');
+
+        if (!text) return ''; // skip empty values silently
+
+        return `<div style="width:100%;${alignStyle}font-size:${el.fontSize}px;font-weight:${el.bold ? 700 : 400};color:#111827;line-height:1.3;margin:1mm 0;word-break:break-word;">${text}</div>`;
+      }).join('');
+
+      const printContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Badge</title>
+  <style>
+    @page { size: ${widthMm}mm ${heightMm}mm; margin: 0; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 5mm;
+      font-family: Arial, sans-serif;
+      width: ${widthMm}mm;
+      height: ${heightMm}mm;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      justify-content: center;
+      background: white;
+    }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>${elementsHtml}</body>
+</html>`;
+
       const printWindow = window.open('', '_blank');
       if (printWindow) {
         printWindow.document.write(printContent);
         printWindow.document.close();
-        
-        // Wait for content to load then trigger print
         printWindow.onload = () => {
           setTimeout(() => {
             printWindow.print();
-            // Close the window after printing
-            setTimeout(() => {
-              printWindow.close();
-            }, 1000);
+            setTimeout(() => printWindow.close(), 1000);
           }, 500);
         };
       }
     } catch (error) {
-      console.error('Error generating QR code for print:', error);
+      console.error('Error generating badge for print:', error);
       toast.error('Failed to generate print content');
     }
   };
@@ -141,6 +134,15 @@ export function CheckInPage() {
       }
     };
   }, []);
+
+  // Load badge config from event
+  useEffect(() => {
+    if (!eventId) return;
+    eventsApi.getEvent(eventId).then(res => {
+      const cfg = (res.data as any)?.badge_config;
+      if (cfg) setBadgeConfig(cfg);
+    });
+  }, [eventId]);
 
   // Load available cameras
   const loadAvailableCameras = async () => {
@@ -374,8 +376,56 @@ export function CheckInPage() {
       // Step 3: Show success message
       toast.success(`Successfully checked in ${matchingRegistrations.length} registration(s)!`);
 
-      // Step 4: Print welcome card with QR code
-      await printWelcomeCard(qrCodeId);
+      // Step 4: Build field map then print badge
+      const firstReg = matchingRegistrations[0] as any;
+      const answers: any[] = firstReg?.submissions?.answers || [];
+
+      // Heuristic parse for name/email/phone (same as RegistrationsPage)
+      let parsedName  = firstReg?.full_name    || '';
+      let parsedEmail = firstReg?.email        || '';
+      let parsedPhone = firstReg?.phone_number || '';
+      const textVals: string[] = [];
+      for (const ans of answers) {
+        const val = ans.value?.trim();
+        if (!val) continue;
+        if (!parsedEmail && ans.field?.type === 'email')        { parsedEmail = val; continue; }
+        if (!parsedEmail && val.includes('@'))                  { parsedEmail = val; continue; }
+        if (!parsedPhone && /^\+?[\d\s\-().]{9,}$/.test(val))  { parsedPhone = val; continue; }
+        if (ans.field?.type === 'input') textVals.push(val);
+      }
+      if (!parsedName) {
+        parsedName = textVals.length >= 2
+          ? `${textVals[0]} ${textVals[1]}`.trim()
+          : textVals[0] || '';
+      }
+
+      // Field map: special keys + every answer keyed by field UUID and field name
+      const regData: Record<string, string> = {
+        full_name:    parsedName,
+        email:        parsedEmail,
+        phone_number: parsedPhone,
+        badge_id:     firstReg?.badge_id  || qrCodeId,
+        redeem_id:    firstReg?.redeem_id || '',
+        auto_number:  String(firstReg?.auto_number ?? ''),
+      };
+      for (const ans of answers) {
+        const val = ans.value || '';
+        // ans.field may be an expanded object OR just a UUID string
+        const field = ans?.field;
+        if (typeof field === 'string' && field) {
+          regData[field] = val;            // field is the UUID string
+        } else if (field && typeof field === 'object') {
+          if (field.id)   regData[field.id]   = val;  // UUID → value
+          if (field.name) regData[field.name] = val;  // name → value
+        }
+      }
+      console.log('[Badge] regData keys:', Object.keys(regData));
+      console.log('[Badge] answers count:', answers.length);
+
+      // QR text: use badge_id (pre-assigned), fallback to registration id
+      const qrText = firstReg?.badge_id || qrCodeId;
+      console.log('[Badge] config elements:', badgeConfig.elements.map(e => ({ id: e.id, fieldId: e.fieldId, enabled: e.enabled })));
+      await printWelcomeCard(qrText, regData);
 
     } catch (error) {
       console.error('[processCheckin] Error:', error);
@@ -416,6 +466,16 @@ export function CheckInPage() {
           </motion.div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Event Check-in</h1>
           <p className="text-lg text-gray-600">Scan QR code or enter registration ID manually</p>
+          <div className="mt-3">
+            <Button
+              variant="outline"
+              onClick={() => setShowBadgeConfig(true)}
+              className="text-sm"
+            >
+              <Icon icon="lucide:credit-card" className="w-4 h-4 mr-2" />
+              Cấu hình Badge in
+            </Button>
+          </div>
         </div>
 
         {/* Mode Toggle */}
@@ -712,6 +772,14 @@ export function CheckInPage() {
           </Button>
         </motion.div>
       </div>
+
+      <BadgeConfigModal
+        open={showBadgeConfig}
+        onClose={() => setShowBadgeConfig(false)}
+        eventId={eventId}
+        initialConfig={badgeConfig}
+        onSaved={cfg => setBadgeConfig(cfg)}
+      />
     </div>
   );
 }

@@ -203,6 +203,7 @@ interface Event {
   user_created?: string;
   tenant?: Tenant;
   forms?: { id: string }[];
+  badge_config?: unknown;
 }
 
 interface User {
@@ -1360,6 +1361,7 @@ export const directusHelpers = {
           'event_id',
           'slug',
           'domain',
+          'domain_verified',
           'status',
           'sort',
           'user_created',
@@ -1484,6 +1486,7 @@ export const directusHelpers = {
   async updateSite(siteId: number, payload: Partial<{
     slug: string;
     domain: string;
+    domain_verified: boolean;
     status: string;
     logo: string | null;
     favicon: string | null;
@@ -2090,10 +2093,24 @@ export const directusHelpers = {
             event_id: { _eq: eventId },
             _or: [
               { id: { _eq: qrCodeId } },
-              { group_id: { _eq: qrCodeId } }
+              { badge_id: { _eq: qrCodeId } },
+              { group_id: { _eq: qrCodeId } },
             ]
           },
-          fields: ['id'] as unknown as never,
+          fields: [
+            'id', 'full_name', 'email', 'phone_number', 'badge_id', 'redeem_id', 'auto_number',
+            {
+              submissions: [
+                'id',
+                {
+                  answers: [
+                    'id', 'value',
+                    { field: ['id', 'name', 'type', { translations: ['languages_code', 'label'] }] }
+                  ]
+                }
+              ]
+            }
+          ] as unknown as never,
         })
       );
 

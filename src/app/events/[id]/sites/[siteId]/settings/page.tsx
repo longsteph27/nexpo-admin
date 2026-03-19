@@ -7,14 +7,14 @@ import { globalApi } from '@/lib/api';
 import { siteApi } from '@/features/sites';
 import { Button } from '@/components/ui/button-base';
 import { Icon } from '@iconify/react';
-import { SiteBasicInfo, GlobalSettings } from '@/features/sites';
+import { SiteBasicInfo, GlobalSettings, CustomDomainSettings } from '@/features/sites';
 
 export default function SiteSettingsPage() {
   const params = useParams();
   const router = useRouter();
   const eventId = String(params?.id || '');
   const siteId = String(params?.siteId || '');
-  const [activeTab, setActiveTab] = useState<'info' | 'global'>('info');
+  const [activeTab, setActiveTab] = useState<'info' | 'global' | 'domain'>('info');
 
   // Fetch site data
   const { data: site, isLoading: loadingSite, refetch: refetchSite } = useQuery({
@@ -65,6 +65,7 @@ export default function SiteSettingsPage() {
   const tabs = [
     { id: 'info' as const, label: 'Site Information', icon: 'lucide:info' },
     { id: 'global' as const, label: 'Global Settings', icon: 'lucide:settings' },
+    { id: 'domain' as const, label: 'Custom Domain', icon: 'lucide:globe' },
   ];
 
   return (
@@ -120,6 +121,10 @@ export default function SiteSettingsPage() {
           ) : (
             <GlobalSettings siteId={Number(siteId)} global={global as any} onUpdate={handleUpdate} />
           )
+        )}
+
+        {activeTab === 'domain' && (
+          <CustomDomainSettings site={site as any} onUpdate={refetchSite} />
         )}
       </div>
     </div>

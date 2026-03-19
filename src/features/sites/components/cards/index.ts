@@ -1,4 +1,5 @@
 export { default as CategoriesCard } from './CategoriesCard';
+export { default as CustomDomainCard } from './CustomDomainCard';
 export { default as GlobalsCard } from './GlobalsCard';
 export { default as LanguagesCard } from './LanguagesCard';
 export { default as NavigationCard } from './NavigationCard';

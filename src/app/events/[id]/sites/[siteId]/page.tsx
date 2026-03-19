@@ -20,6 +20,7 @@ import {
   LanguagesCard,
   RedirectsCard,
   GlobalsCard,
+  CustomDomainCard,
   SITE_LANGUAGE_CODES,
 } from '@/features/sites';
 import type { FeatureSite, SiteInfoEditState, SiteTranslationFormData } from '@/features/sites';
@@ -429,6 +430,12 @@ export default function SiteDetailPage() {
 
         {/* Global Settings */}
         <GlobalsCard site={site} />
+
+        {/* Custom Domain */}
+        <CustomDomainCard
+          site={site}
+          onUpdate={() => queryClient.invalidateQueries({ queryKey: ['site', siteId] })}
+        />
         </div>
     </div>
   );

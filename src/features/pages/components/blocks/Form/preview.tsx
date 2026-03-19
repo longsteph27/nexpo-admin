@@ -11,8 +11,6 @@ import { useForm, ControllerRenderProps, FieldValues } from 'react-hook-form';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useFormConditions, Field } from '@/hooks/use-form-conditions';
-import { buildDynamicZodSchema } from '@/lib/dynamic-schema';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 
 interface FormBlockData {
@@ -61,12 +59,6 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
   // Conditions hook — tính toán show/hide, required, dynamic options từ trường conditions
   const { visibleFields, requiredFields, dynamicOptions } = useFormConditions(fields, rhfForm);
 
-  // Dynamic Zod schema — tạo lại mỗi khi required/visible thay đổi
-  const dynamicSchema = useMemo(
-    () => buildDynamicZodSchema(fields, requiredFields, visibleFields),
-    [fields, requiredFields, visibleFields]
-  );
-
   // Reset values khi fields load xong lần đầu
   useEffect(() => {
     if (fields.length > 0) {
@@ -75,11 +67,6 @@ export default function FormBlock({ data, lang }: FormBlockProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fields]);
 
-  // Clear lỗi validation khi schema thay đổi (do conditions thay đổi required)
-  useEffect(() => {
-    rhfForm.clearErrors();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dynamicSchema]);
 
   const getWidthClass = (width?: string) => {
     switch (width) {
