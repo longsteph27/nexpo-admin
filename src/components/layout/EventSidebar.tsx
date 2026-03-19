@@ -43,6 +43,13 @@ export default function EventSidebar() {
         typeof window !== 'undefined' && (window.location.pathname.includes('/facilities') || window.location.pathname.includes('/orders'))
     );
     const [expandedForms, setExpandedForms] = useState(false);
+    const [expandedEventInfo, setExpandedEventInfo] = useState(() =>
+        typeof window !== 'undefined' && (
+            window.location.pathname === `/events/${storeEventId}` ||
+            window.location.pathname.includes('/agendas') ||
+            window.location.pathname.includes('/speakers')
+        )
+    );
     const [metadataDialogPage, setMetadataDialogPage] = useState<DirectusPage | null>(null);
     const [metadataDialogLang, setMetadataDialogLang] = useState<LanguageCode>('en-US');
     const [isMetadataDialogOpen, setIsMetadataDialogOpen] = useState(false);
@@ -113,8 +120,11 @@ export default function EventSidebar() {
         router.push(`/events/${eventId}/pages/${page.id}`);
     };
 
-    // Check if Event Information is active (on main event page)
-    const isEventInformationActive = pathname === `/events/${eventId}` || (pathname?.includes(`/events/${eventId}`) && !pathname?.includes('/sites/') && !pathname?.includes('/forms') && !pathname?.includes('/pages/') && !pathname?.includes('/registrations') && !pathname?.includes('/checkin') && !pathname?.includes('/exhibitors') && !pathname?.includes('/facilities'));
+    // Check if Event Information section is active
+    const isEventInfoPageActive = pathname === `/events/${eventId}`;
+    const isAgendasActive = pathname?.includes('/agendas');
+    const isSpeakersActive = pathname?.includes('/speakers');
+    const isEventInformationActive = isEventInfoPageActive || isAgendasActive || isSpeakersActive;
 
     // Check if Sites section is active (any site or page is selected)
     const isSitesActive = pathname?.includes('/sites/');
@@ -224,39 +234,103 @@ export default function EventSidebar() {
                                 </div>
                             </motion.div>
 
-                            {/* Event Information Item */}
-                            <motion.div
-                                className="ml-6 cursor-pointer"
-                                onClick={() => router.push(`/events/${eventId}`)}
-                                variants={sidebarItemVariants}
-                                whileHover="hover"
-                                whileTap="tap"
-                                transition={{
-                                    duration: 0.2,
-                                    ease: "easeOut",
-                                }}
-                            >
-                                <div className={cn(
-                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
-                                    isEventInformationActive
-                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
-                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
-                                )}>
-                                    <motion.div
-                                        animate={isEventInformationActive ? { scale: 1.1 } : { scale: 1 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <Icon
-                                            icon="lucide:info"
-                                            className={cn(
-                                                "w-4 h-4",
-                                                isEventInformationActive ? "text-blue-600" : "text-content-tertiary"
-                                            )}
-                                        />
-                                    </motion.div>
-                                    <span className="font-sf text-sm font-medium text-content-primary">Event Information</span>
-                                </div>
-                            </motion.div>
+                            {/* Event Information (expandable) */}
+                            <div className="ml-6">
+                                <motion.div
+                                    className="cursor-pointer"
+                                    onClick={() => setExpandedEventInfo(!expandedEventInfo)}
+                                    variants={sidebarItemVariants}
+                                    whileHover="hover"
+                                    whileTap="tap"
+                                    transition={{ duration: 0.2, ease: "easeOut" }}
+                                >
+                                    <div className={cn(
+                                        "flex items-center justify-between px-3 py-2 transition-all duration-200",
+                                        isEventInformationActive
+                                            ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                            : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                    )}>
+                                        <div className="flex items-center space-x-3">
+                                            <motion.div animate={isEventInformationActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                                <Icon icon="lucide:info" className={cn("w-4 h-4", isEventInformationActive ? "text-blue-600" : "text-content-tertiary")} />
+                                            </motion.div>
+                                            <span className="font-sf text-sm font-medium text-content-primary">Event Information</span>
+                                        </div>
+                                        <motion.button
+                                            onClick={(e) => { e.stopPropagation(); setExpandedEventInfo(!expandedEventInfo); }}
+                                            className="p-1 hover:bg-blue-200 rounded transition-colors"
+                                            whileHover={{ scale: 1.1 }}
+                                            whileTap={{ scale: 0.9 }}
+                                        >
+                                            <motion.div animate={{ rotate: expandedEventInfo ? 90 : 0 }} transition={{ duration: 0.2 }}>
+                                                <Icon icon="lucide:chevron-right" className="w-4 h-4 text-content-tertiary" />
+                                            </motion.div>
+                                        </motion.button>
+                                    </div>
+                                </motion.div>
+                                <AnimatePresence>
+                                    {expandedEventInfo && (
+                                        <motion.div
+                                            className="relative ml-8 space-y-1 mt-2"
+                                            variants={expandVariants}
+                                            initial="hidden"
+                                            animate="visible"
+                                            exit="hidden"
+                                            transition={{ duration: 0.3, ease: "easeOut" }}
+                                        >
+                                            <div className="absolute left-0 top-0 bottom-0 w-px bg-nexpo-light-gray" />
+                                            {/* Event Info */}
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isEventInfoPageActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isEventInfoPageActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Event Info</span>
+                                            </motion.div>
+                                            {/* Agendas */}
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isAgendasActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/agendas`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isAgendasActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Agendas</span>
+                                            </motion.div>
+                                            {/* Speakers */}
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isSpeakersActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/speakers`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isSpeakersActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Speakers</span>
+                                            </motion.div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
 
                             {/* Registrations Item */}
                             <motion.div
