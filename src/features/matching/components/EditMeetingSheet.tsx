@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Icon } from '@iconify/react';
 import directus from '@/lib/directus';
-import { updateItem } from '@directus/sdk';
+import { updateItem, createItem } from '@directus/sdk';
 import { toast } from 'sonner';
 import {
   Sheet, SheetContent, SheetHeader, SheetTitle,
@@ -74,9 +74,13 @@ interface EditMeetingSheetProps {
   eventId: number;
   open: boolean;
   onClose: () => void;
+  // Create mode: pass initialData instead of meeting
+  createMode?: boolean;
+  initialData?: Partial<Meeting>;
+  onCreated?: (meeting: Meeting) => void;
 }
 
-export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetingSheetProps) {
+export function EditMeetingSheet({ meeting, eventId, open, onClose, createMode, initialData, onCreated }: EditMeetingSheetProps) {
   const queryClient = useQueryClient();
 
   // Form state
@@ -89,27 +93,28 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
   const [durationMin, setDurationMin] = useState<string>('');
   const [organizerNote, setOrganizerNote] = useState('');
 
-  // Sync form with meeting data when sheet opens
+  // Sync form with meeting data (or initialData for create mode) when sheet opens
   useEffect(() => {
-    if (!meeting) return;
-    setStatus(meeting.status as MeetingStatus);
-    setLocation(meeting.location || '');
-    setMeetingType((meeting.meeting_type as 'physical' | 'virtual') || 'physical');
-    setDurationMin(meeting.duration_minutes ? String(meeting.duration_minutes) : '');
-    setOrganizerNote(meeting.organizer_note || '');
-    if (meeting.slot_id) {
+    const src = createMode ? initialData : meeting;
+    if (!src) return;
+    setStatus((src.status as MeetingStatus) || 'scheduled');
+    setLocation(src.location || '');
+    setMeetingType((src.meeting_type as 'physical' | 'virtual') || 'physical');
+    setDurationMin(src.duration_minutes ? String(src.duration_minutes) : '');
+    setOrganizerNote(src.organizer_note || '');
+    if (src.slot_id) {
       setSlotMode('slot');
-      setSelectedSlotId(typeof meeting.slot_id === 'string' ? meeting.slot_id : meeting.slot_id.id);
+      setSelectedSlotId(typeof src.slot_id === 'string' ? src.slot_id : (src.slot_id as MeetingSlot).id);
     } else {
       setSlotMode('flexible');
       setSelectedSlotId('');
       setScheduledAt(
-        meeting.scheduled_at
-          ? new Date(meeting.scheduled_at).toISOString().slice(0, 16)
+        src.scheduled_at
+          ? new Date(src.scheduled_at).toISOString().slice(0, 16)
           : ''
       );
     }
-  }, [meeting, open]);
+  }, [meeting, initialData, open, createMode]);
 
   // Fetch slot config to know mode
   const { data: slotConfig } = useQuery<MeetingSlotConfig | null>({
@@ -127,18 +132,15 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
   });
 
   const currentSlot = slots.find(s => s.id === selectedSlotId) ?? null;
-  const currentSlotIdOnMeeting = meeting?.slot_id
+  const currentSlotIdOnMeeting = !createMode && meeting?.slot_id
     ? (typeof meeting.slot_id === 'string' ? meeting.slot_id : meeting.slot_id.id)
     : null;
 
   // Save mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!meeting) return;
-
       const newSlotId = slotMode === 'slot' ? selectedSlotId || null : null;
 
-      // Build meeting payload
       const payload: Partial<Meeting> = {
         status,
         location: location || undefined,
@@ -148,29 +150,35 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
         slot_id: newSlotId as any,
       };
 
-      // If assigning a slot, sync scheduled_at and location from slot
       if (newSlotId && currentSlot) {
         payload.scheduled_at = currentSlot.start_at;
-        if (!location && currentSlot.location) {
-          payload.location = currentSlot.location;
-        }
+        if (!location && currentSlot.location) payload.location = currentSlot.location;
       } else if (slotMode === 'flexible') {
         payload.scheduled_at = scheduledAt ? new Date(scheduledAt).toISOString() : null as any;
       }
 
-      await directus.request(updateItem('meetings' as any, meeting.id, payload));
+      if (createMode) {
+        const created = await directus.request(
+          createItem('meetings' as any, { ...initialData, ...payload, event_id: eventId } as any)
+        );
+        return created as Meeting;
+      } else {
+        if (!meeting) return;
+        await directus.request(updateItem('meetings' as any, meeting.id, payload));
+      }
     },
-    onSuccess: () => {
-      toast.success('Đã cập nhật meeting');
+    onSuccess: (created) => {
+      toast.success(createMode ? 'Đã tạo meeting mới' : 'Đã cập nhật meeting');
       queryClient.invalidateQueries({ queryKey: ['meetings', eventId] });
       queryClient.invalidateQueries({ queryKey: ['meeting-slots', eventId] });
       queryClient.invalidateQueries({ queryKey: ['meeting-slots-all', eventId] });
+      if (createMode && created && onCreated) onCreated(created as Meeting);
       onClose();
     },
     onError: () => toast.error('Lưu thất bại'),
   });
 
-  if (!meeting) return null;
+  if (!createMode && !meeting) return null;
 
   const isBooked = !!currentSlotIdOnMeeting;
   const hasSlotConfig = slotConfig?.mode === 'slot';
@@ -181,17 +189,19 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
         {/* Header */}
         <SheetHeader className="px-5 py-4 border-b border-slate-200 bg-slate-50">
           <SheetTitle className="text-base font-bold text-content-primary">
-            Chỉnh sửa Meeting
+            {createMode ? 'Tạo Meeting Mới' : 'Chỉnh sửa Meeting'}
           </SheetTitle>
           <p className="text-xs text-content-tertiary mt-0.5">
-            {getRegistrationName(meeting.registration_id)} ↔ {getExhibitorName(meeting.exhibitor_id)}
+            {getRegistrationName(createMode ? initialData?.registration_id : meeting?.registration_id)}
+            {' ↔ '}
+            {getExhibitorName(createMode ? initialData?.exhibitor_id : meeting?.exhibitor_id)}
           </p>
         </SheetHeader>
 
         <div className="px-5 py-4 space-y-5">
 
           {/* Current slot badge */}
-          {isBooked && typeof meeting.slot_id === 'object' && meeting.slot_id && (
+          {isBooked && !createMode && typeof meeting?.slot_id === 'object' && meeting?.slot_id && (
             <div className="flex items-center gap-2 p-3 rounded-xl bg-blue-50 border border-blue-100 text-sm text-blue-700">
               <Icon icon="lucide:calendar-clock" className="w-4 h-4 flex-shrink-0" />
               <span>Đang gắn slot: <strong>{fmtSlot(meeting.slot_id as MeetingSlot)}</strong></span>
@@ -286,8 +296,8 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
               className={`${inputCls} resize-none`} />
           </FieldRow>
 
-          {/* Exhibitor note (readonly) */}
-          {meeting.exhibitor_note && (
+          {/* Exhibitor note (readonly, edit mode only) */}
+          {!createMode && meeting?.exhibitor_note && (
             <FieldRow label="Ghi chú từ Exhibitor (readonly)">
               <p className="text-sm text-content-secondary bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
                 {meeting.exhibitor_note}
@@ -295,8 +305,8 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
             </FieldRow>
           )}
 
-          {/* Visitor note (readonly) */}
-          {meeting.visitor_note && (
+          {/* Visitor note (readonly, edit mode only) */}
+          {!createMode && meeting?.visitor_note && (
             <FieldRow label="Ghi chú từ Visitor (readonly)">
               <p className="text-sm text-content-secondary bg-slate-50 border border-slate-200 rounded-lg px-3 py-2">
                 {meeting.visitor_note}
@@ -311,7 +321,9 @@ export function EditMeetingSheet({ meeting, eventId, open, onClose }: EditMeetin
           <Button variant="gradient" size="sm" onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
             {saveMutation.isPending
               ? <><Icon icon="lucide:loader-2" className="w-3.5 h-3.5 animate-spin mr-1.5" />Đang lưu...</>
-              : <><Icon icon="lucide:save" className="w-3.5 h-3.5 mr-1.5" />Lưu thay đổi</>
+              : createMode
+                ? <><Icon icon="lucide:calendar-plus" className="w-3.5 h-3.5 mr-1.5" />Tạo Meeting</>
+                : <><Icon icon="lucide:save" className="w-3.5 h-3.5 mr-1.5" />Lưu thay đổi</>
             }
           </Button>
         </div>

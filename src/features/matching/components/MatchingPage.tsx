@@ -7,13 +7,14 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button-base';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
-import { useMatchRequests, useUpdateMatchRequest, useCreateMeeting, useBulkUpdateMatchRequests, useBulkDeleteMatchRequests } from '../hooks/useMatching';
+import { useMatchRequests, useUpdateMatchRequest, useBulkUpdateMatchRequests, useBulkDeleteMatchRequests } from '../hooks/useMatching';
 import { useBoothMap } from '@/features/exhibitors/hooks/useExhibitors';
 import { useSelection } from '@/hooks/useSelection';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { toast } from 'sonner';
 import type { VisitorMatchRequestWithDetails, MatchRequestStatus } from '../types';
 import { VisitorDetailSheet } from './VisitorDetailSheet';
+import { EditMeetingSheet } from './EditMeetingSheet';
 
 const STATUS_MAP: Record<MatchRequestStatus, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'bg-yellow-100 text-yellow-700' },
@@ -169,6 +170,7 @@ export function MatchingPage() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [visitorSheet, setVisitorSheet] = useState<string | null>(null);
+  const [createMeetingData, setCreateMeetingData] = useState<Partial<import('../types').Meeting> | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
@@ -190,8 +192,6 @@ export function MatchingPage() {
     request_type: 'business',
   });
   const updateMutation = useUpdateMatchRequest();
-  const createMeeting = useCreateMeeting();
-
   const rows = data?.requests ?? [];
   const total = data?.total ?? 0;
   const totalPages = data?.totalPages ?? 1;
@@ -207,17 +207,17 @@ export function MatchingPage() {
           organizer_approved_at: new Date().toISOString(),
         },
       });
-      if (req.preferred_meeting_time) {
-        await createMeeting.mutateAsync({
-          match_request_id: req.id,
-          exhibitor_id: typeof req.exhibitor_id === 'object' ? req.exhibitor_id.id : req.exhibitor_id,
-          registration_id: typeof req.registration_id === 'object' ? req.registration_id.id : req.registration_id as any,
-          event_id: eventId,
-          scheduled_at: req.preferred_meeting_time,
-          status: 'scheduled',
-        });
-      }
       await refetch();
+      // Open create meeting sheet with pre-filled data from request
+      setCreateMeetingData({
+        match_request_id: req.id,
+        exhibitor_id: typeof req.exhibitor_id === 'object' ? req.exhibitor_id.id as any : req.exhibitor_id,
+        registration_id: typeof req.registration_id === 'object' ? req.registration_id.id as any : req.registration_id as any,
+        scheduled_at: req.preferred_meeting_time || undefined,
+        status: 'scheduled',
+        meeting_category: 'business',
+        organizer_note: organizerNote || undefined,
+      });
     } finally {
       setActionLoading(null);
       setNoteModal(null);
@@ -532,6 +532,15 @@ export function MatchingPage() {
         registrationId={visitorSheet}
         open={!!visitorSheet}
         onClose={() => setVisitorSheet(null)}
+      />
+
+      <EditMeetingSheet
+        meeting={null}
+        eventId={eventId}
+        open={!!createMeetingData}
+        onClose={() => setCreateMeetingData(null)}
+        createMode
+        initialData={createMeetingData ?? undefined}
       />
     </div>
   );

@@ -7,13 +7,14 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button-base';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
-import { useMatchRequests, useUpdateMatchRequest, useCreateMeeting, useBulkUpdateMatchRequests, useBulkDeleteMatchRequests } from '../hooks/useMatching';
+import { useMatchRequests, useUpdateMatchRequest, useBulkUpdateMatchRequests, useBulkDeleteMatchRequests } from '../hooks/useMatching';
 import { useBoothMap } from '@/features/exhibitors/hooks/useExhibitors';
 import { useSelection } from '@/hooks/useSelection';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { toast } from 'sonner';
-import type { VisitorMatchRequestWithDetails, MatchRequestStatus } from '../types';
+import type { VisitorMatchRequestWithDetails, MatchRequestStatus, Meeting } from '../types';
 import { VisitorDetailSheet } from './VisitorDetailSheet';
+import { EditMeetingSheet } from './EditMeetingSheet';
 
 const STATUS_MAP: Record<MatchRequestStatus, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'bg-yellow-100 text-yellow-700' },
@@ -190,6 +191,7 @@ export function TalentMatchRequestsPage() {
   const [groupByExhibitor, setGroupByExhibitor] = useState(true);
   const [sort, setSort] = useState('-date_created');
   const [visitorSheet, setVisitorSheet] = useState<string | null>(null);
+  const [createMeetingData, setCreateMeetingData] = useState<Partial<Meeting> | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
 
@@ -213,7 +215,6 @@ export function TalentMatchRequestsPage() {
     request_type: 'interview',
   });
   const updateMutation = useUpdateMatchRequest();
-  const createMeeting = useCreateMeeting();
 
   const rows = data?.requests ?? [];
   const total = data?.total ?? 0;
@@ -230,18 +231,15 @@ export function TalentMatchRequestsPage() {
           organizer_approved_at: new Date().toISOString(),
         },
       });
-      if (req.preferred_meeting_time) {
-        await createMeeting.mutateAsync({
-          match_request_id: req.id,
-          exhibitor_id: typeof req.exhibitor_id === 'object' ? req.exhibitor_id.id : req.exhibitor_id,
-          registration_id: typeof req.registration_id === 'object' ? req.registration_id.id : req.registration_id as any,
-          event_id: eventId,
-          scheduled_at: req.preferred_meeting_time,
-          status: 'scheduled',
-          meeting_category: 'talent',
-        });
-      }
       await refetch();
+      setCreateMeetingData({
+        match_request_id: req.id as any,
+        exhibitor_id: (typeof req.exhibitor_id === 'object' ? req.exhibitor_id : { id: req.exhibitor_id }) as any,
+        registration_id: (typeof req.registration_id === 'object' ? req.registration_id : { id: req.registration_id }) as any,
+        scheduled_at: req.preferred_meeting_time || undefined,
+        meeting_category: 'talent' as any,
+        status: 'scheduled',
+      });
     } finally {
       setActionLoading(null);
       setNoteModal(null);
@@ -565,6 +563,15 @@ export function TalentMatchRequestsPage() {
         registrationId={visitorSheet}
         open={!!visitorSheet}
         onClose={() => setVisitorSheet(null)}
+      />
+
+      <EditMeetingSheet
+        meeting={null}
+        eventId={eventId}
+        open={!!createMeetingData}
+        onClose={() => setCreateMeetingData(null)}
+        createMode
+        initialData={createMeetingData ?? undefined}
       />
     </div>
   );
