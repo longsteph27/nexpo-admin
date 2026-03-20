@@ -632,6 +632,7 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
                           const mod = e.target.value || undefined;
                           const purposeMap: Record<string, string> = {
                             candidate_profiles: 'matching_hiring',
+                            company_profiles: 'matching_business',
                             matching_requests: 'matching_business',
                             ai_business_matching: 'matching_business',
                           };
@@ -641,6 +642,7 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
                       >
                         <option value="">— None —</option>
                         <option value="candidate_profiles">Candidate Profiles (Hiring)</option>
+                        <option value="company_profiles">Company Profiles (Business)</option>
                         <option value="matching_requests">Matching Requests (Business)</option>
                         <option value="ai_business_matching">AI Business Matching</option>
                       </select>

@@ -11,9 +11,12 @@ export type MeetingSource = 'manual' | 'ai_matching' | 'visitor_request' | 'orga
 export type MeetingType = 'physical' | 'virtual';
 export type MeetingCategory = 'talent' | 'business';
 
+export type MatchRequestType = 'business' | 'interview';
+
 export interface VisitorMatchRequest {
   id: string;
   status: MatchRequestStatus;
+  request_type?: MatchRequestType;
   date_created?: string;
   date_updated?: string;
   exhibitor_id?: string | { id: string; translations?: { languages_code?: string; company_name?: string }[] };
@@ -40,6 +43,34 @@ export interface VisitorMatchRequestWithDetails extends VisitorMatchRequest {
   };
 }
 
+export interface MeetingSlotConfig {
+  id: string;
+  status: 'active' | 'inactive';
+  mode: 'flexible' | 'slot';
+  event_id?: number;
+  meeting_category?: 'all' | 'talent' | 'business' | null;
+  slot_duration_minutes?: number | null;
+  break_minutes?: number | null;
+  max_per_exhibitor?: number | null;
+  max_per_visitor?: number | null;
+  date_created?: string;
+  date_updated?: string;
+  slots?: MeetingSlot[];
+}
+
+export interface MeetingSlot {
+  id: string;
+  status: 'available' | 'booked' | 'disabled';
+  config_id?: string;
+  event_id?: number;
+  label?: string | null;
+  start_at: string;
+  end_at: string;
+  location?: string | null;
+  meeting_id?: string | { id: string; registration_id?: { full_name?: string; email?: string } | string } | null;
+  date_created?: string;
+}
+
 export interface Meeting {
   id: string;
   status: MeetingStatus;
@@ -63,6 +94,7 @@ export interface Meeting {
   exhibitor_note?: string;
   visitor_note?: string;
   outcome_note?: string;
+  slot_id?: string | MeetingSlot | null;
 }
 
 export interface MatchListOptions {
@@ -71,6 +103,7 @@ export interface MatchListOptions {
   status?: MatchRequestStatus | '';
   sort?: string;
   search?: string;
+  request_type?: MatchRequestType;
 }
 
 export interface MatchListResponse {

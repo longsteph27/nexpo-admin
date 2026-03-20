@@ -34,10 +34,10 @@ export default function EventSidebar() {
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
     const [expandedBusinessMatching, setExpandedBusinessMatching] = useState(() =>
-        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/business') || (window.location.pathname.includes('/matching') && !window.location.pathname.includes('/matching/jobs') && !window.location.pathname.includes('/matching/candidates') && !window.location.pathname.includes('/matching/meetings')))
+        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/business') || window.location.pathname.includes('/matching/companies') || (window.location.pathname.includes('/matching') && !window.location.pathname.includes('/matching/jobs') && !window.location.pathname.includes('/matching/candidates') && !window.location.pathname.includes('/matching/meetings') && !window.location.pathname.includes('/matching/talent-requests')))
     );
     const [expandedTalentMatching, setExpandedTalentMatching] = useState(() =>
-        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/jobs') || window.location.pathname.includes('/matching/candidates') || (window.location.pathname.includes('/jobs') && !window.location.pathname.includes('/matching')))
+        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/jobs') || window.location.pathname.includes('/matching/candidates') || window.location.pathname.includes('/matching/talent-requests') || (window.location.pathname.includes('/jobs') && !window.location.pathname.includes('/matching')))
     );
     const [expandedFacilities, setExpandedFacilities] = useState(() =>
         typeof window !== 'undefined' && (window.location.pathname.includes('/facilities') || window.location.pathname.includes('/orders'))
@@ -134,15 +134,17 @@ export default function EventSidebar() {
 
     // Check if Exhibitors section is active
     const isExhibitorsActive = pathname?.includes('/exhibitors');
-    const isMatchingRequestsActive = pathname?.includes('/matching') && !pathname?.includes('/matching/jobs') && !pathname?.includes('/matching/candidates') && !pathname?.includes('/matching/business-ai') && !pathname?.includes('/matching/business-requirements') && !pathname?.includes('/matching/meetings');
+    const isTalentMatchRequestsActive = pathname?.includes('/matching/talent-requests');
+    const isCompanyProfilesActive = pathname?.includes('/matching/companies');
+    const isMatchingRequestsActive = pathname?.includes('/matching') && !pathname?.includes('/matching/jobs') && !pathname?.includes('/matching/candidates') && !pathname?.includes('/matching/business-ai') && !pathname?.includes('/matching/business-requirements') && !pathname?.includes('/matching/meetings') && !pathname?.includes('/matching/companies') && !isTalentMatchRequestsActive;
     const isAIBusinessMatchingActive = pathname?.includes('/matching/business-ai');
     const isBusinessRequirementsActive = pathname?.includes('/matching/business-requirements');
-    const isBusinessMatchingActive = isMatchingRequestsActive || isAIBusinessMatchingActive || isBusinessRequirementsActive;
+    const isBusinessMatchingActive = isMatchingRequestsActive || isAIBusinessMatchingActive || isBusinessRequirementsActive || isCompanyProfilesActive;
     const isJobPostingsActive = pathname?.includes('/jobs') && !pathname?.includes('/matching');
     const isCandidateProfilesActive = pathname?.includes('/matching/candidates');
     const isAIMatchingActive = pathname?.includes('/matching/jobs');
     const isMeetingsActive = pathname?.includes('/meetings') && !pathname?.includes('/matching/meetings');
-    const isTalentMatchingActive = isJobPostingsActive || isCandidateProfilesActive || isAIMatchingActive;
+    const isTalentMatchingActive = isJobPostingsActive || isCandidateProfilesActive || isAIMatchingActive || isTalentMatchRequestsActive;
     const isTicketsActive = pathname?.includes('/tickets');
     const isOrdersActive = pathname?.includes('/orders');
     const isFacilitiesActive = pathname?.includes('/facilities');
@@ -503,21 +505,6 @@ export default function EventSidebar() {
                                                 className={cn(
                                                     "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
-                                                    isMatchingRequestsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
-                                                )}
-                                                onClick={() => router.push(`/events/${eventId}/matching`)}
-                                                variants={sidebarItemVariants}
-                                                whileHover="hover"
-                                                whileTap="tap"
-                                            >
-                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
-                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isMatchingRequestsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
-                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Matching Requests</span>
-                                            </motion.div>
-                                            <motion.div
-                                                className={cn(
-                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
-                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isBusinessRequirementsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
                                                 onClick={() => router.push(`/events/${eventId}/matching/business-requirements`)}
@@ -527,7 +514,22 @@ export default function EventSidebar() {
                                             >
                                                 <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
                                                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isBusinessRequirementsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
-                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Business Requirements</span>
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Requirements</span>
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isCompanyProfilesActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/companies`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isCompanyProfilesActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Companies</span>
                                             </motion.div>
                                             <motion.div
                                                 className={cn(
@@ -542,8 +544,23 @@ export default function EventSidebar() {
                                             >
                                                 <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
                                                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isAIBusinessMatchingActive ? "bg-purple-600" : "bg-nexpo-light-gray")} />
-                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">AI Business Matching</span>
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">AI Matching</span>
                                                 <Icon icon="lucide:sparkles" className="w-3 h-3 ml-1 text-purple-500" />
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isMatchingRequestsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isMatchingRequestsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Requests</span>
                                             </motion.div>
                                         </motion.div>
                                     )}
@@ -608,7 +625,7 @@ export default function EventSidebar() {
                                             >
                                                 <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
                                                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isJobPostingsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
-                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Job Postings</span>
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Jobs</span>
                                             </motion.div>
                                             <motion.div
                                                 className={cn(
@@ -623,7 +640,7 @@ export default function EventSidebar() {
                                             >
                                                 <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
                                                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isCandidateProfilesActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
-                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Candidate Profiles</span>
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Candidates</span>
                                             </motion.div>
                                             <motion.div
                                                 className={cn(
@@ -640,6 +657,21 @@ export default function EventSidebar() {
                                                 <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isAIMatchingActive ? "bg-purple-600" : "bg-nexpo-light-gray")} />
                                                 <span className="text-sm font-medium ml-3 font-sf text-content-primary">AI Matching</span>
                                                 <Icon icon="lucide:sparkles" className="w-3 h-3 ml-1 text-purple-500" />
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isTalentMatchRequestsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/talent-requests`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isTalentMatchRequestsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Requests</span>
                                             </motion.div>
                                         </motion.div>
                                     )}

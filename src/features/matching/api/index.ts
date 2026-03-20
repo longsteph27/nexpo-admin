@@ -4,11 +4,12 @@ import type { VisitorMatchRequest, VisitorMatchRequestWithDetails, Meeting, Matc
 
 export const matchingApi = {
   async getMatchRequests(eventId: number, options: MatchListOptions = {}): Promise<MatchListResponse> {
-    const { page = 1, limit = 20, status, sort = '-date_created', search } = options;
+    const { page = 1, limit = 20, status, sort = '-date_created', search, request_type } = options;
     const offset = (page - 1) * limit;
 
     const baseFilter: Record<string, unknown> = { event_id: { _eq: eventId } };
     if (status) baseFilter.status = { _eq: status };
+    if (request_type) baseFilter.request_type = { _eq: request_type };
 
     const filter = search
       ? {
