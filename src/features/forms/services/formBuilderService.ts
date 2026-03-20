@@ -150,6 +150,8 @@ const normalizeBuilderSettings = (form?: Form | null): BuilderFormSettings => ({
   form_purpose: (form as any)?.form_purpose ?? [],
   is_registration: (form as any)?.is_registration ?? false,
   linked_module: (form as any)?.linked_module ?? undefined,
+  is_insight_gate: (form as any)?.is_insight_gate ?? false,
+  insight_gate_message: (form as any)?.insight_gate_message ?? undefined,
 });
 
 export function parseFormBuilderData(form?: Form | null): ParsedFormBuilderData {
@@ -405,6 +407,8 @@ export function buildFormSavePayload({
     form_purpose: formSettings.form_purpose ?? [],
     is_registration: formSettings.is_registration ?? false,
     linked_module: formSettings.linked_module ?? null,
+    is_insight_gate: formSettings.is_insight_gate ?? false,
+    insight_gate_message: formSettings.insight_gate_message ?? null,
     event_id: Number(eventId),
     tenant_id: Number(tenantId),
     translations: translationsDiff,

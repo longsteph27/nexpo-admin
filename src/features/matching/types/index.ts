@@ -3,11 +3,13 @@ export type MatchRequestStatus =
   | 'organizer_approved'
   | 'exhibitor_agreed'
   | 'exhibitor_declined'
-  | 'organizer_rejected';
+  | 'organizer_rejected'
+  | 'converted_to_meeting';
 
 export type MeetingStatus = 'pending' | 'confirmed' | 'rejected' | 'scheduled' | 'completed' | 'cancelled' | 'no_show';
-export type MeetingSource = 'manual' | 'ai_matching';
+export type MeetingSource = 'manual' | 'ai_matching' | 'visitor_request' | 'organizer_shortlist';
 export type MeetingType = 'physical' | 'virtual';
+export type MeetingCategory = 'talent' | 'business';
 
 export interface VisitorMatchRequest {
   id: string;
@@ -42,9 +44,12 @@ export interface Meeting {
   id: string;
   status: MeetingStatus;
   source?: MeetingSource;
+  meeting_category?: MeetingCategory;
   date_created?: string;
   match_request_id?: string;
   match_suggestion_id?: string;
+  business_requirement_id?: string | { id: string; requirement_type?: string; summary?: string };
+  business_match_suggestion_id?: string;
   exhibitor_id?: string | { id: string; translations?: { languages_code?: string; company_name?: string }[] };
   registration_id?: string | { id: string; full_name?: string; email?: string; phone_number?: string; submissions?: { answers?: { value: string; field: { name?: string } }[] } | null };
   job_requirement_id?: string | { id: string; job_title?: string };
@@ -56,6 +61,8 @@ export interface Meeting {
   notes?: string;
   organizer_note?: string;
   exhibitor_note?: string;
+  visitor_note?: string;
+  outcome_note?: string;
 }
 
 export interface MatchListOptions {

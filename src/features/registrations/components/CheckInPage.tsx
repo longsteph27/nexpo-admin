@@ -73,9 +73,7 @@ export function CheckInPage() {
           ? (el.content || '')
           : (el.fieldId ? (registration?.[el.fieldId] || '') : '');
 
-        console.log('[Badge print] el:', el.id, 'fieldId:', el.fieldId, '→', text || '(empty)');
-
-        if (!text) return ''; // skip empty values silently
+        if (!text) return '';
 
         return `<div style="width:100%;${alignStyle}font-size:${el.fontSize}px;font-weight:${el.bold ? 700 : 400};color:#111827;line-height:1.3;margin:1mm 0;word-break:break-word;">${text}</div>`;
       }).join('');
@@ -278,9 +276,8 @@ export function CheckInPage() {
             qrScanner.resume();
           }, 1000);
         },
-        (error) => {
-          // Silently handle scan errors (QR code not found)
-          console.debug('QR scan error:', error);
+        () => {
+          // Silently ignore scan errors (QR code not found in frame)
         }
       );
 
@@ -419,12 +416,7 @@ export function CheckInPage() {
           if (field.name) regData[field.name] = val;  // name → value
         }
       }
-      console.log('[Badge] regData keys:', Object.keys(regData));
-      console.log('[Badge] answers count:', answers.length);
-
-      // QR text: use badge_id (pre-assigned), fallback to registration id
       const qrText = firstReg?.badge_id || qrCodeId;
-      console.log('[Badge] config elements:', badgeConfig.elements.map(e => ({ id: e.id, fieldId: e.fieldId, enabled: e.enabled })));
       await printWelcomeCard(qrText, regData);
 
     } catch (error) {

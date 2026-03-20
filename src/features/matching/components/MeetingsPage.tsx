@@ -379,24 +379,27 @@ export function MeetingsPage() {
   const eventId = parseInt(params.id as string);
   const queryClient = useQueryClient();
   const [statusFilter, setStatusFilter] = useState('pending');
+  const [categoryFilter, setCategoryFilter] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [groupByExhibitor, setGroupByExhibitor] = useState(false);
   const selection = useSelection();
 
   const { data: meetings = [], isLoading } = useQuery({
-    queryKey: ['meetings', eventId, statusFilter],
+    queryKey: ['meetings', eventId, statusFilter, categoryFilter],
     queryFn: async () => {
       const filter: Record<string, unknown> = { event_id: { _eq: eventId } };
       if (statusFilter) filter.status = { _eq: statusFilter };
+      if (categoryFilter) filter.meeting_category = { _eq: categoryFilter };
       const res = await directus.request(
         readItems('meetings' as any, {
           filter,
           fields: [
-            'id', 'status', 'source', 'scheduled_at', 'organizer_note', 'exhibitor_note', 'date_created',
+            'id', 'status', 'source', 'meeting_category', 'scheduled_at', 'organizer_note', 'exhibitor_note', 'date_created',
             'registration_id.id', 'registration_id.full_name', 'registration_id.email', 'registration_id.phone_number',
             'registration_id.submissions.answers.value', 'registration_id.submissions.answers.field.name',
             'exhibitor_id.id', 'exhibitor_id.translations.languages_code', 'exhibitor_id.translations.company_name',
             'job_requirement_id.id', 'job_requirement_id.job_title',
+            'business_requirement_id.id', 'business_requirement_id.requirement_type', 'business_requirement_id.summary',
           ] as any,
           sort: ['-date_created'] as any,
           limit: 300,
@@ -438,7 +441,7 @@ export function MeetingsPage() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <h1 className="text-xl font-bold text-content-primary">Meetings</h1>
-            <p className="text-content-tertiary mt-1 text-sm">All interview meetings between candidates and exhibitors.</p>
+            <p className="text-content-tertiary mt-1 text-sm">All meetings across talent and business matching.</p>
           </div>
           {/* View toggle */}
           <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden shrink-0">
@@ -455,25 +458,37 @@ export function MeetingsPage() {
       </ContainerHeader>
 
       <Container>
-        <div className="flex items-center justify-between gap-4 flex-wrap mb-4">
+        <div className="flex flex-col gap-3 mb-4">
           <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-semibold text-content-tertiary uppercase tracking-wide w-12">Status</span>
             {STATUS_FILTERS.map(f => (
               <button key={f.value} onClick={() => setStatusFilter(f.value)}
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${statusFilter === f.value ? 'bg-blue-600 text-white' : 'bg-slate-100 text-content-secondary hover:bg-slate-200'}`}>
                 {f.label}
               </button>
             ))}
-            <span className="text-sm text-content-tertiary ml-1">
-              {isLoading ? '...' : `${meetings.length} meeting${meetings.length !== 1 ? 's' : ''}`}
-            </span>
           </div>
-          {viewMode === 'list' && (
-            <button onClick={() => setGroupByExhibitor(g => !g)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${groupByExhibitor ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-content-secondary hover:bg-slate-50'}`}>
-              <Icon icon="lucide:building-2" className="w-3.5 h-3.5" />
-              Group by Exhibitor
-            </button>
-          )}
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-content-tertiary uppercase tracking-wide w-12">Type</span>
+              {[{ label: 'All', value: '' }, { label: 'Talent', value: 'talent' }, { label: 'Business', value: 'business' }].map(f => (
+                <button key={f.value} onClick={() => setCategoryFilter(f.value)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${categoryFilter === f.value ? 'bg-purple-600 text-white' : 'bg-slate-100 text-content-secondary hover:bg-slate-200'}`}>
+                  {f.label}
+                </button>
+              ))}
+              <span className="text-sm text-content-tertiary ml-1">
+                {isLoading ? '...' : `${meetings.length} meeting${meetings.length !== 1 ? 's' : ''}`}
+              </span>
+            </div>
+            {viewMode === 'list' && (
+              <button onClick={() => setGroupByExhibitor(g => !g)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${groupByExhibitor ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-content-secondary hover:bg-slate-50'}`}>
+                <Icon icon="lucide:building-2" className="w-3.5 h-3.5" />
+                Group by Exhibitor
+              </button>
+            )}
+          </div>
         </div>
 
         {isLoading ? (

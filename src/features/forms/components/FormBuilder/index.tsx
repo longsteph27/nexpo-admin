@@ -650,6 +650,38 @@ export function FormBuilder({ eventId, formId }: FormBuilderProps) {
                         </p>
                       )}
                     </div>
+
+                    {/* Insight Hub Gate */}
+                    <div className="flex items-start gap-2 pt-1">
+                      <input
+                        type="checkbox"
+                        id="is-insight-gate"
+                        checked={!!formSettings.is_insight_gate}
+                        onChange={(e) => setFormSettings((s) => ({ ...s, is_insight_gate: e.target.checked }))}
+                        className="mt-0.5"
+                      />
+                      <div>
+                        <label htmlFor="is-insight-gate" className="text-xs text-content-secondary cursor-pointer">
+                          Show as Insight Hub Gate
+                        </label>
+                        <p className="text-xs text-content-tertiary mt-0.5">
+                          Form pops up when registrant first opens their Insight Hub link (skippable). Works alongside Linked Module.
+                        </p>
+                      </div>
+                    </div>
+                    {formSettings.is_insight_gate && (
+                      <div>
+                        <label className="block text-xs text-content-secondary mb-1">Gate Message</label>
+                        <textarea
+                          rows={3}
+                          className="w-full text-xs border border-gray-200 rounded px-2 py-1.5 bg-white text-content-primary resize-none"
+                          placeholder="e.g. Để match đúng công ty & vị trí tuyển dụng, hãy điền thông tin bên dưới trước khi vào Insight Hub."
+                          value={formSettings.insight_gate_message || ''}
+                          onChange={(e) => setFormSettings((s) => ({ ...s, insight_gate_message: e.target.value || undefined }))}
+                        />
+                        <p className="text-xs text-content-tertiary mt-0.5">Shown on the intro screen before user enters the form.</p>
+                      </div>
+                    )}
                   </div>
                 </div>
                 

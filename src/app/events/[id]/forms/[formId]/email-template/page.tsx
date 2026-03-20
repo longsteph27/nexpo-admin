@@ -710,9 +710,62 @@ export default function EmailTemplatePage() {
                 <div className="text-sm text-blue-800">
                   <p className="font-medium mb-1">Registration Form</p>
                   <p>
-                    This is a registration form. QR codes will be automatically generated using the registration ID 
+                    This is a registration form. QR codes will be automatically generated using the registration ID
                     and do not require manual configuration.
                   </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Insight Hub Button — for registration forms */}
+          {form?.is_registration && (
+            <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <Icon icon="lucide:layout-dashboard" className="w-5 h-5 text-indigo-600" />
+                  <div>
+                    <h3 className="text-lg font-semibold text-content-primary">Insight Hub Button</h3>
+                    <p className="text-sm text-content-secondary mt-1">
+                      Insert a CTA button that links each registrant to their personal Insight Hub page.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="p-6 space-y-3">
+                <p className="text-sm text-content-secondary">
+                  The button links to{' '}
+                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-xs font-mono">
+                    insight.nexpo.vn/{'{registration_id}'}
+                  </code>{' '}
+                  — resolved automatically per registrant when the email is sent.
+                </p>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const html =
+                        `<div style="text-align:center;margin:28px 0;">` +
+                        `<a href="https://insight.nexpo.vn/{registration_id}" ` +
+                        `style="display:inline-block;background:#1313ec;color:#ffffff;` +
+                        `padding:14px 36px;border-radius:10px;font-size:16px;font-weight:700;` +
+                        `text-decoration:none;letter-spacing:0.01em;">` +
+                        `Truy cập Insight Hub →` +
+                        `</a></div>`;
+                      setEmailTemplate((prev) => prev + html);
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 transition-colors"
+                  >
+                    <Icon icon="lucide:plus-circle" className="w-4 h-4" />
+                    Insert Insight Hub Button
+                  </button>
+                  <span className="text-xs text-content-tertiary">appended to current email template</span>
+                </div>
+                {/* Preview */}
+                <div className="bg-gray-50 rounded-lg p-4 border border-gray-100 text-center">
+                  <span className="inline-block bg-[#1313ec] text-white px-8 py-3 rounded-[10px] text-sm font-bold pointer-events-none">
+                    Truy cập Insight Hub →
+                  </span>
                 </div>
               </div>
             </div>

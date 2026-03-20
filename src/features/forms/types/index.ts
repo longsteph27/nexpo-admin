@@ -170,4 +170,6 @@ export interface BuilderFormSettings {
   form_purpose?: string[];
   is_registration?: boolean;
   linked_module?: string;
+  is_insight_gate?: boolean;
+  insight_gate_message?: string;
 }

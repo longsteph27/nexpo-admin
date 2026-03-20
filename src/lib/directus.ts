@@ -514,7 +514,7 @@ export const directusHelpers = {
 
       const form = await directus.request(readItem('forms', formId, {
         fields: ([
-          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'email_sender_name', 'email_subject', 'event_id', 'is_registration', 'form_purpose', 'linked_module',
+          'id', 'status', 'on_success', 'redirect_url', 'template_email', 'qr_code_field', 'is_allow_group', 'template_email_group', 'email_sender_name', 'email_subject', 'event_id', 'is_registration', 'form_purpose', 'linked_module', 'is_insight_gate', 'insight_gate_message',
           { translations: ['id', 'languages_code', 'title', 'submit_label', 'success_message'] },
           {
             fields: [
@@ -1013,6 +1013,11 @@ export const directusHelpers = {
         template_email_group: formData.template_email_group,
         event_id: formData.event_id,
         tenant_id: formData.tenant_id,
+        form_purpose: (formData as any).form_purpose ?? [],
+        is_registration: (formData as any).is_registration ?? false,
+        linked_module: (formData as any).linked_module ?? null,
+        is_insight_gate: (formData as any).is_insight_gate ?? false,
+        insight_gate_message: (formData as any).insight_gate_message ?? null,
 
         // Form translations with deep query structure
         ...(formData.translations && {

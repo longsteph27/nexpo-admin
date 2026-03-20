@@ -34,7 +34,7 @@ export default function EventSidebar() {
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
     const [expandedBusinessMatching, setExpandedBusinessMatching] = useState(() =>
-        typeof window !== 'undefined' && window.location.pathname.includes('/matching') && !window.location.pathname.includes('/matching/jobs') && !window.location.pathname.includes('/matching/candidates')
+        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/business') || (window.location.pathname.includes('/matching') && !window.location.pathname.includes('/matching/jobs') && !window.location.pathname.includes('/matching/candidates') && !window.location.pathname.includes('/matching/meetings')))
     );
     const [expandedTalentMatching, setExpandedTalentMatching] = useState(() =>
         typeof window !== 'undefined' && (window.location.pathname.includes('/matching/jobs') || window.location.pathname.includes('/matching/candidates') || (window.location.pathname.includes('/jobs') && !window.location.pathname.includes('/matching')))
@@ -134,14 +134,15 @@ export default function EventSidebar() {
 
     // Check if Exhibitors section is active
     const isExhibitorsActive = pathname?.includes('/exhibitors');
-    const isMatchingRequestsActive = pathname?.includes('/matching') && !pathname?.includes('/matching/jobs') && !pathname?.includes('/matching/candidates') && !pathname?.includes('/matching/business-ai') && !pathname?.includes('/matching/meetings');
+    const isMatchingRequestsActive = pathname?.includes('/matching') && !pathname?.includes('/matching/jobs') && !pathname?.includes('/matching/candidates') && !pathname?.includes('/matching/business-ai') && !pathname?.includes('/matching/business-requirements') && !pathname?.includes('/matching/meetings');
     const isAIBusinessMatchingActive = pathname?.includes('/matching/business-ai');
-    const isBusinessMatchingActive = isMatchingRequestsActive || isAIBusinessMatchingActive;
+    const isBusinessRequirementsActive = pathname?.includes('/matching/business-requirements');
+    const isBusinessMatchingActive = isMatchingRequestsActive || isAIBusinessMatchingActive || isBusinessRequirementsActive;
     const isJobPostingsActive = pathname?.includes('/jobs') && !pathname?.includes('/matching');
     const isCandidateProfilesActive = pathname?.includes('/matching/candidates');
     const isAIMatchingActive = pathname?.includes('/matching/jobs');
-    const isMeetingsActive = pathname?.includes('/matching/meetings');
-    const isTalentMatchingActive = isJobPostingsActive || isCandidateProfilesActive || isAIMatchingActive || isMeetingsActive;
+    const isMeetingsActive = pathname?.includes('/meetings') && !pathname?.includes('/matching/meetings');
+    const isTalentMatchingActive = isJobPostingsActive || isCandidateProfilesActive || isAIMatchingActive;
     const isTicketsActive = pathname?.includes('/tickets');
     const isOrdersActive = pathname?.includes('/orders');
     const isFacilitiesActive = pathname?.includes('/facilities');
@@ -517,6 +518,21 @@ export default function EventSidebar() {
                                                 className={cn(
                                                     "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
+                                                    isBusinessRequirementsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                                )}
+                                                onClick={() => router.push(`/events/${eventId}/matching/business-requirements`)}
+                                                variants={sidebarItemVariants}
+                                                whileHover="hover"
+                                                whileTap="tap"
+                                            >
+                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
+                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isBusinessRequirementsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
+                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Business Requirements</span>
+                                            </motion.div>
+                                            <motion.div
+                                                className={cn(
+                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
+                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isAIBusinessMatchingActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
                                                 onClick={() => router.push(`/events/${eventId}/matching/business-ai`)}
@@ -625,25 +641,32 @@ export default function EventSidebar() {
                                                 <span className="text-sm font-medium ml-3 font-sf text-content-primary">AI Matching</span>
                                                 <Icon icon="lucide:sparkles" className="w-3 h-3 ml-1 text-purple-500" />
                                             </motion.div>
-                                            <motion.div
-                                                className={cn(
-                                                    "relative flex items-center px-3 py-2 cursor-pointer transition-all duration-200",
-                                                    "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
-                                                    isMeetingsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
-                                                )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/meetings`)}
-                                                variants={sidebarItemVariants}
-                                                whileHover="hover"
-                                                whileTap="tap"
-                                            >
-                                                <div className="absolute left-0 top-1/2 w-4 h-px bg-nexpo-light-gray transform -translate-y-1/2" />
-                                                <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isMeetingsActive ? "bg-blue-600" : "bg-nexpo-light-gray")} />
-                                                <span className="text-sm font-medium ml-3 font-sf text-content-primary">Meetings</span>
-                                            </motion.div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
                             </div>
+
+                            {/* Meetings (top-level, shared) */}
+                            <motion.div
+                                className="ml-6 cursor-pointer"
+                                onClick={() => router.push(`/events/${eventId}/meetings`)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                                <div className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                    isMeetingsActive
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <motion.div animate={isMeetingsActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                        <Icon icon="lucide:calendar-check" className={cn("w-4 h-4", isMeetingsActive ? "text-blue-600" : "text-content-tertiary")} />
+                                    </motion.div>
+                                    <span className="font-sf text-sm font-medium text-content-primary">Meetings</span>
+                                </div>
+                            </motion.div>
 
                             {/* Tickets Item */}
                             <motion.div
