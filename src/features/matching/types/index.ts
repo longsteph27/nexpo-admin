@@ -37,6 +37,9 @@ export interface VisitorMatchRequestWithDetails extends VisitorMatchRequest {
   };
   registration_id: {
     id: string;
+    full_name?: string;
+    email?: string;
+    phone_number?: string;
     submissions?: {
       answers?: { value?: string; field?: { translations?: { languages_code?: string; label?: string }[] } }[];
     };
@@ -60,15 +63,16 @@ export interface MeetingSlotConfig {
 
 export interface MeetingSlot {
   id: string;
-  status: 'available' | 'booked' | 'disabled';
+  status: 'available' | 'disabled';
   config_id?: string;
   event_id?: number;
   label?: string | null;
   start_at: string;
   end_at: string;
   location?: string | null;
-  meeting_id?: string | { id: string; registration_id?: { full_name?: string; email?: string } | string } | null;
   date_created?: string;
+  // runtime only — not stored on slot, populated from meetings aggregate
+  meeting_count?: number;
 }
 
 export interface Meeting {

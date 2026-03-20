@@ -1,17 +1,20 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { useParams } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import directus from '@/lib/directus';
-import { readItems, updateItem } from '@directus/sdk';
+import { readItems, updateItem, deleteItems } from '@directus/sdk';
 import ContainerHeader from '@/components/layout/Container-header';
 import Container from '@/components/layout/Container';
 import { Button } from '@/components/ui/button-base';
 import { toast } from 'sonner';
 import { useSelection } from '@/hooks/useSelection';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
+import { EditMeetingSheet } from './EditMeetingSheet';
+import { VisitorDetailSheet } from './VisitorDetailSheet';
 import type { Meeting, MeetingStatus } from '../types';
 
 const STATUS_CONFIG: Record<MeetingStatus, { label: string; cls: string }> = {
@@ -222,10 +225,24 @@ function CalendarView({ meetings, onStatusChange, isPending }: {
 
 // ─── Grouped List View ─────────────────────────────────────────────────────────
 
-function GroupedList({ meetings, onStatusChange, isPending }: {
+const URGENT_ORDER: MeetingStatus[] = ['pending', 'confirmed', 'scheduled', 'completed', 'cancelled', 'rejected', 'no_show'];
+
+function groupUrgencyScore(meetings: Meeting[]): number {
+  // Higher score = needs more attention (pending > confirmed > scheduled)
+  let score = 0;
+  for (const m of meetings) {
+    const idx = URGENT_ORDER.indexOf(m.status as MeetingStatus);
+    score += Math.max(0, URGENT_ORDER.length - idx) * 10;
+  }
+  return score;
+}
+
+function GroupedList({ meetings, onStatusChange, onEdit, isPending, onViewVisitor }: {
   meetings: Meeting[];
   onStatusChange: (m: Meeting, s: MeetingStatus) => void;
+  onEdit: (m: Meeting) => void;
   isPending: boolean;
+  onViewVisitor?: (registrationId: string) => void;
 }) {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
@@ -236,7 +253,8 @@ function GroupedList({ meetings, onStatusChange, isPending }: {
       if (!g[id]) g[id] = { id, name: getExhibitorName(m.exhibitor_id), meetings: [] };
       g[id].meetings.push(m);
     }
-    return Object.values(g).sort((a, b) => a.name.localeCompare(b.name));
+    // Sort: most urgent first (groups with pending/confirmed at top)
+    return Object.values(g).sort((a, b) => groupUrgencyScore(b.meetings) - groupUrgencyScore(a.meetings));
   }, [meetings]);
 
   const toggle = (id: string) => setCollapsed(s => {
@@ -247,37 +265,71 @@ function GroupedList({ meetings, onStatusChange, isPending }: {
 
   return (
     <div className="space-y-3">
-      {grouped.map(group => (
-        <div key={group.id} className="rounded-xl border border-slate-200 overflow-hidden">
-          <button onClick={() => toggle(group.id)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors text-left">
-            <div className="flex items-center gap-2">
-              <Icon icon="lucide:building-2" className="w-4 h-4 text-content-tertiary" />
-              <span className="font-semibold text-content-primary text-sm">{group.name}</span>
-              <span className="text-xs text-content-tertiary bg-white border border-slate-200 rounded-full px-2 py-0.5">
-                {group.meetings.length}
-              </span>
-            </div>
-            <Icon icon={collapsed.has(group.id) ? 'lucide:chevron-right' : 'lucide:chevron-down'} className="w-4 h-4 text-content-tertiary" />
-          </button>
-          {!collapsed.has(group.id) && (
-            <MeetingsTable meetings={group.meetings} onStatusChange={onStatusChange} isPending={isPending} />
-          )}
-        </div>
-      ))}
+      {grouped.map(group => {
+        const statusCounts = group.meetings.reduce<Partial<Record<MeetingStatus, number>>>((acc, m) => {
+          const s = m.status as MeetingStatus;
+          acc[s] = (acc[s] ?? 0) + 1;
+          return acc;
+        }, {});
+        const pendingCount = statusCounts.pending ?? 0;
+        const isOpen = !collapsed.has(group.id);
+
+        return (
+          <div key={group.id} className="rounded-xl border border-slate-200 overflow-hidden">
+            <button onClick={() => toggle(group.id)}
+              className="w-full flex items-center gap-3 px-4 py-3 bg-slate-50 hover:bg-slate-100 transition-colors text-left">
+              <Icon icon="lucide:building-2" className="w-4 h-4 text-content-tertiary flex-shrink-0" />
+              <span className="font-semibold text-content-primary text-sm flex-1">{group.name}</span>
+              {/* Status chips */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {pendingCount > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-100 text-yellow-700">
+                    {pendingCount} pending
+                  </span>
+                )}
+                {(statusCounts.confirmed ?? 0) > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">
+                    {statusCounts.confirmed} confirmed
+                  </span>
+                )}
+                {(statusCounts.scheduled ?? 0) > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">
+                    {statusCounts.scheduled} scheduled
+                  </span>
+                )}
+                {(statusCounts.completed ?? 0) > 0 && (
+                  <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-purple-100 text-purple-700">
+                    {statusCounts.completed} done
+                  </span>
+                )}
+                <span className="text-xs text-content-tertiary bg-white border border-slate-200 rounded-full px-2 py-0.5 ml-1">
+                  {group.meetings.length} total
+                </span>
+              </div>
+              <Icon icon={isOpen ? 'lucide:chevron-down' : 'lucide:chevron-right'} className="w-4 h-4 text-content-tertiary flex-shrink-0" />
+            </button>
+            {isOpen && (
+              <MeetingsTable meetings={group.meetings} onStatusChange={onStatusChange} onEdit={onEdit} isPending={isPending} hideExhibitorCol onViewVisitor={onViewVisitor} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 // ─── Meetings Table ─────────────────────────────────────────────────────────────
 
-function MeetingsTable({ meetings, onStatusChange, isPending, selectedIds, onToggle, onToggleAll }: {
+function MeetingsTable({ meetings, onStatusChange, onEdit, isPending, selectedIds, onToggle, onToggleAll, hideExhibitorCol, onViewVisitor }: {
   meetings: Meeting[];
   onStatusChange: (m: Meeting, s: MeetingStatus) => void;
+  onEdit: (m: Meeting) => void;
   isPending: boolean;
   selectedIds?: Set<string>;
   onToggle?: (id: string) => void;
   onToggleAll?: (ids: string[]) => void;
+  hideExhibitorCol?: boolean;
+  onViewVisitor?: (registrationId: string) => void;
 }) {
   const ids = meetings.map(m => m.id);
   const allSelected = !!selectedIds && ids.length > 0 && ids.every(id => selectedIds.has(id));
@@ -298,10 +350,14 @@ function MeetingsTable({ meetings, onStatusChange, isPending, selectedIds, onTog
                 onChange={() => onToggleAll && onToggleAll(ids)}
               />
             </th>
-            <th className="text-left px-4 py-3 font-semibold text-content-secondary">Candidate</th>
-            <th className="text-left px-4 py-3 font-semibold text-content-secondary">Exhibitor / Job</th>
-            <th className="text-left px-4 py-3 font-semibold text-content-secondary">Scheduled</th>
-            <th className="text-left px-4 py-3 font-semibold text-content-secondary">Source</th>
+            <th className="text-left px-4 py-3 font-semibold text-content-secondary">Visitor</th>
+            {!hideExhibitorCol && (
+              <th className="text-left px-4 py-3 font-semibold text-content-secondary">Exhibitor / Job</th>
+            )}
+            {hideExhibitorCol && (
+              <th className="text-left px-4 py-3 font-semibold text-content-secondary">Job</th>
+            )}
+            <th className="text-left px-4 py-3 font-semibold text-content-secondary">Lịch / Slot</th>
             <th className="text-left px-4 py-3 font-semibold text-content-secondary">Status</th>
             <th className="px-4 py-3" />
           </tr>
@@ -312,6 +368,7 @@ function MeetingsTable({ meetings, onStatusChange, isPending, selectedIds, onTog
             const exhibitor = getExhibitorName(m.exhibitor_id);
             const job = getJobTitle(m.job_requirement_id);
             const cfg = STATUS_CONFIG[m.status as MeetingStatus] ?? { label: m.status, cls: 'bg-gray-100 text-gray-500' };
+            const regId = typeof m.registration_id === 'object' ? m.registration_id?.id : undefined;
             return (
               <tr key={m.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-4 py-3 w-10">
@@ -323,41 +380,65 @@ function MeetingsTable({ meetings, onStatusChange, isPending, selectedIds, onTog
                   />
                 </td>
                 <td className="px-4 py-3">
-                  <p className="font-medium text-content-primary">{name}</p>
-                  {email && <p className="text-xs text-content-tertiary mt-0.5">{email}</p>}
+                  {regId && onViewVisitor ? (
+                    <button className="text-left group" onClick={() => onViewVisitor(regId)}>
+                      <p className="font-medium text-content-primary group-hover:text-blue-600 group-hover:underline transition-colors">{name}</p>
+                      {email && <p className="text-xs text-content-tertiary mt-0.5">{email}</p>}
+                    </button>
+                  ) : (
+                    <>
+                      <p className="font-medium text-content-primary">{name}</p>
+                      {email && <p className="text-xs text-content-tertiary mt-0.5">{email}</p>}
+                    </>
+                  )}
                 </td>
-                <td className="px-4 py-3">
-                  <p className="text-sm text-content-primary">{exhibitor}</p>
-                  {job !== '—' && <p className="text-xs text-content-tertiary mt-0.5">{job}</p>}
-                </td>
+                {!hideExhibitorCol ? (
+                  <td className="px-4 py-3">
+                    <p className="text-sm text-content-primary">{exhibitor}</p>
+                    {job !== '—' && <p className="text-xs text-content-tertiary mt-0.5">{job}</p>}
+                  </td>
+                ) : (
+                  <td className="px-4 py-3">
+                    {job !== '—'
+                      ? <p className="text-sm text-content-secondary">{job}</p>
+                      : <span className="text-content-tertiary">—</span>
+                    }
+                  </td>
+                )}
                 <td className="px-4 py-3 text-xs text-content-secondary">
-                  {m.scheduled_at
-                    ? new Date(m.scheduled_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })
-                    : <span className="text-content-tertiary italic">Not set</span>}
-                </td>
-                <td className="px-4 py-3">
-                  <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${m.source === 'ai_matching' ? 'bg-violet-100 text-violet-700' : 'bg-gray-100 text-gray-600'}`}>
-                    <Icon icon={m.source === 'ai_matching' ? 'lucide:sparkles' : 'lucide:pencil'} className="w-3 h-3" />
-                    {m.source === 'ai_matching' ? 'AI' : 'Manual'}
-                  </span>
+                  {m.slot_id && typeof m.slot_id === 'object' ? (
+                    <span className="inline-flex items-center gap-1 text-blue-700 bg-blue-50 border border-blue-100 px-2 py-0.5 rounded-full font-medium">
+                      <Icon icon="lucide:layout-grid" className="w-3 h-3" />
+                      {new Date(m.slot_id.start_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })}
+                    </span>
+                  ) : m.scheduled_at ? (
+                    new Date(m.scheduled_at).toLocaleString('vi-VN', { dateStyle: 'short', timeStyle: 'short' })
+                  ) : (
+                    <span className="text-content-tertiary italic">Chưa đặt lịch</span>
+                  )}
                 </td>
                 <td className="px-4 py-3">
                   <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${cfg.cls}`}>{cfg.label}</span>
                   {m.exhibitor_note && <p className="text-xs text-content-tertiary mt-1 italic line-clamp-1">{m.exhibitor_note}</p>}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="flex gap-1.5 flex-wrap justify-end">
+                  <div className="flex gap-1.5 flex-wrap justify-end items-center">
+                    <button onClick={() => onEdit(m)}
+                      className="p-1.5 rounded-lg hover:bg-blue-50 text-content-tertiary hover:text-blue-600 transition-colors"
+                      title="Chỉnh sửa">
+                      <Icon icon="lucide:pencil" className="w-3.5 h-3.5" />
+                    </button>
                     {m.status === 'pending' && (
                       <>
                         <Button size="sm" variant="outline" className="text-xs h-7 px-2 text-red-600 border-red-200 hover:bg-red-50"
-                          onClick={() => onStatusChange(m, 'cancelled')} disabled={isPending}>Cancel</Button>
+                          onClick={() => onStatusChange(m, 'cancelled')} disabled={isPending}>Huỷ</Button>
                         <Button size="sm" variant="gradient" className="text-xs h-7 px-2"
-                          onClick={() => onStatusChange(m, 'confirmed')} disabled={isPending}>Confirm</Button>
+                          onClick={() => onStatusChange(m, 'confirmed')} disabled={isPending}>Duyệt</Button>
                       </>
                     )}
                     {(m.status === 'confirmed' || m.status === 'scheduled') && (
                       <Button size="sm" variant="outline" className="text-xs h-7 px-2"
-                        onClick={() => onStatusChange(m, 'completed')} disabled={isPending}>Mark Complete</Button>
+                        onClick={() => onStatusChange(m, 'completed')} disabled={isPending}>Hoàn thành</Button>
                     )}
                   </div>
                 </td>
@@ -374,6 +455,14 @@ function MeetingsTable({ meetings, onStatusChange, isPending, selectedIds, onTog
 
 type ViewMode = 'list' | 'calendar';
 
+const MEETING_SORT_OPTIONS = [
+  { value: '-date_created',  label: 'Mới nhất' },
+  { value: 'date_created',   label: 'Cũ nhất' },
+  { value: 'scheduled_at',   label: 'Lịch: sớm nhất' },
+  { value: '-scheduled_at',  label: 'Lịch: muộn nhất' },
+  { value: 'status',         label: 'Trạng thái' },
+];
+
 export function MeetingsPage() {
   const params = useParams();
   const eventId = parseInt(params.id as string);
@@ -381,11 +470,15 @@ export function MeetingsPage() {
   const [statusFilter, setStatusFilter] = useState('pending');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('list');
-  const [groupByExhibitor, setGroupByExhibitor] = useState(false);
+  const [groupByExhibitor, setGroupByExhibitor] = useState(true);
+  const [sort, setSort] = useState('-date_created');
+  const [editMeeting, setEditMeeting] = useState<Meeting | null>(null);
+  const [confirmAction, setConfirmAction] = useState<{ type: 'cancel' | 'delete'; ids: string[] } | null>(null);
+  const [visitorSheet, setVisitorSheet] = useState<string | null>(null);
   const selection = useSelection();
 
   const { data: meetings = [], isLoading } = useQuery({
-    queryKey: ['meetings', eventId, statusFilter, categoryFilter],
+    queryKey: ['meetings', eventId, statusFilter, categoryFilter, sort],
     queryFn: async () => {
       const filter: Record<string, unknown> = { event_id: { _eq: eventId } };
       if (statusFilter) filter.status = { _eq: statusFilter };
@@ -394,14 +487,16 @@ export function MeetingsPage() {
         readItems('meetings' as any, {
           filter,
           fields: [
-            'id', 'status', 'source', 'meeting_category', 'scheduled_at', 'organizer_note', 'exhibitor_note', 'date_created',
+            'id', 'status', 'source', 'meeting_category', 'scheduled_at', 'location', 'meeting_type', 'duration_minutes',
+            'organizer_note', 'exhibitor_note', 'visitor_note', 'date_created',
             'registration_id.id', 'registration_id.full_name', 'registration_id.email', 'registration_id.phone_number',
             'registration_id.submissions.answers.value', 'registration_id.submissions.answers.field.name',
             'exhibitor_id.id', 'exhibitor_id.translations.languages_code', 'exhibitor_id.translations.company_name',
             'job_requirement_id.id', 'job_requirement_id.job_title',
             'business_requirement_id.id', 'business_requirement_id.requirement_type', 'business_requirement_id.summary',
+            'slot_id.id', 'slot_id.start_at', 'slot_id.end_at', 'slot_id.location', 'slot_id.label', 'slot_id.status',
           ] as any,
-          sort: ['-date_created'] as any,
+          sort: [sort as any],
           limit: 300,
         })
       );
@@ -419,6 +514,19 @@ export function MeetingsPage() {
     await updateMutation.mutateAsync({ id: meeting.id, payload: { status } });
     toast.success(`Meeting marked as ${STATUS_CONFIG[status]?.label ?? status}`);
   };
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await directus.request(deleteItems('meetings' as any, ids));
+      return ids.length;
+    },
+    onSuccess: (count) => {
+      toast.success(`${count} meeting${count !== 1 ? 's' : ''} deleted`);
+      selection.clear();
+      queryClient.invalidateQueries({ queryKey: ['meetings', eventId] });
+    },
+    onError: () => toast.error('Failed to delete meetings'),
+  });
 
   const bulkStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: MeetingStatus }) => {
@@ -469,7 +577,7 @@ export function MeetingsPage() {
             ))}
           </div>
           <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs font-semibold text-content-tertiary uppercase tracking-wide w-12">Type</span>
               {[{ label: 'All', value: '' }, { label: 'Talent', value: 'talent' }, { label: 'Business', value: 'business' }].map(f => (
                 <button key={f.value} onClick={() => setCategoryFilter(f.value)}
@@ -481,13 +589,33 @@ export function MeetingsPage() {
                 {isLoading ? '...' : `${meetings.length} meeting${meetings.length !== 1 ? 's' : ''}`}
               </span>
             </div>
-            {viewMode === 'list' && (
-              <button onClick={() => setGroupByExhibitor(g => !g)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${groupByExhibitor ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-slate-200 text-content-secondary hover:bg-slate-50'}`}>
-                <Icon icon="lucide:building-2" className="w-3.5 h-3.5" />
-                Group by Exhibitor
-              </button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Sort selector */}
+              <div className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white">
+                <Icon icon="lucide:arrow-up-down" className="w-3.5 h-3.5 text-content-tertiary flex-shrink-0" />
+                <select
+                  value={sort}
+                  onChange={e => setSort(e.target.value)}
+                  className="text-xs font-medium text-content-secondary bg-transparent outline-none cursor-pointer"
+                >
+                  {MEETING_SORT_OPTIONS.map(o => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              {viewMode === 'list' && (
+                <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+                  <button onClick={() => setGroupByExhibitor(true)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${groupByExhibitor ? 'bg-blue-600 text-white' : 'bg-white text-content-secondary hover:bg-slate-50'}`}>
+                    <Icon icon="lucide:building-2" className="w-3.5 h-3.5" /> Grouped
+                  </button>
+                  <button onClick={() => setGroupByExhibitor(false)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${!groupByExhibitor ? 'bg-blue-600 text-white' : 'bg-white text-content-secondary hover:bg-slate-50'}`}>
+                    <Icon icon="lucide:list" className="w-3.5 h-3.5" /> Flat
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -504,20 +632,29 @@ export function MeetingsPage() {
         ) : viewMode === 'calendar' ? (
           <CalendarView meetings={meetings} onStatusChange={handleStatusChange} isPending={updateMutation.isPending} />
         ) : groupByExhibitor ? (
-          <GroupedList meetings={meetings} onStatusChange={handleStatusChange} isPending={updateMutation.isPending} />
+          <GroupedList meetings={meetings} onStatusChange={handleStatusChange} onEdit={setEditMeeting} isPending={updateMutation.isPending} onViewVisitor={setVisitorSheet} />
         ) : (
           <div className="overflow-x-auto rounded-xl border border-slate-200">
             <MeetingsTable
               meetings={meetings}
               onStatusChange={handleStatusChange}
+              onEdit={setEditMeeting}
               isPending={updateMutation.isPending}
               selectedIds={selection.selected}
               onToggle={selection.toggle}
               onToggleAll={selection.toggleAll}
+              onViewVisitor={setVisitorSheet}
             />
           </div>
         )}
       </Container>
+
+      <EditMeetingSheet
+        meeting={editMeeting}
+        eventId={eventId}
+        open={!!editMeeting}
+        onClose={() => setEditMeeting(null)}
+      />
 
       <BulkActionBar
         count={selection.count}
@@ -540,10 +677,62 @@ export function MeetingsPage() {
             icon: 'lucide:x-circle',
             variant: 'danger',
             loading: bulkStatusMutation.isPending,
-            onClick: () => bulkStatusMutation.mutate({ ids: selection.selectedArray, status: 'cancelled' }),
+            onClick: () => setConfirmAction({ type: 'cancel', ids: selection.selectedArray }),
+          },
+          {
+            label: 'Delete',
+            icon: 'lucide:trash-2',
+            variant: 'danger',
+            loading: bulkDeleteMutation.isPending,
+            onClick: () => setConfirmAction({ type: 'delete', ids: selection.selectedArray }),
           },
         ]}
       />
+
+      <VisitorDetailSheet
+        registrationId={visitorSheet}
+        open={!!visitorSheet}
+        onClose={() => setVisitorSheet(null)}
+      />
+
+      {confirmAction && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-sm mx-4 p-6"
+          >
+            <h3 className="font-semibold text-content-primary mb-1">
+              {confirmAction.type === 'delete' ? 'Delete meetings?' : 'Cancel meetings?'}
+            </h3>
+            <p className="text-sm text-content-tertiary mb-6">
+              {confirmAction.type === 'delete'
+                ? `Permanently delete ${confirmAction.ids.length} meeting${confirmAction.ids.length !== 1 ? 's' : ''}. This cannot be undone.`
+                : `Mark ${confirmAction.ids.length} meeting${confirmAction.ids.length !== 1 ? 's' : ''} as cancelled.`}
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => setConfirmAction(null)}>
+                Back
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => {
+                  if (confirmAction.type === 'delete') {
+                    bulkDeleteMutation.mutate(confirmAction.ids);
+                  } else {
+                    bulkStatusMutation.mutate({ ids: confirmAction.ids, status: 'cancelled' });
+                  }
+                  setConfirmAction(null);
+                }}
+              >
+                {confirmAction.type === 'delete' ? 'Delete' : 'Cancel meetings'}
+              </Button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

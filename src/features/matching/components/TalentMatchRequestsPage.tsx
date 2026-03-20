@@ -13,6 +13,7 @@ import { useSelection } from '@/hooks/useSelection';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { toast } from 'sonner';
 import type { VisitorMatchRequestWithDetails, MatchRequestStatus } from '../types';
+import { VisitorDetailSheet } from './VisitorDetailSheet';
 
 const STATUS_MAP: Record<MatchRequestStatus, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'bg-yellow-100 text-yellow-700' },
@@ -28,6 +29,21 @@ function getExhibitorName(req: VisitorMatchRequestWithDetails): string {
   const en = translations.find((t) => t.languages_code === 'en-US');
   const vi = translations.find((t) => t.languages_code === 'vi-VN');
   return en?.company_name || vi?.company_name || 'Unknown Exhibitor';
+}
+
+function getVisitorProfile(reg: VisitorMatchRequestWithDetails['registration_id']): { name: string; email: string } {
+  if (reg.full_name) return { name: reg.full_name, email: reg.email || '' };
+  const answers = reg.submissions?.answers || [];
+  const texts: string[] = [];
+  let email = reg.email || '';
+  for (const a of answers) {
+    const val = a.value?.trim();
+    if (!val) continue;
+    if (!email && val.includes('@')) { email = val; continue; }
+    if (/^\+?[\d\s\-().]{9,}$/.test(val)) continue;
+    texts.push(val);
+  }
+  return { name: texts.slice(0, 2).join(' ').trim() || '—', email };
 }
 
 function formatDateTime(dt?: string) {
@@ -58,6 +74,7 @@ function RequestCard({
   boothMap,
   selected,
   onToggle,
+  onViewVisitor,
 }: {
   req: VisitorMatchRequestWithDetails;
   idx: number;
@@ -67,11 +84,14 @@ function RequestCard({
   boothMap: Record<string, string>;
   selected: boolean;
   onToggle: () => void;
+  onViewVisitor: (registrationId: string) => void;
 }) {
   const isLoading = actionLoading === req.id;
   const isPending = req.status === 'pending';
   const exhibitorId = typeof req.exhibitor_id === 'object' ? req.exhibitor_id?.id : req.exhibitor_id;
   const booth = exhibitorId ? boothMap[exhibitorId] : undefined;
+  const visitor = typeof req.registration_id === 'object' ? getVisitorProfile(req.registration_id) : null;
+  const registrationId = typeof req.registration_id === 'object' ? req.registration_id?.id : req.registration_id;
   return (
     <motion.div
       key={req.id}
@@ -93,8 +113,24 @@ function RequestCard({
             <StatusBadge status={req.status} />
             <span className="text-xs text-content-tertiary">{formatDateTime(req.date_created)}</span>
           </div>
+          {/* Visitor row */}
+          {visitor && (
+            <button
+              className="flex items-center gap-1.5 mb-1 group text-left w-full"
+              onClick={() => registrationId && onViewVisitor(registrationId)}
+            >
+              <Icon icon="lucide:user" className="w-3.5 h-3.5 text-content-tertiary shrink-0" />
+              <span className="text-sm font-medium text-content-primary group-hover:text-blue-600 group-hover:underline transition-colors">{visitor.name}</span>
+              {visitor.email && (
+                <span className="text-xs text-content-tertiary truncate">{visitor.email}</span>
+              )}
+              <Icon icon="lucide:chevron-right" className="w-3 h-3 text-content-tertiary ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+            </button>
+          )}
+          {/* Exhibitor row */}
           <div className="flex items-center gap-2">
-            <p className="font-medium text-content-primary text-sm">{getExhibitorName(req)}</p>
+            <Icon icon="lucide:building-2" className="w-3.5 h-3.5 text-content-tertiary shrink-0" />
+            <p className="text-sm text-content-secondary">{getExhibitorName(req)}</p>
             {booth && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono font-medium text-content-primary">{booth}</span>
             )}
@@ -151,6 +187,9 @@ export function TalentMatchRequestsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [noteModal, setNoteModal] = useState<{ req: VisitorMatchRequestWithDetails; action: 'approve' | 'reject' } | null>(null);
   const [note, setNote] = useState('');
+  const [groupByExhibitor, setGroupByExhibitor] = useState(true);
+  const [sort, setSort] = useState('-date_created');
+  const [visitorSheet, setVisitorSheet] = useState<string | null>(null);
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
 
@@ -167,8 +206,9 @@ export function TalentMatchRequestsPage() {
 
   const { data, isLoading, error, refetch } = useMatchRequests(eventId, {
     page,
-    limit: 20,
+    limit: groupByExhibitor ? 100 : 20,
     status: statusFilter,
+    sort,
     search: search || undefined,
     request_type: 'interview',
   });
@@ -247,6 +287,22 @@ export function TalentMatchRequestsPage() {
 
   const allIds = rows.map((r) => r.id);
 
+  // Group by exhibitor — sort: most pending first, then alphabetical
+  const groupedMap = rows.reduce<Record<string, { name: string; boothNo?: string; reqs: VisitorMatchRequestWithDetails[] }>>((acc, req) => {
+    const id = typeof req.exhibitor_id === 'object' ? req.exhibitor_id?.id ?? '__other__' : '__other__';
+    const name = getExhibitorName(req);
+    const exhibitorId = typeof req.exhibitor_id === 'object' ? req.exhibitor_id?.id : req.exhibitor_id;
+    if (!acc[id]) acc[id] = { name, boothNo: exhibitorId ? boothMap[exhibitorId] : undefined, reqs: [] };
+    acc[id].reqs.push(req);
+    return acc;
+  }, {});
+  const grouped = Object.values(groupedMap).sort((a, b) => {
+    const aPending = a.reqs.filter(r => r.status === 'pending').length;
+    const bPending = b.reqs.filter(r => r.status === 'pending').length;
+    if (bPending !== aPending) return bPending - aPending;
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <div className="space-y-4 pb-24">
       <ContainerHeader>
@@ -295,7 +351,7 @@ export function TalentMatchRequestsPage() {
               {isLoading ? '...' : `${total} request${total !== 1 ? 's' : ''}`}
               {search && <span className="ml-1 text-blue-600">· filtered</span>}
             </span>
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
               {rows.length > 0 && (
                 <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-content-secondary hover:bg-slate-200 cursor-pointer transition-colors">
                   <input
@@ -308,6 +364,29 @@ export function TalentMatchRequestsPage() {
                   Select all
                 </label>
               )}
+              <div className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white">
+                <Icon icon="lucide:arrow-up-down" className="w-3.5 h-3.5 text-content-tertiary flex-shrink-0" />
+                <select
+                  value={sort}
+                  onChange={e => { setSort(e.target.value); setPage(1); }}
+                  className="text-xs font-medium text-content-secondary bg-transparent outline-none cursor-pointer"
+                >
+                  <option value="-date_created">Mới nhất</option>
+                  <option value="date_created">Cũ nhất</option>
+                  <option value="preferred_meeting_time">Thời gian mong muốn ↑</option>
+                  <option value="-preferred_meeting_time">Thời gian mong muốn ↓</option>
+                </select>
+              </div>
+              <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+                <button onClick={() => setGroupByExhibitor(true)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${groupByExhibitor ? 'bg-blue-600 text-white' : 'bg-white text-content-secondary hover:bg-slate-50'}`}>
+                  <Icon icon="lucide:building-2" className="w-3.5 h-3.5" /> Grouped
+                </button>
+                <button onClick={() => setGroupByExhibitor(false)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${!groupByExhibitor ? 'bg-blue-600 text-white' : 'bg-white text-content-secondary hover:bg-slate-50'}`}>
+                  <Icon icon="lucide:list" className="w-3.5 h-3.5" /> Flat
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -329,34 +408,89 @@ export function TalentMatchRequestsPage() {
             <Icon icon="lucide:user-check" className="w-10 h-10 text-content-tertiary mb-3" />
             <p className="text-content-primary font-medium">No talent match requests found</p>
           </div>
+        ) : groupByExhibitor ? (
+          <div className="space-y-5">
+            {grouped.map((group, gIdx) => {
+              const statusCounts = group.reqs.reduce<Record<string, number>>((acc, r) => {
+                acc[r.status] = (acc[r.status] ?? 0) + 1;
+                return acc;
+              }, {});
+              return (
+                <div key={group.name}>
+                  <div className="flex items-center gap-2 mb-2.5 px-1 flex-wrap">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                      <Icon icon="lucide:building-2" className="w-3.5 h-3.5 text-blue-600" />
+                    </div>
+                    <span className="font-semibold text-sm text-content-primary">{group.name}</span>
+                    {group.boothNo && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono font-medium text-content-primary">{group.boothNo}</span>
+                    )}
+                    <div className="flex items-center gap-1.5 ml-1">
+                      {(statusCounts.pending ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-100 text-yellow-700">{statusCounts.pending} pending</span>
+                      )}
+                      {(statusCounts.organizer_approved ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">{statusCounts.organizer_approved} approved</span>
+                      )}
+                      {(statusCounts.exhibitor_agreed ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">{statusCounts.exhibitor_agreed} agreed</span>
+                      )}
+                      {(statusCounts.exhibitor_declined ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-600">{statusCounts.exhibitor_declined} declined</span>
+                      )}
+                      <span className="text-xs text-content-tertiary">· {group.reqs.length} total</span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    {group.reqs.map((req, idx) => (
+                      <RequestCard
+                        key={req.id}
+                        req={req}
+                        idx={gIdx * 10 + idx}
+                        actionLoading={actionLoading}
+                        onApprove={(r) => { setNoteModal({ req: r, action: 'approve' }); setNote(''); }}
+                        onReject={(r) => { setNoteModal({ req: r, action: 'reject' }); setNote(''); }}
+                        boothMap={boothMap}
+                        selected={isSelected(req.id)}
+                        onToggle={() => toggle(req.id)}
+                        onViewVisitor={setVisitorSheet}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : (
-          <div className="space-y-2">
-            {rows.map((req, idx) => (
-              <RequestCard
-                key={req.id}
-                req={req}
-                idx={idx}
-                actionLoading={actionLoading}
-                onApprove={(r) => { setNoteModal({ req: r, action: 'approve' }); setNote(''); }}
-                onReject={(r) => { setNoteModal({ req: r, action: 'reject' }); setNote(''); }}
-                boothMap={boothMap}
-                selected={isSelected(req.id)}
-                onToggle={() => toggle(req.id)}
-              />
-            ))}
-          </div>
-        )}
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
-              <Icon icon="lucide:chevron-left" className="w-3.5 h-3.5 mr-1" />Previous
-            </Button>
-            <span className="text-sm text-content-tertiary">Page {page} of {totalPages}</span>
-            <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
-              Next<Icon icon="lucide:chevron-right" className="w-3.5 h-3.5 ml-1" />
-            </Button>
-          </div>
+          <>
+            <div className="space-y-2">
+              {rows.map((req, idx) => (
+                <RequestCard
+                  key={req.id}
+                  req={req}
+                  idx={idx}
+                  actionLoading={actionLoading}
+                  onApprove={(r) => { setNoteModal({ req: r, action: 'approve' }); setNote(''); }}
+                  onReject={(r) => { setNoteModal({ req: r, action: 'reject' }); setNote(''); }}
+                  boothMap={boothMap}
+                  selected={isSelected(req.id)}
+                  onToggle={() => toggle(req.id)}
+                  onViewVisitor={setVisitorSheet}
+                />
+              ))}
+            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-100">
+                <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage((p) => p - 1)}>
+                  <Icon icon="lucide:chevron-left" className="w-3.5 h-3.5 mr-1" />Previous
+                </Button>
+                <span className="text-sm text-content-tertiary">Page {page} of {totalPages}</span>
+                <Button variant="outline" size="sm" disabled={page === totalPages} onClick={() => setPage((p) => p + 1)}>
+                  Next<Icon icon="lucide:chevron-right" className="w-3.5 h-3.5 ml-1" />
+                </Button>
+              </div>
+            )}
+          </>
         )}
       </Container>
 
@@ -426,6 +560,12 @@ export function TalentMatchRequestsPage() {
           </motion.div>
         </div>
       )}
+
+      <VisitorDetailSheet
+        registrationId={visitorSheet}
+        open={!!visitorSheet}
+        onClose={() => setVisitorSheet(null)}
+      />
     </div>
   );
 }

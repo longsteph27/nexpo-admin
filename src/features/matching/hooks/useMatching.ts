@@ -65,6 +65,14 @@ export function useCreateMeeting() {
   });
 }
 
+export function useBulkDeleteMeetings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (ids: string[]) => matchingApi.bulkDeleteMeetings(ids),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['meetings'] }),
+  });
+}
+
 export function useUpdateMeeting() {
   const queryClient = useQueryClient();
   return useMutation({

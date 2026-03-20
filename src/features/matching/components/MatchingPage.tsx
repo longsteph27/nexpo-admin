@@ -13,6 +13,7 @@ import { useSelection } from '@/hooks/useSelection';
 import { BulkActionBar } from '@/components/ui/BulkActionBar';
 import { toast } from 'sonner';
 import type { VisitorMatchRequestWithDetails, MatchRequestStatus } from '../types';
+import { VisitorDetailSheet } from './VisitorDetailSheet';
 
 const STATUS_MAP: Record<MatchRequestStatus, { label: string; cls: string }> = {
   pending: { label: 'Pending', cls: 'bg-yellow-100 text-yellow-700' },
@@ -20,6 +21,7 @@ const STATUS_MAP: Record<MatchRequestStatus, { label: string; cls: string }> = {
   exhibitor_agreed: { label: 'Agreed', cls: 'bg-green-100 text-green-700' },
   exhibitor_declined: { label: 'Declined', cls: 'bg-red-100 text-red-600' },
   organizer_rejected: { label: 'Rejected', cls: 'bg-gray-100 text-gray-500' },
+  converted_to_meeting: { label: 'Meeting Set', cls: 'bg-purple-100 text-purple-700' },
 };
 
 function getExhibitorName(req: VisitorMatchRequestWithDetails): string {
@@ -57,6 +59,7 @@ function RequestCard({
   boothMap,
   selected,
   onToggle,
+  onViewVisitor,
 }: {
   req: VisitorMatchRequestWithDetails;
   idx: number;
@@ -66,11 +69,13 @@ function RequestCard({
   boothMap: Record<string, string>;
   selected: boolean;
   onToggle: () => void;
+  onViewVisitor: (registrationId: string) => void;
 }) {
   const isLoading = actionLoading === req.id;
   const isPending = req.status === 'pending';
   const exhibitorId = typeof req.exhibitor_id === 'object' ? req.exhibitor_id?.id : req.exhibitor_id;
   const booth = exhibitorId ? boothMap[exhibitorId] : undefined;
+  const registrationId = typeof req.registration_id === 'object' ? req.registration_id?.id : req.registration_id as string | undefined;
   return (
     <motion.div
       key={req.id}
@@ -98,6 +103,15 @@ function RequestCard({
               <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono font-medium text-content-primary">{booth}</span>
             )}
           </div>
+          {registrationId && (
+            <button
+              className="flex items-center gap-1.5 mt-0.5 group text-left"
+              onClick={() => onViewVisitor(registrationId)}
+            >
+              <Icon icon="lucide:user" className="w-3.5 h-3.5 text-content-tertiary shrink-0" />
+              <span className="text-xs text-content-secondary group-hover:text-blue-600 group-hover:underline transition-colors">View visitor</span>
+            </button>
+          )}
           {req.message && (
             <p className="text-xs text-content-secondary mt-1 line-clamp-2">{req.message}</p>
           )}
@@ -150,9 +164,11 @@ export function MatchingPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [noteModal, setNoteModal] = useState<{ req: VisitorMatchRequestWithDetails; action: 'approve' | 'reject' } | null>(null);
   const [note, setNote] = useState('');
-  const [groupByExhibitor, setGroupByExhibitor] = useState(false);
+  const [groupByExhibitor, setGroupByExhibitor] = useState(true);
+  const [sort, setSort] = useState('-date_created');
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
+  const [visitorSheet, setVisitorSheet] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => { setSearch(searchInput); setPage(1); }, 400);
@@ -169,7 +185,9 @@ export function MatchingPage() {
     page,
     limit: groupByExhibitor ? 100 : 20,
     status: statusFilter,
+    sort,
     search: search || undefined,
+    request_type: 'business',
   });
   const updateMutation = useUpdateMatchRequest();
   const createMeeting = useCreateMeeting();
@@ -225,13 +243,21 @@ export function MatchingPage() {
     }
   };
 
-  // Group by exhibitor name
-  const grouped = rows.reduce<Record<string, VisitorMatchRequestWithDetails[]>>((acc, req) => {
+  // Group by exhibitor — sort groups: most pending first, then alphabetical
+  const groupedMap = rows.reduce<Record<string, { name: string; boothNo?: string; reqs: VisitorMatchRequestWithDetails[] }>>((acc, req) => {
+    const id = typeof req.exhibitor_id === 'object' ? req.exhibitor_id?.id ?? '__other__' : '__other__';
     const name = getExhibitorName(req);
-    if (!acc[name]) acc[name] = [];
-    acc[name].push(req);
+    const exhibitorId = typeof req.exhibitor_id === 'object' ? req.exhibitor_id?.id : req.exhibitor_id;
+    if (!acc[id]) acc[id] = { name, boothNo: exhibitorId ? boothMap[exhibitorId] : undefined, reqs: [] };
+    acc[id].reqs.push(req);
     return acc;
   }, {});
+  const grouped = Object.values(groupedMap).sort((a, b) => {
+    const aPending = a.reqs.filter(r => r.status === 'pending').length;
+    const bPending = b.reqs.filter(r => r.status === 'pending').length;
+    if (bPending !== aPending) return bPending - aPending;
+    return a.name.localeCompare(b.name);
+  });
 
   const handleBulkApprove = async () => {
     await bulkUpdate.mutateAsync({ ids: selectedArray, payload: { status: 'organizer_approved' } });
@@ -264,6 +290,7 @@ export function MatchingPage() {
           boothMap={boothMap}
           selected={isSelected(req.id)}
           onToggle={() => toggle(req.id)}
+          onViewVisitor={setVisitorSheet}
         />
       ))}
     </div>
@@ -319,7 +346,7 @@ export function MatchingPage() {
               {isLoading ? '...' : `${total} request${total !== 1 ? 's' : ''}`}
               {search && <span className="ml-1 text-blue-600">· filtered</span>}
             </span>
-            <div className="ml-auto flex items-center gap-2">
+            <div className="ml-auto flex items-center gap-2 flex-wrap">
               {rows.length > 0 && (
                 <label className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-slate-100 text-content-secondary hover:bg-slate-200 cursor-pointer transition-colors">
                   <input
@@ -332,17 +359,29 @@ export function MatchingPage() {
                   Select all
                 </label>
               )}
-              <button
-                onClick={() => setGroupByExhibitor((v) => !v)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
-                  groupByExhibitor
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-content-secondary hover:bg-slate-200'
-                }`}
-              >
-                <Icon icon="lucide:layers" className="w-3.5 h-3.5" />
-                Group by Exhibitor
-              </button>
+              <div className="flex items-center gap-1.5 border border-slate-200 rounded-lg px-2.5 py-1.5 bg-white">
+                <Icon icon="lucide:arrow-up-down" className="w-3.5 h-3.5 text-content-tertiary flex-shrink-0" />
+                <select
+                  value={sort}
+                  onChange={e => { setSort(e.target.value); setPage(1); }}
+                  className="text-xs font-medium text-content-secondary bg-transparent outline-none cursor-pointer"
+                >
+                  <option value="-date_created">Mới nhất</option>
+                  <option value="date_created">Cũ nhất</option>
+                  <option value="preferred_meeting_time">Thời gian mong muốn ↑</option>
+                  <option value="-preferred_meeting_time">Thời gian mong muốn ↓</option>
+                </select>
+              </div>
+              <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
+                <button onClick={() => setGroupByExhibitor(true)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${groupByExhibitor ? 'bg-blue-600 text-white' : 'bg-white text-content-secondary hover:bg-slate-50'}`}>
+                  <Icon icon="lucide:building-2" className="w-3.5 h-3.5" /> Grouped
+                </button>
+                <button onClick={() => setGroupByExhibitor(false)}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium transition-colors ${!groupByExhibitor ? 'bg-blue-600 text-white' : 'bg-white text-content-secondary hover:bg-slate-50'}`}>
+                  <Icon icon="lucide:list" className="w-3.5 h-3.5" /> Flat
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -365,19 +404,43 @@ export function MatchingPage() {
             <p className="text-content-primary font-medium">No requests found</p>
           </div>
         ) : groupByExhibitor ? (
-          <div className="space-y-6">
-            {Object.entries(grouped).map(([exhibitorName, reqs], gIdx) => (
-              <div key={exhibitorName}>
-                <div className="flex items-center gap-2 mb-2 px-1">
-                  <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                    <Icon icon="lucide:building-2" className="w-3.5 h-3.5 text-blue-600" />
+          <div className="space-y-5">
+            {grouped.map((group, gIdx) => {
+              const statusCounts = group.reqs.reduce<Record<string, number>>((acc, r) => {
+                acc[r.status] = (acc[r.status] ?? 0) + 1;
+                return acc;
+              }, {});
+              const pendingCount = statusCounts.pending ?? 0;
+              return (
+                <div key={group.name}>
+                  <div className="flex items-center gap-2 mb-2.5 px-1 flex-wrap">
+                    <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
+                      <Icon icon="lucide:building-2" className="w-3.5 h-3.5 text-blue-600" />
+                    </div>
+                    <span className="font-semibold text-sm text-content-primary">{group.name}</span>
+                    {group.boothNo && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-xs font-mono font-medium text-content-primary">{group.boothNo}</span>
+                    )}
+                    <div className="flex items-center gap-1.5 ml-1">
+                      {pendingCount > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-yellow-100 text-yellow-700">{pendingCount} pending</span>
+                      )}
+                      {(statusCounts.organizer_approved ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 text-blue-700">{statusCounts.organizer_approved} approved</span>
+                      )}
+                      {(statusCounts.exhibitor_agreed ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-green-100 text-green-700">{statusCounts.exhibitor_agreed} agreed</span>
+                      )}
+                      {(statusCounts.exhibitor_declined ?? 0) > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-red-100 text-red-600">{statusCounts.exhibitor_declined} declined</span>
+                      )}
+                      <span className="text-xs text-content-tertiary">· {group.reqs.length} total</span>
+                    </div>
                   </div>
-                  <span className="font-semibold text-sm text-content-primary">{exhibitorName}</span>
-                  <span className="text-xs text-content-tertiary">· {reqs.length} request{reqs.length !== 1 ? 's' : ''}</span>
+                  {renderCards(group.reqs, gIdx * 10)}
                 </div>
-                {renderCards(reqs, gIdx * 10)}
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           renderCards(rows)
@@ -464,6 +527,12 @@ export function MatchingPage() {
           </motion.div>
         </div>
       )}
+
+      <VisitorDetailSheet
+        registrationId={visitorSheet}
+        open={!!visitorSheet}
+        onClose={() => setVisitorSheet(null)}
+      />
     </div>
   );
 }

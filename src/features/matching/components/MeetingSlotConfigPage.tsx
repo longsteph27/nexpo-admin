@@ -15,7 +15,6 @@ import type { MeetingSlot, MeetingSlotConfig } from '../types';
 
 const STATUS_MAP = {
   available: { label: 'Available', cls: 'bg-green-100 text-green-700' },
-  booked:    { label: 'Booked',    cls: 'bg-orange-100 text-orange-700' },
   disabled:  { label: 'Disabled',  cls: 'bg-gray-100 text-gray-500' },
 };
 
@@ -24,12 +23,6 @@ function formatTime(dt: string) {
 }
 function formatDate(dt: string) {
   return new Date(dt).toLocaleDateString('vi-VN', { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-function getLinkedName(slot: MeetingSlot): string {
-  if (!slot.meeting_id || typeof slot.meeting_id === 'string') return '—';
-  const reg = slot.meeting_id.registration_id;
-  if (!reg || typeof reg === 'string') return '—';
-  return reg.full_name || reg.email || '—';
 }
 
 export function MeetingSlotConfigPage() {
@@ -303,10 +296,10 @@ export function MeetingSlotConfigPage() {
             {slots.length > 0 && <span className="ml-2 text-xs font-normal text-content-tertiary">({slots.length} slots)</span>}
           </h2>
           {slots.length > 0 && (
-            <div className="flex items-center gap-2 text-xs text-content-tertiary">
-              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Available: {slots.filter(s => s.status === 'available').length}</span>
-              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-orange-500 inline-block" />Booked: {slots.filter(s => s.status === 'booked').length}</span>
+            <div className="flex items-center gap-3 text-xs text-content-tertiary">
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-500 inline-block" />Active: {slots.filter(s => s.status === 'available').length}</span>
               <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />Disabled: {slots.filter(s => s.status === 'disabled').length}</span>
+              <span className="inline-flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />Total meetings: {slots.reduce((sum, s) => sum + (s.meeting_count ?? 0), 0)}</span>
             </div>
           )}
         </div>
@@ -341,21 +334,20 @@ export function MeetingSlotConfigPage() {
                         <th className="text-left px-3 py-2.5 font-semibold text-content-secondary">Giờ</th>
                         <th className="text-left px-3 py-2.5 font-semibold text-content-secondary">Địa điểm</th>
                         <th className="text-left px-3 py-2.5 font-semibold text-content-secondary">Trạng thái</th>
-                        <th className="text-left px-3 py-2.5 font-semibold text-content-secondary">Meeting</th>
+                        <th className="text-left px-3 py-2.5 font-semibold text-content-secondary">Meetings</th>
                         <th className="px-3 py-2.5" />
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {daySlots.map(slot => {
                         const statusCfg = STATUS_MAP[slot.status] ?? STATUS_MAP.available;
-                        const isBooked = slot.status === 'booked';
+                        const meetingCount = slot.meeting_count ?? 0;
                         return (
                           <tr key={slot.id} className="hover:bg-slate-50 transition-colors">
                             <td className="px-3 py-2.5">
                               <input type="checkbox" className="rounded border-gray-300 text-blue-600"
                                 checked={selection.selected.has(slot.id)}
-                                onChange={() => selection.toggle(slot.id)}
-                                disabled={isBooked} />
+                                onChange={() => selection.toggle(slot.id)} />
                             </td>
                             <td className="px-3 py-2.5 font-medium text-content-primary">
                               {formatTime(slot.start_at)} – {formatTime(slot.end_at)}
@@ -367,17 +359,24 @@ export function MeetingSlotConfigPage() {
                                 {statusCfg.label}
                               </span>
                             </td>
-                            <td className="px-3 py-2.5 text-content-secondary text-xs">{getLinkedName(slot)}</td>
                             <td className="px-3 py-2.5">
-                              {!isBooked && (
-                                <button
-                                  onClick={() => updateSlotMutation.mutate({ id: slot.id, status: slot.status === 'disabled' ? 'available' : 'disabled' })}
-                                  disabled={updateSlotMutation.isPending}
-                                  className="p-1.5 rounded-lg hover:bg-slate-100 text-content-tertiary"
-                                  title={slot.status === 'disabled' ? 'Kích hoạt lại' : 'Vô hiệu hóa'}>
-                                  <Icon icon={slot.status === 'disabled' ? 'lucide:eye' : 'lucide:eye-off'} className="w-3.5 h-3.5" />
-                                </button>
+                              {meetingCount > 0 ? (
+                                <span className="inline-flex items-center gap-1 text-xs text-blue-700 font-medium">
+                                  <Icon icon="lucide:calendar-check" className="w-3.5 h-3.5" />
+                                  {meetingCount}
+                                </span>
+                              ) : (
+                                <span className="text-xs text-content-tertiary">—</span>
                               )}
+                            </td>
+                            <td className="px-3 py-2.5">
+                              <button
+                                onClick={() => updateSlotMutation.mutate({ id: slot.id, status: slot.status === 'disabled' ? 'available' : 'disabled' })}
+                                disabled={updateSlotMutation.isPending}
+                                className="p-1.5 rounded-lg hover:bg-slate-100 text-content-tertiary"
+                                title={slot.status === 'disabled' ? 'Kích hoạt lại' : 'Vô hiệu hóa'}>
+                                <Icon icon={slot.status === 'disabled' ? 'lucide:eye' : 'lucide:eye-off'} className="w-3.5 h-3.5" />
+                              </button>
                             </td>
                           </tr>
                         );

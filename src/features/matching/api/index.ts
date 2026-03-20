@@ -38,6 +38,12 @@ export const matchingApi = {
             'exhibitor_id.translations.company_name',
             'exhibitor_id.logo.id',
             'registration_id.id',
+            'registration_id.full_name',
+            'registration_id.email',
+            'registration_id.phone_number',
+            'registration_id.submissions.answers.value',
+            'registration_id.submissions.answers.field.translations.languages_code',
+            'registration_id.submissions.answers.field.translations.label',
           ] as any,
           sort: [sort as any],
           limit,
@@ -110,5 +116,9 @@ export const matchingApi = {
   async updateMeeting(id: string, payload: Partial<Meeting>): Promise<Meeting> {
     const data = await directus.request(updateItem('meetings', id, payload));
     return data as unknown as Meeting;
+  },
+
+  async bulkDeleteMeetings(ids: string[]): Promise<void> {
+    await directus.request(deleteItems('meetings' as any, ids));
   },
 };

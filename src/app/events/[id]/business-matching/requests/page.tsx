@@ -1,5 +1,4 @@
 'use client';
-
 import dynamic from 'next/dynamic';
 
 const MatchingPage = dynamic(
@@ -7,6 +6,6 @@ const MatchingPage = dynamic(
   { ssr: false }
 );
 
-export default function MatchingRoute() {
+export default function BusinessMatchRequestsRoute() {
   return <MatchingPage />;
 }

@@ -34,10 +34,10 @@ export default function EventSidebar() {
     const [expandedSites, setExpandedSites] = useState<Set<number>>(new Set());
     const [expandedPages, setExpandedPages] = useState<Set<number>>(new Set());
     const [expandedBusinessMatching, setExpandedBusinessMatching] = useState(() =>
-        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/business') || window.location.pathname.includes('/matching/companies') || (window.location.pathname.includes('/matching') && !window.location.pathname.includes('/matching/jobs') && !window.location.pathname.includes('/matching/candidates') && !window.location.pathname.includes('/matching/meetings') && !window.location.pathname.includes('/matching/talent-requests')))
+        typeof window !== 'undefined' && window.location.pathname.includes('/business-matching')
     );
     const [expandedTalentMatching, setExpandedTalentMatching] = useState(() =>
-        typeof window !== 'undefined' && (window.location.pathname.includes('/matching/jobs') || window.location.pathname.includes('/matching/candidates') || window.location.pathname.includes('/matching/talent-requests') || (window.location.pathname.includes('/jobs') && !window.location.pathname.includes('/matching')))
+        typeof window !== 'undefined' && window.location.pathname.includes('/talent-matching')
     );
     const [expandedFacilities, setExpandedFacilities] = useState(() =>
         typeof window !== 'undefined' && (window.location.pathname.includes('/facilities') || window.location.pathname.includes('/orders'))
@@ -134,17 +134,18 @@ export default function EventSidebar() {
 
     // Check if Exhibitors section is active
     const isExhibitorsActive = pathname?.includes('/exhibitors');
-    const isTalentMatchRequestsActive = pathname?.includes('/matching/talent-requests');
-    const isCompanyProfilesActive = pathname?.includes('/matching/companies');
-    const isMatchingRequestsActive = pathname?.includes('/matching') && !pathname?.includes('/matching/jobs') && !pathname?.includes('/matching/candidates') && !pathname?.includes('/matching/business-ai') && !pathname?.includes('/matching/business-requirements') && !pathname?.includes('/matching/meetings') && !pathname?.includes('/matching/companies') && !isTalentMatchRequestsActive;
-    const isAIBusinessMatchingActive = pathname?.includes('/matching/business-ai');
-    const isBusinessRequirementsActive = pathname?.includes('/matching/business-requirements');
-    const isBusinessMatchingActive = isMatchingRequestsActive || isAIBusinessMatchingActive || isBusinessRequirementsActive || isCompanyProfilesActive;
-    const isJobPostingsActive = pathname?.includes('/jobs') && !pathname?.includes('/matching');
-    const isCandidateProfilesActive = pathname?.includes('/matching/candidates');
-    const isAIMatchingActive = pathname?.includes('/matching/jobs');
-    const isMeetingsActive = pathname?.includes('/meetings') && !pathname?.includes('/matching/meetings');
-    const isTalentMatchingActive = isJobPostingsActive || isCandidateProfilesActive || isAIMatchingActive || isTalentMatchRequestsActive;
+    const isBusinessRequirementsActive = pathname?.includes('/business-matching/requirements');
+    const isCompanyProfilesActive = pathname?.includes('/business-matching/companies');
+    const isAIBusinessMatchingActive = pathname?.includes('/business-matching/ai');
+    const isMatchingRequestsActive = pathname?.includes('/business-matching/requests');
+    const isBusinessMatchingActive = pathname?.includes('/business-matching');
+    const isJobPostingsActive = pathname?.includes('/talent-matching/jobs');
+    const isCandidateProfilesActive = pathname?.includes('/talent-matching/candidates');
+    const isAIMatchingActive = pathname?.includes('/talent-matching/ai');
+    const isTalentMatchRequestsActive = pathname?.includes('/talent-matching/requests');
+    const isTalentMatchingActive = pathname?.includes('/talent-matching');
+    const isMeetingsActive = pathname?.includes('/meetings') && !pathname?.includes('/talent-matching') && !pathname?.includes('/business-matching');
+    const isTimeslotsActive = pathname?.includes('/matching/timeslots');
     const isTicketsActive = pathname?.includes('/tickets');
     const isOrdersActive = pathname?.includes('/orders');
     const isFacilitiesActive = pathname?.includes('/facilities');
@@ -507,7 +508,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isBusinessRequirementsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/business-requirements`)}
+                                                onClick={() => router.push(`/events/${eventId}/business-matching/requirements`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -522,7 +523,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isCompanyProfilesActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/companies`)}
+                                                onClick={() => router.push(`/events/${eventId}/business-matching/companies`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -537,7 +538,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isAIBusinessMatchingActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/business-ai`)}
+                                                onClick={() => router.push(`/events/${eventId}/business-matching/ai`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -553,7 +554,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isMatchingRequestsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching`)}
+                                                onClick={() => router.push(`/events/${eventId}/business-matching/requests`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -618,7 +619,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isJobPostingsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/jobs`)}
+                                                onClick={() => router.push(`/events/${eventId}/talent-matching/jobs`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -633,7 +634,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isCandidateProfilesActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/candidates`)}
+                                                onClick={() => router.push(`/events/${eventId}/talent-matching/candidates`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -648,7 +649,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isAIMatchingActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/jobs`)}
+                                                onClick={() => router.push(`/events/${eventId}/talent-matching/ai`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -664,7 +665,7 @@ export default function EventSidebar() {
                                                     "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700",
                                                     isTalentMatchRequestsActive && "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
                                                 )}
-                                                onClick={() => router.push(`/events/${eventId}/matching/talent-requests`)}
+                                                onClick={() => router.push(`/events/${eventId}/talent-matching/requests`)}
                                                 variants={sidebarItemVariants}
                                                 whileHover="hover"
                                                 whileTap="tap"
@@ -697,6 +698,28 @@ export default function EventSidebar() {
                                         <Icon icon="lucide:calendar-check" className={cn("w-4 h-4", isMeetingsActive ? "text-blue-600" : "text-content-tertiary")} />
                                     </motion.div>
                                     <span className="font-sf text-sm font-medium text-content-primary">Meetings</span>
+                                </div>
+                            </motion.div>
+
+                            {/* Timeslots Config */}
+                            <motion.div
+                                className="ml-6 cursor-pointer"
+                                onClick={() => router.push(`/events/${eventId}/matching/timeslots`)}
+                                variants={sidebarItemVariants}
+                                whileHover="hover"
+                                whileTap="tap"
+                                transition={{ duration: 0.2, ease: "easeOut" }}
+                            >
+                                <div className={cn(
+                                    "flex items-center space-x-3 px-3 py-2 transition-all duration-200",
+                                    isTimeslotsActive
+                                        ? "bg-gradient-to-r from-[#E6F6FF]/0 to-[#E6F6FF]/100 text-blue-700"
+                                        : "hover:bg-gradient-to-r hover:from-[#E6F6FF]/0 hover:to-[#E6F6FF]/100 hover:text-blue-700"
+                                )}>
+                                    <motion.div animate={isTimeslotsActive ? { scale: 1.1 } : { scale: 1 }} transition={{ duration: 0.2 }}>
+                                        <Icon icon="lucide:layout-grid" className={cn("w-4 h-4", isTimeslotsActive ? "text-blue-600" : "text-content-tertiary")} />
+                                    </motion.div>
+                                    <span className="font-sf text-sm font-medium text-content-primary">Timeslots</span>
                                 </div>
                             </motion.div>
 

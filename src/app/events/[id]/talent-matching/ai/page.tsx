@@ -1,5 +1,4 @@
 'use client';
-
 import dynamic from 'next/dynamic';
 
 const JobMatchSuggestionsPage = dynamic(
@@ -7,6 +6,6 @@ const JobMatchSuggestionsPage = dynamic(
   { ssr: false }
 );
 
-export default function JobMatchingRoute() {
+export default function TalentAIRoute() {
   return <JobMatchSuggestionsPage />;
 }
